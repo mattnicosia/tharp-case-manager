@@ -4,91 +4,74 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Tharp Case Manager</title>
-
-  <!-- React 18 -->
-  <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-
-  <!-- Babel standalone (for JSX in-browser) -->
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body, #root { height: 100%; width: 100%; }
+    body { background: #FAFAF8; }
+  </style>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-
-  <!-- Supabase JS v2 -->
   <script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
-
-  <!-- Storage polyfill -->
-  <script>
-  (function() {
-    var SUPABASE_URL = "https://chmcugvjqnrheunsfslr.supabase.co";
-    var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNobWN1Z3ZqcW5yaGV1bnNmc2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNTA2NTIsImV4cCI6MjA4NzYyNjY1Mn0.TRYkXI5fj4zNucDSk_5gluFmDnWmCtmZh-kMN2iSpJc";
-
-    var sbClient = null;
-    if (SUPABASE_URL && SUPABASE_KEY && window.supabase && window.supabase.createClient) {
-      try {
-        sbClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-        window._storageMode = "cloud";
-      } catch(e) {
-        console.warn("Supabase init failed, falling back to localStorage", e);
-        window._storageMode = "local";
-      }
-    } else {
-      window._storageMode = "local";
-    }
-
-    window.storage = {
-      get: async function(key) {
-        // Try Supabase first
-        if (sbClient) {
-          try {
-            var resp = await sbClient
-              .from('app_data')
-              .select('value')
-              .eq('key', key)
-              .single();
-            if (resp.data && resp.data.value !== undefined) {
-              return resp.data.value;
-            }
-          } catch(e) {
-            console.warn("Supabase get failed for key:", key, e);
-          }
-        }
-        // Fall back to localStorage
-        try {
-          var raw = localStorage.getItem(key);
-          if (raw !== null) {
-            try { return JSON.parse(raw); } catch(e2) { return raw; }
-          }
-        } catch(e) {
-          console.warn("localStorage get failed for key:", key, e);
-        }
-        return null;
-      },
-
-      set: async function(key, value) {
-        // Always save to localStorage immediately
-        try {
-          localStorage.setItem(key, JSON.stringify(value));
-        } catch(e) {
-          console.warn("localStorage set failed for key:", key, e);
-        }
-        // Also upsert to Supabase
-        if (sbClient) {
-          try {
-            await sbClient
-              .from('app_data')
-              .upsert({ key: key, value: value }, { onConflict: 'key' });
-          } catch(e) {
-            console.warn("Supabase set failed for key:", key, e);
-          }
-        }
-      }
-    };
-  })();
-  </script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";</script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
-
-  <script type="text/babel">
+  <script>
+    (function() {
+      var SUPABASE_URL = "https://chmcugvjqnrheunsfslr.supabase.co";
+      var SUPABASE_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNobWN1Z3ZqcW5yaGV1bnNmc2xyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIwNTA2NTIsImV4cCI6MjA4NzYyNjY1Mn0.TRYkXI5fj4zNucDSk_5gluFmDnWmCtmZh-kMN2iSpJc";
+      var sb = null;
+      if (SUPABASE_URL && SUPABASE_KEY && window.supabase) {
+        sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+        console.log("[Storage] Supabase cloud storage ACTIVE");
+      } else {
+        console.log("[Storage] Using localStorage only (offline mode)");
+      }
+      window.storage = {
+        get: function(key) {
+          if (sb) {
+            return sb.from("app_data").select("value").eq("key", key).single()
+              .then(function(res) {
+                if (res.data && res.data.value) {
+                  try { localStorage.setItem(key, JSON.stringify(res.data.value)); } catch(e) {}
+                  return { value: JSON.stringify(res.data.value) };
+                }
+                var v = localStorage.getItem(key);
+                return v != null ? { value: v } : null;
+              })
+              .catch(function(err) {
+                console.warn("[Storage] Cloud read failed:", err.message);
+                var v = localStorage.getItem(key);
+                return v != null ? { value: v } : null;
+              });
+          }
+          var v = localStorage.getItem(key);
+          return Promise.resolve(v != null ? { value: v } : null);
+        },
+        set: function(key, value) {
+          try { localStorage.setItem(key, value); } catch(e) {}
+          if (sb) {
+            var parsed;
+            try { parsed = JSON.parse(value); } catch(e) { parsed = value; }
+            return sb.from("app_data").upsert({ key: key, value: parsed }, { onConflict: "key" })
+              .then(function(res) {
+                if (res.error) console.warn("[Storage] Cloud write failed:", res.error.message);
+              })
+              .catch(function(err) {
+                console.warn("[Storage] Cloud write error:", err.message);
+              });
+          }
+          return Promise.resolve();
+        }
+      };
+      window._storageMode = sb ? "cloud" : "local";
+      window._sb = sb;
+    })();
+  </script>
+  <script type="text/babel" data-type="module">
 const { useState, useEffect, useCallback } = React;
 
 // ── Google Fonts ──────────────────────────────────────────────────────────────
@@ -1426,6 +1409,178 @@ async function storageGet(key) {
 }
 async function storageSet(key, val) {
   try { await window.storage.set(key, JSON.stringify(val)); } catch {}
+}
+
+// ── File Storage (Supabase Storage bucket) ───────────────────────────────────
+async function fileUpload(file, path) {
+  const sb = window._sb;
+  if (!sb) { console.warn("[Files] No Supabase client — file upload skipped"); return null; }
+  const { data, error } = await sb.storage.from("case-files").upload(path, file, { upsert: true });
+  if (error) { console.error("[Files] Upload failed:", error.message); return null; }
+  return data.path;
+}
+
+function fileGetUrl(path) {
+  const sb = window._sb;
+  if (!sb || !path) return null;
+  const { data } = sb.storage.from("case-files").getPublicUrl(path);
+  return data?.publicUrl || null;
+}
+
+async function fileDelete(path) {
+  const sb = window._sb;
+  if (!sb || !path) return false;
+  const { error } = await sb.storage.from("case-files").remove([path]);
+  if (error) { console.error("[Files] Delete failed:", error.message); return false; }
+  return true;
+}
+
+function formatFileSize(bytes) {
+  if (!bytes || bytes === 0) return "0 B";
+  const units = ["B", "KB", "MB", "GB"];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0) + " " + units[i];
+}
+
+function getMimeIcon(mime) {
+  if (!mime) return "📄";
+  if (mime.startsWith("image/")) return "🖼️";
+  if (mime === "application/pdf") return "📕";
+  if (mime.includes("sheet") || mime.includes("excel") || mime.includes("xlsx")) return "📊";
+  if (mime.includes("word") || mime.includes("doc")) return "📝";
+  return "📄";
+}
+
+// ── Auto-Categorization Engine ───────────────────────────────────────────────
+const REQ_PATTERN = /req[quistion]*[- _.]?#?(\d{1,2})/i;
+const INVOICE_PATTERN = /inv(oice)?[- _#.]?\d*/i;
+const CO_PATTERN = /c\.?o\.?[- _#.]?\d+|change[- _]?order/i;
+const INSPECTION_PATTERN = /inspect|report|punchlist|punch[- ]?list|deficienc/i;
+const LEGAL_PATTERN = /arbitrat|aaa|demand|filing|legal|attorney|lien|affidavit/i;
+const PHOTO_PATTERN = /\.(jpg|jpeg|png|gif|bmp|tiff|heic|webp)$/i;
+const CONTRACT_PATTERN = /contract|aia|a101|a110|a201|agreement|scope/i;
+
+const COST_CODE_MAP = {
+  "01": "General Conditions", "02": "Site Work", "03": "Concrete", "04": "Masonry",
+  "05": "Metals / Steel", "06": "Carpentry", "07": "Thermal / Moisture", "08": "Doors & Windows",
+  "09": "Finishes", "10": "Specialties", "11": "Equipment", "12": "Furnishings",
+  "13": "Special Construction", "14": "Conveying Systems", "15": "Mechanical / Plumbing",
+  "16": "Electrical",
+};
+
+const VENDOR_MAP = [
+  "Korth", "Liberty", "Pinnacle", "Lakeland", "Adirondack", "Catskill", "Hudson",
+  "Valley", "Empire", "Precision", "Summit", "Rockland", "Heritage", "Alpine",
+  "Northeast", "Premier", "Quality", "Superior", "Sterling", "Patriot",
+  "Nyack", "Haverstraw", "Highland", "Bear Mountain", "Stony Point",
+];
+
+function autoClassifyFile(fileName) {
+  const result = { category: "other", tags: [], linkedReqs: [], vendor: null, costCode: null };
+  const name = fileName || "";
+  const lower = name.toLowerCase();
+
+  // Detect linked REQs
+  const reqMatch = name.match(new RegExp(REQ_PATTERN.source, "gi"));
+  if (reqMatch) {
+    reqMatch.forEach(m => {
+      const num = m.match(/(\d{1,2})/);
+      if (num) {
+        const reqId = "REQ-" + num[1].padStart(2, "0");
+        if (!result.linkedReqs.includes(reqId)) result.linkedReqs.push(reqId);
+        if (!result.tags.includes(reqId)) result.tags.push(reqId);
+      }
+    });
+    result.category = "requisition";
+  }
+
+  // Detect category from filename patterns
+  if (PHOTO_PATTERN.test(name)) result.category = "photo";
+  else if (LEGAL_PATTERN.test(lower)) result.category = result.category === "other" ? "arbitration" : result.category;
+  else if (CONTRACT_PATTERN.test(lower)) result.category = result.category === "other" ? "contract" : result.category;
+  else if (CO_PATTERN.test(lower)) result.category = result.category === "other" ? "change_order" : result.category;
+  else if (INVOICE_PATTERN.test(lower)) result.category = result.category === "other" ? "invoice" : result.category;
+  else if (INSPECTION_PATTERN.test(lower)) result.category = result.category === "other" ? "inspection" : result.category;
+
+  // Detect cost codes (e.g., "01-" prefix in filename)
+  const ccMatch = name.match(/\b(\d{2})[- ]/);
+  if (ccMatch && COST_CODE_MAP[ccMatch[1]]) {
+    result.costCode = ccMatch[1] + " — " + COST_CODE_MAP[ccMatch[1]];
+    result.tags.push(COST_CODE_MAP[ccMatch[1]]);
+  }
+
+  // Detect vendors
+  for (const vendor of VENDOR_MAP) {
+    if (lower.includes(vendor.toLowerCase())) {
+      result.vendor = vendor;
+      if (!result.tags.includes(vendor)) result.tags.push(vendor);
+      break;
+    }
+  }
+
+  // File extension tag
+  const ext = name.split(".").pop()?.toUpperCase();
+  if (ext && ext.length <= 5 && ext !== name.toUpperCase()) {
+    result.tags.push(ext);
+  }
+
+  return result;
+}
+
+// ── File Parsing (PDF & XLSX) ────────────────────────────────────────────────
+async function extractPdfText(fileUrl) {
+  if (!window.pdfjsLib) { console.warn("[Parse] pdf.js not loaded"); return null; }
+  try {
+    const pdf = await window.pdfjsLib.getDocument(fileUrl).promise;
+    let text = "";
+    const maxPages = Math.min(pdf.numPages, 10);
+    for (let i = 1; i <= maxPages; i++) {
+      const page = await pdf.getPage(i);
+      const content = await page.getTextContent();
+      text += content.items.map(item => item.str).join(" ") + "\n";
+    }
+    return text.slice(0, 3000);
+  } catch (err) {
+    console.warn("[Parse] PDF extraction failed:", err.message);
+    return null;
+  }
+}
+
+async function extractXlsxData(file) {
+  if (!window.XLSX) { console.warn("[Parse] SheetJS not loaded"); return null; }
+  try {
+    const buf = await file.arrayBuffer();
+    const wb = window.XLSX.read(buf, { type: "array" });
+    const ws = wb.Sheets[wb.SheetNames[0]];
+    const rows = window.XLSX.utils.sheet_to_json(ws, { header: 1, defval: "" });
+    const text = rows.slice(0, 50).map(r => r.join(" | ")).join("\n");
+    return text.slice(0, 3000);
+  } catch (err) {
+    console.warn("[Parse] XLSX extraction failed:", err.message);
+    return null;
+  }
+}
+
+function extractTagsFromText(text) {
+  if (!text) return [];
+  const tags = [];
+  // Dollar amounts
+  const dollars = text.match(/\$[\d,]+\.?\d*/g);
+  if (dollars) dollars.slice(0, 5).forEach(d => { if (!tags.includes(d)) tags.push(d); });
+  // REQ references in text
+  const reqs = text.match(/req[quistion]*[- _.]?#?\d{1,2}/gi);
+  if (reqs) reqs.forEach(r => {
+    const num = r.match(/(\d{1,2})/);
+    if (num) { const id = "REQ-" + num[1].padStart(2, "0"); if (!tags.includes(id)) tags.push(id); }
+  });
+  // CO references
+  const cos = text.match(/c\.?o\.?[- _#.]?\d+/gi);
+  if (cos) cos.slice(0, 3).forEach(c => { if (!tags.includes(c.toUpperCase())) tags.push(c.toUpperCase()); });
+  // Vendor matches
+  for (const v of VENDOR_MAP) {
+    if (text.toLowerCase().includes(v.toLowerCase()) && !tags.includes(v)) tags.push(v);
+  }
+  return tags.slice(0, 15);
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -2880,22 +3035,40 @@ const DOCS_INITIAL = [
 
 function Documents({ docs, updateDoc, addDoc, removeDoc }) {
   const [filter, setFilter] = useState("all");
+  const [tagFilter, setTagFilter] = useState(null);
   const [sel, setSel] = useState(null);
   const [adding, setAdding] = useState(false);
   const [newDoc, setNewDoc] = useState({ category: "other", name: "", date: "", description: "", parties: "", status: "draft", notes: "" });
   const [search, setSearch] = useState("");
+  const [dragOver, setDragOver] = useState(false);
+  const [uploading, setUploading] = useState([]); // [{name, progress, status}]
+  const [uploadSummary, setUploadSummary] = useState(null);
+  const [newTag, setNewTag] = useState("");
+  const [previewUrl, setPreviewUrl] = useState(null);
 
   const filtered = docs.filter(d => {
     if (filter !== "all" && d.category !== filter) return false;
+    if (tagFilter && !(d.tags || []).includes(tagFilter)) return false;
     if (search) {
       const q = search.toLowerCase();
-      return d.name.toLowerCase().includes(q) || d.description.toLowerCase().includes(q) || (d.notes || "").toLowerCase().includes(q);
+      return d.name.toLowerCase().includes(q)
+        || (d.description || "").toLowerCase().includes(q)
+        || (d.notes || "").toLowerCase().includes(q)
+        || (d.extractedText || "").toLowerCase().includes(q)
+        || (d.tags || []).some(t => t.toLowerCase().includes(q))
+        || (d.vendor || "").toLowerCase().includes(q)
+        || (d.costCode || "").toLowerCase().includes(q)
+        || (d.fileName || "").toLowerCase().includes(q);
     }
     return true;
   });
 
   const editing = sel ? docs.find(d => d.id === sel) : null;
   const catCounts = DOC_CATEGORIES.map(c => ({ ...c, count: docs.filter(d => d.category === c.id).length }));
+
+  // Collect all unique tags across docs
+  const allTags = [...new Set(docs.flatMap(d => d.tags || []))].sort();
+  const uploadedCount = docs.filter(d => d.storagePath).length;
 
   const ThStyle = { padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg };
   const TdStyle = { padding: "10px 14px", fontSize: 13, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
@@ -2904,26 +3077,199 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
 
   const handleAdd = () => {
     const id = "doc-" + String(docs.length + 1).padStart(3, "0") + "-" + Date.now().toString(36);
-    addDoc({ ...newDoc, id });
+    addDoc({ ...newDoc, id, tags: [], linkedReqs: [], storagePath: null, fileName: null, fileSize: 0, mimeType: null, extractedText: null, vendor: null, costCode: null });
     setNewDoc({ category: "other", name: "", date: "", description: "", parties: "", status: "draft", notes: "" });
     setAdding(false);
   };
 
+  // ── File Upload Handler ──
+  const processFiles = async (files) => {
+    if (!files || files.length === 0) return;
+    if (!window._sb) {
+      alert("File upload requires cloud mode (Supabase). The app is currently in local-only mode.");
+      return;
+    }
+
+    const fileArr = Array.from(files);
+    const summary = { total: fileArr.length, uploaded: 0, categorized: 0, tagged: 0 };
+    setUploading(fileArr.map(f => ({ name: f.name, progress: 0, status: "pending" })));
+
+    for (let i = 0; i < fileArr.length; i++) {
+      const file = fileArr[i];
+      setUploading(prev => prev.map((u, j) => j === i ? { ...u, status: "uploading", progress: 30 } : u));
+
+      // Build storage path: category/filename (sanitized)
+      const classify = autoClassifyFile(file.name);
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const storagePath = classify.category + "/" + Date.now() + "-" + safeName;
+
+      // Upload to Supabase Storage
+      const path = await fileUpload(file, storagePath);
+      if (!path) {
+        setUploading(prev => prev.map((u, j) => j === i ? { ...u, status: "error", progress: 100 } : u));
+        continue;
+      }
+
+      setUploading(prev => prev.map((u, j) => j === i ? { ...u, progress: 60, status: "parsing" } : u));
+
+      // Parse file content for text extraction
+      let extractedText = null;
+      let textTags = [];
+      const mime = file.type || "";
+      if (mime === "application/pdf") {
+        const url = fileGetUrl(path);
+        if (url) extractedText = await extractPdfText(url);
+      } else if (mime.includes("sheet") || mime.includes("excel") || file.name.match(/\.xlsx?$/i)) {
+        extractedText = await extractXlsxData(file);
+      }
+      if (extractedText) {
+        textTags = extractTagsFromText(extractedText);
+      }
+
+      // Merge filename tags + text-extracted tags
+      const allFileTags = [...new Set([...classify.tags, ...textTags])];
+      const allLinkedReqs = [...new Set([...classify.linkedReqs, ...textTags.filter(t => t.match(/^REQ-\d{2}$/))])];
+
+      setUploading(prev => prev.map((u, j) => j === i ? { ...u, progress: 90, status: "saving" } : u));
+
+      // Create document record
+      const id = "doc-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
+      const newDocRecord = {
+        id,
+        category: classify.category,
+        name: file.name.replace(/\.[^.]+$/, "").replace(/[_-]/g, " "),
+        date: new Date().toISOString().slice(0, 10),
+        description: classify.vendor ? `${classify.vendor} — auto-imported` : "Auto-imported",
+        parties: classify.vendor || "",
+        status: "draft",
+        notes: "",
+        storagePath: path,
+        fileName: file.name,
+        fileSize: file.size,
+        mimeType: mime,
+        tags: allFileTags,
+        linkedReqs: allLinkedReqs,
+        extractedText: extractedText,
+        vendor: classify.vendor,
+        costCode: classify.costCode,
+      };
+
+      addDoc(newDocRecord);
+      summary.uploaded++;
+      if (classify.category !== "other") summary.categorized++;
+      if (allFileTags.length > 0) summary.tagged++;
+
+      setUploading(prev => prev.map((u, j) => j === i ? { ...u, progress: 100, status: "done" } : u));
+    }
+
+    setUploadSummary(summary);
+    setTimeout(() => { setUploading([]); }, 3000);
+    setTimeout(() => { setUploadSummary(null); }, 8000);
+  };
+
+  const handleDrop = (e) => {
+    e.preventDefault();
+    setDragOver(false);
+    processFiles(e.dataTransfer.files);
+  };
+
+  const handleFileInput = (e) => {
+    processFiles(e.target.files);
+    e.target.value = "";
+  };
+
+  // Tag management
+  const addTag = (docId, tag) => {
+    const doc = docs.find(d => d.id === docId);
+    if (!doc || !tag.trim()) return;
+    const tags = [...(doc.tags || [])];
+    if (!tags.includes(tag.trim())) tags.push(tag.trim());
+    updateDoc(docId, { tags });
+  };
+
+  const removeTag = (docId, tag) => {
+    const doc = docs.find(d => d.id === docId);
+    if (!doc) return;
+    updateDoc(docId, { tags: (doc.tags || []).filter(t => t !== tag) });
+  };
+
+  // Open file preview
+  const openFile = (doc) => {
+    if (!doc.storagePath) return;
+    const url = fileGetUrl(doc.storagePath);
+    if (url) window.open(url, "_blank");
+  };
+
   return (
-    <div style={{ display: "grid", gridTemplateColumns: editing || adding ? "1fr 400px" : "1fr", gap: 20, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: editing || adding ? "1fr 420px" : "1fr", gap: 20, alignItems: "start" }}>
       <div>
-        <SectionTitle title="Documents" subtitle={`${docs.length} documents across ${DOC_CATEGORIES.length} categories`} />
+        <SectionTitle title="Documents" subtitle={`${docs.length} documents · ${uploadedCount} with files · ${allTags.length} unique tags`} />
+
+        {/* Upload Zone */}
+        <div
+          onDragOver={e => { e.preventDefault(); setDragOver(true); }}
+          onDragLeave={() => setDragOver(false)}
+          onDrop={handleDrop}
+          style={{
+            border: `2px dashed ${dragOver ? T.accent : T.border}`,
+            borderRadius: 12,
+            padding: uploading.length > 0 ? "12px 20px" : "24px 20px",
+            marginBottom: 16,
+            textAlign: "center",
+            background: dragOver ? T.accentBg : T.surface,
+            transition: "all 0.2s",
+            cursor: "pointer",
+          }}
+          onClick={() => { if (uploading.length === 0) document.getElementById("doc-file-input")?.click(); }}
+        >
+          {uploading.length === 0 ? (
+            <div>
+              <div style={{ fontSize: 28, marginBottom: 6 }}>📁</div>
+              <div style={{ fontSize: 13, fontWeight: 500, color: T.text, fontFamily: T.font }}>
+                Drop files here to upload, or <span style={{ color: T.accent, textDecoration: "underline" }}>browse</span>
+              </div>
+              <div style={{ fontSize: 11, color: T.textMuted, marginTop: 4, fontFamily: T.font }}>
+                PDF, XLSX, images, and other documents · Auto-categorizes and extracts tags
+              </div>
+              <input id="doc-file-input" type="file" multiple style={{ display: "none" }} onChange={handleFileInput} />
+            </div>
+          ) : (
+            <div style={{ textAlign: "left" }}>
+              {uploading.map((u, i) => (
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 0" }}>
+                  <span style={{ fontSize: 12, fontFamily: T.font, color: T.textMid, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name}</span>
+                  <div style={{ width: 100, height: 4, borderRadius: 2, background: T.border, flexShrink: 0 }}>
+                    <div style={{ width: u.progress + "%", height: "100%", borderRadius: 2, background: u.status === "error" ? T.red : u.status === "done" ? T.green : T.accent, transition: "width 0.3s" }} />
+                  </div>
+                  <span style={{ fontSize: 10, color: u.status === "error" ? T.red : u.status === "done" ? T.green : T.textMuted, fontFamily: T.font, width: 60, textAlign: "right" }}>
+                    {u.status === "error" ? "Failed" : u.status === "done" ? "Done" : u.status === "parsing" ? "Parsing…" : u.status === "saving" ? "Saving…" : "Uploading…"}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Upload Summary Banner */}
+        {uploadSummary && (
+          <div style={{ padding: "10px 16px", borderRadius: 8, background: T.greenBg, border: `1px solid ${T.green}22`, marginBottom: 16, display: "flex", gap: 16, alignItems: "center" }}>
+            <span style={{ fontSize: 18 }}>✅</span>
+            <span style={{ fontSize: 12, fontFamily: T.font, color: T.green }}>
+              <strong>{uploadSummary.uploaded}</strong> of {uploadSummary.total} files uploaded · <strong>{uploadSummary.categorized}</strong> auto-categorized · <strong>{uploadSummary.tagged}</strong> tagged
+            </span>
+          </div>
+        )}
 
         {/* Category Chips */}
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 16 }}>
-          <button onClick={() => setFilter("all")} style={{
+        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+          <button onClick={() => { setFilter("all"); setTagFilter(null); }} style={{
             padding: "6px 14px", borderRadius: 20, cursor: "pointer", fontFamily: T.font, fontSize: 12, fontWeight: 500,
-            border: `1.5px solid ${filter === "all" ? T.accent : T.border}`,
-            background: filter === "all" ? T.accentBg : T.surface,
-            color: filter === "all" ? T.accent : T.textMid,
+            border: `1.5px solid ${filter === "all" && !tagFilter ? T.accent : T.border}`,
+            background: filter === "all" && !tagFilter ? T.accentBg : T.surface,
+            color: filter === "all" && !tagFilter ? T.accent : T.textMid,
           }}>All ({docs.length})</button>
           {catCounts.filter(c => c.count > 0).map(c => (
-            <button key={c.id} onClick={() => setFilter(c.id)} style={{
+            <button key={c.id} onClick={() => { setFilter(c.id); setTagFilter(null); }} style={{
               padding: "6px 14px", borderRadius: 20, cursor: "pointer", fontFamily: T.font, fontSize: 12, fontWeight: 500,
               border: `1.5px solid ${filter === c.id ? c.color : T.border}`,
               background: filter === c.id ? (c.color + "12") : T.surface,
@@ -2932,9 +3278,24 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
           ))}
         </div>
 
+        {/* Tag Filter Chips (top 20 most common) */}
+        {allTags.length > 0 && (
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 16 }}>
+            <span style={{ fontSize: 10, color: T.textMuted, fontFamily: T.font, padding: "4px 6px" }}>Tags:</span>
+            {allTags.slice(0, 20).map(tag => (
+              <button key={tag} onClick={() => { setTagFilter(tagFilter === tag ? null : tag); setFilter("all"); }} style={{
+                padding: "3px 10px", borderRadius: 12, cursor: "pointer", fontFamily: T.font, fontSize: 10, fontWeight: 500,
+                border: `1px solid ${tagFilter === tag ? T.accent : T.border}`,
+                background: tagFilter === tag ? T.accentBg : T.bg,
+                color: tagFilter === tag ? T.accent : T.textMid,
+              }}>{tag}</button>
+            ))}
+          </div>
+        )}
+
         {/* Search + Add */}
         <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
-          <input type="text" placeholder="Search documents..." value={search} onChange={e => setSearch(e.target.value)}
+          <input type="text" placeholder="Search documents, tags, extracted text..." value={search} onChange={e => setSearch(e.target.value)}
             style={{ flex: 1, padding: "8px 14px", borderRadius: 8, border: `1px solid ${T.border}`, fontSize: 13, fontFamily: T.font, color: T.text, background: T.surface }} />
           <button onClick={() => { setAdding(true); setSel(null); }} style={{
             padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontFamily: T.font, fontSize: 12, fontWeight: 600,
@@ -2947,7 +3308,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {["", "Document Name", "Date", "Parties", "Status"].map(h => (
+                {["", "Document Name", "Tags", "Date", "File", "Status"].map(h => (
                   <th key={h} style={ThStyle}>{h}</th>
                 ))}
               </tr>
@@ -2956,18 +3317,46 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
               {filtered.map(doc => {
                 const cat = catInfo(doc.category);
                 const active = sel === doc.id;
+                const hasFile = !!doc.storagePath;
                 return (
                   <tr key={doc.id} onClick={() => { setSel(active ? null : doc.id); setAdding(false); }}
                     style={{ cursor: "pointer", background: active ? T.accentBg : "transparent", transition: "background 0.1s" }}
                     onMouseEnter={e => { if (!active) e.currentTarget.style.background = T.surfaceHover; }}
                     onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}>
-                    <td style={{ ...TdStyle, width: 36, textAlign: "center", fontSize: 16 }}>{cat.icon}</td>
+                    <td style={{ ...TdStyle, width: 36, textAlign: "center", fontSize: 16 }}>{hasFile ? getMimeIcon(doc.mimeType) : cat.icon}</td>
                     <td style={TdStyle}>
                       <div style={{ fontWeight: 500 }}>{doc.name}</div>
-                      <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>{doc.description}</div>
+                      <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>
+                        {doc.description}
+                        {doc.vendor && <span style={{ marginLeft: 6, color: T.accent }}>· {doc.vendor}</span>}
+                      </div>
+                    </td>
+                    <td style={{ ...TdStyle, maxWidth: 180 }}>
+                      <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+                        {(doc.tags || []).slice(0, 4).map(tag => (
+                          <span key={tag} style={{
+                            display: "inline-block", padding: "2px 7px", borderRadius: 8, fontSize: 9, fontWeight: 500, fontFamily: T.font,
+                            background: tag.match(/^REQ-/) ? T.blueBg : tag.match(/^\$/) ? T.amberBg : T.bg,
+                            color: tag.match(/^REQ-/) ? T.blue : tag.match(/^\$/) ? T.amber : T.textMid,
+                            border: `1px solid ${tag.match(/^REQ-/) ? T.blueBorder : tag.match(/^\$/) ? T.amberBorder : T.border}`,
+                          }}>{tag}</span>
+                        ))}
+                        {(doc.tags || []).length > 4 && (
+                          <span style={{ fontSize: 9, color: T.textMuted, padding: "2px 4px" }}>+{(doc.tags || []).length - 4}</span>
+                        )}
+                      </div>
                     </td>
                     <td style={{ ...TdStyle, fontFamily: T.mono, fontSize: 12, whiteSpace: "nowrap" }}>{doc.date}</td>
-                    <td style={{ ...TdStyle, fontSize: 12 }}>{doc.parties}</td>
+                    <td style={{ ...TdStyle, fontSize: 11 }}>
+                      {hasFile ? (
+                        <div>
+                          <div style={{ color: T.green, fontWeight: 500 }}>{formatFileSize(doc.fileSize)}</div>
+                          <div style={{ fontSize: 9, color: T.textMuted }}>{(doc.fileName || "").split(".").pop()?.toUpperCase()}</div>
+                        </div>
+                      ) : (
+                        <span style={{ color: T.textMuted }}>—</span>
+                      )}
+                    </td>
                     <td style={TdStyle}>
                       <span style={{
                         display: "inline-block", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 600, fontFamily: T.font,
@@ -2979,7 +3368,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
                 );
               })}
               {filtered.length === 0 && (
-                <tr><td colSpan={5} style={{ ...TdStyle, textAlign: "center", color: T.textMuted, padding: 40 }}>No documents match your filter</td></tr>
+                <tr><td colSpan={6} style={{ ...TdStyle, textAlign: "center", color: T.textMuted, padding: 40 }}>No documents match your filter</td></tr>
               )}
             </tbody>
           </table>
@@ -2994,6 +3383,103 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
               <CardLabel label="Edit Document" />
               <button onClick={() => setSel(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: T.textMuted, lineHeight: 1 }}>×</button>
             </div>
+
+            {/* File info / actions */}
+            {editing.storagePath && (
+              <div style={{ marginBottom: 14, padding: "10px 12px", borderRadius: 8, background: T.bg, border: `1px solid ${T.border}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+                  <span style={{ fontSize: 18 }}>{getMimeIcon(editing.mimeType)}</span>
+                  <div style={{ flex: 1, overflow: "hidden" }}>
+                    <div style={{ fontSize: 12, fontWeight: 500, fontFamily: T.font, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{editing.fileName}</div>
+                    <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.font }}>{formatFileSize(editing.fileSize)} · {(editing.mimeType || "unknown").split("/").pop()}</div>
+                  </div>
+                </div>
+                <div style={{ display: "flex", gap: 6 }}>
+                  <button onClick={() => openFile(editing)} style={{
+                    flex: 1, padding: "6px", borderRadius: 6, cursor: "pointer", fontFamily: T.font, fontSize: 11, fontWeight: 500,
+                    border: `1px solid ${T.border}`, background: T.surface, color: T.accent,
+                  }}>View File</button>
+                  <button onClick={async () => {
+                    if (confirm("Remove file from storage? The document record will remain.")) {
+                      await fileDelete(editing.storagePath);
+                      updateDoc(editing.id, { storagePath: null, fileName: null, fileSize: 0, mimeType: null });
+                    }
+                  }} style={{
+                    padding: "6px 10px", borderRadius: 6, cursor: "pointer", fontFamily: T.font, fontSize: 11, fontWeight: 500,
+                    border: `1px solid ${T.redBorder}`, background: T.redBg, color: T.red,
+                  }}>Delete File</button>
+                </div>
+              </div>
+            )}
+
+            {/* Inline preview for images */}
+            {editing.storagePath && editing.mimeType && editing.mimeType.startsWith("image/") && (
+              <div style={{ marginBottom: 14, borderRadius: 8, overflow: "hidden", border: `1px solid ${T.border}` }}>
+                <img src={fileGetUrl(editing.storagePath)} alt={editing.name} style={{ width: "100%", height: "auto", display: "block" }} />
+              </div>
+            )}
+
+            {/* Tags */}
+            <div style={{ marginBottom: 14 }}>
+              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 6, fontFamily: T.font }}>Tags</label>
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>
+                {(editing.tags || []).map(tag => (
+                  <span key={tag} style={{
+                    display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 10, fontSize: 11, fontWeight: 500, fontFamily: T.font,
+                    background: tag.match(/^REQ-/) ? T.blueBg : tag.match(/^\$/) ? T.amberBg : T.bg,
+                    color: tag.match(/^REQ-/) ? T.blue : tag.match(/^\$/) ? T.amber : T.textMid,
+                    border: `1px solid ${tag.match(/^REQ-/) ? T.blueBorder : tag.match(/^\$/) ? T.amberBorder : T.border}`,
+                  }}>
+                    {tag}
+                    <span onClick={(e) => { e.stopPropagation(); removeTag(editing.id, tag); }} style={{ cursor: "pointer", fontSize: 13, lineHeight: 1, opacity: 0.6 }}>×</span>
+                  </span>
+                ))}
+                {(editing.tags || []).length === 0 && <span style={{ fontSize: 11, color: T.textMuted, fontFamily: T.font }}>No tags</span>}
+              </div>
+              <div style={{ display: "flex", gap: 4 }}>
+                <input type="text" placeholder="Add tag…" value={newTag} onChange={e => setNewTag(e.target.value)}
+                  onKeyDown={e => { if (e.key === "Enter" && newTag.trim()) { addTag(editing.id, newTag); setNewTag(""); } }}
+                  style={{ flex: 1, padding: "5px 8px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 11, fontFamily: T.font, color: T.text, background: T.surface }} />
+                <button onClick={() => { if (newTag.trim()) { addTag(editing.id, newTag); setNewTag(""); } }} style={{
+                  padding: "5px 10px", borderRadius: 6, cursor: "pointer", fontFamily: T.font, fontSize: 11, fontWeight: 500,
+                  border: `1px solid ${T.border}`, background: T.surface, color: T.accent,
+                }}>+</button>
+              </div>
+            </div>
+
+            {/* Linked REQs */}
+            {(editing.linkedReqs || []).length > 0 && (
+              <div style={{ marginBottom: 14 }}>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Linked Requisitions</label>
+                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+                  {(editing.linkedReqs || []).map(req => (
+                    <span key={req} style={{
+                      display: "inline-block", padding: "3px 10px", borderRadius: 10, fontSize: 11, fontWeight: 600, fontFamily: T.font,
+                      background: T.blueBg, color: T.blue, border: `1px solid ${T.blueBorder}`,
+                    }}>{req}</span>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Cost Code / Vendor */}
+            {(editing.costCode || editing.vendor) && (
+              <div style={{ marginBottom: 14, display: "flex", gap: 10 }}>
+                {editing.vendor && (
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: "block", fontSize: 10, fontWeight: 600, color: T.textMuted, letterSpacing: 0.4, marginBottom: 2, fontFamily: T.font }}>VENDOR</label>
+                    <div style={{ fontSize: 12, fontFamily: T.font, color: T.text }}>{editing.vendor}</div>
+                  </div>
+                )}
+                {editing.costCode && (
+                  <div style={{ flex: 1 }}>
+                    <label style={{ display: "block", fontSize: 10, fontWeight: 600, color: T.textMuted, letterSpacing: 0.4, marginBottom: 2, fontFamily: T.font }}>COST CODE</label>
+                    <div style={{ fontSize: 12, fontFamily: T.font, color: T.text }}>{editing.costCode}</div>
+                  </div>
+                )}
+              </div>
+            )}
+
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Category</label>
               <select value={editing.category} onChange={e => updateDoc(editing.id, { category: e.target.value })}
@@ -3015,8 +3501,30 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Notes</label>
               <textarea value={editing.notes || ""} onChange={e => updateDoc(editing.id, { notes: e.target.value })}
-                rows={4} style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface, resize: "vertical" }} />
+                rows={3} style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface, resize: "vertical" }} />
             </div>
+
+            {/* Extracted Text Preview */}
+            {editing.extractedText && (
+              <div style={{ marginBottom: 12 }}>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Extracted Text (preview)</label>
+                <div style={{ padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, background: T.bg, fontSize: 10, fontFamily: T.mono, color: T.textMid, maxHeight: 120, overflow: "auto", whiteSpace: "pre-wrap", lineHeight: 1.4 }}>
+                  {editing.extractedText.slice(0, 500)}{editing.extractedText.length > 500 ? "…" : ""}
+                </div>
+              </div>
+            )}
+
+            {/* Delete Document */}
+            <button onClick={async () => {
+              if (confirm("Delete this document record" + (editing.storagePath ? " and its uploaded file" : "") + "?")) {
+                if (editing.storagePath) await fileDelete(editing.storagePath);
+                removeDoc(editing.id);
+                setSel(null);
+              }
+            }} style={{
+              width: "100%", padding: "8px", borderRadius: 6, cursor: "pointer", fontFamily: T.font, fontSize: 11, fontWeight: 500,
+              border: `1px solid ${T.redBorder}`, background: T.redBg, color: T.red, marginTop: 8,
+            }}>Delete Document</button>
           </Card>
         </div>
       )}
@@ -3050,7 +3558,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
             <div style={{ marginBottom: 12 }}>
               <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Notes</label>
               <textarea value={newDoc.notes} onChange={e => setNewDoc(prev => ({ ...prev, notes: e.target.value }))}
-                rows={4} style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface, resize: "vertical" }} />
+                rows={3} style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface, resize: "vertical" }} />
             </div>
             <button onClick={handleAdd} disabled={!newDoc.name.trim()} style={{
               width: "100%", padding: "10px", borderRadius: 8, cursor: newDoc.name.trim() ? "pointer" : "default", fontFamily: T.font, fontSize: 13, fontWeight: 600,
@@ -3199,7 +3707,7 @@ function App() {
 }
 
 
-  ReactDOM.createRoot(document.getElementById("root")).render(<App />);
+ReactDOM.createRoot(document.getElementById("root")).render(<App />);
   </script>
 </body>
 </html>

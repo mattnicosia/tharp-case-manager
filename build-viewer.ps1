@@ -53,6 +53,9 @@ $html = @"
   <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
   $supabaseScript
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>if(window.pdfjsLib)pdfjsLib.GlobalWorkerOptions.workerSrc="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js";</script>
+  <script src="https://cdn.sheetjs.com/xlsx-0.20.1/package/dist/xlsx.full.min.js"></script>
 </head>
 <body>
   <div id="root"></div>
@@ -123,8 +126,9 @@ $html = @"
         }
       };
 
-      // Expose connection status for the UI
+      // Expose connection status and Supabase client for the UI
       window._storageMode = sb ? "cloud" : "local";
+      window._sb = sb;
     })();
   </script>
 
