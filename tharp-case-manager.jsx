@@ -3085,6 +3085,13 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
       if (classify.category !== "other") summary.categorized++;
       if (allFileTags.length > 0) summary.tagged++;
 
+      // AI auto-analysis (non-blocking)
+      if (window._openaiKey && extractedText) {
+        analyzeUploadedDoc(newDocRecord, extractedText, docs)
+          .then(aiUpdates => { if (aiUpdates) updateDoc(id, aiUpdates); })
+          .catch(err => console.warn("[AI] Upload analysis failed:", err.message));
+      }
+
       setUploading(prev => prev.map((u, j) => j === i ? { ...u, progress: 100, status: "done" } : u));
     }
 
@@ -3497,6 +3504,502 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
   );
 }
 
+// ── AI ASSISTANT ─────────────────────────────────────────────────────────────
+const fmtDollar = n => "$" + (n || 0).toLocaleString(undefined, { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+
+const AI_TOOLS = [
+  { type: "function", function: {
+    name: "navigate_tab",
+    description: "Switch the app to a specific tab/view.",
+    parameters: { type: "object", properties: {
+      tab: { type: "string", enum: ["dashboard","requisitions","reconciliation","audit","claims","documents","simulator","strategy"], description: "Tab to navigate to" }
+    }, required: ["tab"] }
+  }},
+  { type: "function", function: {
+    name: "update_requisition",
+    description: "Update fields on a requisition (REQ-01 through REQ-15). Can update amounts, backup status, notes, documentation flags.",
+    parameters: { type: "object", properties: {
+      reqId: { type: "integer", description: "Requisition ID (1-15)", minimum: 1, maximum: 15 },
+      updates: { type: "object", properties: {
+        totalBilled: { type: "number" }, retainageHeld: { type: "number" },
+        laborCost: { type: "number" }, materialCost: { type: "number" }, subCost: { type: "number" },
+        laborRate: { type: "number" }, backupStatus: { type: "string", enum: ["COMPLETE","PARTIAL","MISSING"] },
+        hasPayrollSupport: { type: "boolean" }, hasInvoiceSupport: { type: "boolean" }, hasCheckVouchers: { type: "boolean" },
+        notes: { type: "string" }, date: { type: "string" }
+      }}
+    }, required: ["reqId","updates"] }
+  }},
+  { type: "function", function: {
+    name: "flag_requisition",
+    description: "Add or remove an audit flag on a requisition. Flags: blended_rate, sub_as_labor, overhead_as_material, missing_invoice, markup_on_markup, duplicate, no_timesheet, rate_anomaly, no_scope_desc, owner_supplied, co_missing, retainage_error",
+    parameters: { type: "object", properties: {
+      reqId: { type: "integer", description: "Requisition ID (1-15)", minimum: 1, maximum: 15 },
+      flag: { type: "string", enum: ["blended_rate","sub_as_labor","overhead_as_material","missing_invoice","markup_on_markup","duplicate","no_timesheet","rate_anomaly","no_scope_desc","owner_supplied","co_missing","retainage_error"] },
+      action: { type: "string", enum: ["add","remove"] }
+    }, required: ["reqId","flag","action"] }
+  }},
+  { type: "function", function: {
+    name: "update_claim",
+    description: "Update an owner claim (1-24). Can change status, strength, defense text, amounts.",
+    parameters: { type: "object", properties: {
+      claimId: { type: "integer", description: "Claim ID (1-24)", minimum: 1, maximum: 24 },
+      updates: { type: "object", properties: {
+        status: { type: "string", enum: ["DISPUTED","AGREED","WAIVED","PENDING"] },
+        strength: { type: "string", enum: ["STRONG","MODERATE","WEAK","N/A"] },
+        defense: { type: "string" }, ownerAmount: { type: "number" }, agreedAmount: { type: "number" }
+      }}
+    }, required: ["claimId","updates"] }
+  }},
+  { type: "function", function: {
+    name: "add_document",
+    description: "Create a new document record in the system.",
+    parameters: { type: "object", properties: {
+      name: { type: "string" },
+      category: { type: "string", enum: ["contract","requisition","change_order","correspondence","invoice","inspection","photo","arbitration","other"] },
+      date: { type: "string" }, description: { type: "string" }, parties: { type: "string" },
+      status: { type: "string", enum: ["draft","submitted","received","filed","confirmed","active","disputed","final"] },
+      tags: { type: "array", items: { type: "string" } },
+      linkedReqs: { type: "array", items: { type: "string" } }, notes: { type: "string" }
+    }, required: ["name","category"] }
+  }},
+  { type: "function", function: {
+    name: "update_document",
+    description: "Update fields on an existing document by its ID.",
+    parameters: { type: "object", properties: {
+      docId: { type: "string", description: "Document ID" },
+      updates: { type: "object", properties: {
+        category: { type: "string", enum: ["contract","requisition","change_order","correspondence","invoice","inspection","photo","arbitration","other"] },
+        name: { type: "string" }, description: { type: "string" },
+        status: { type: "string", enum: ["draft","submitted","received","filed","confirmed","active","disputed","final"] },
+        tags: { type: "array", items: { type: "string" } },
+        linkedReqs: { type: "array", items: { type: "string" } },
+        notes: { type: "string" }, parties: { type: "string" }, vendor: { type: "string" }, costCode: { type: "string" }
+      }}
+    }, required: ["docId","updates"] }
+  }},
+  { type: "function", function: {
+    name: "search_documents",
+    description: "Search documents by text. Searches name, description, tags, extracted text, vendor, notes.",
+    parameters: { type: "object", properties: {
+      query: { type: "string" },
+      category: { type: "string", enum: ["contract","requisition","change_order","correspondence","invoice","inspection","photo","arbitration","other"] }
+    }, required: ["query"] }
+  }},
+  { type: "function", function: {
+    name: "analyze_document",
+    description: "Retrieve a document's metadata and extracted text for analysis.",
+    parameters: { type: "object", properties: {
+      docId: { type: "string" }
+    }, required: ["docId"] }
+  }},
+  { type: "function", function: {
+    name: "case_summary",
+    description: "Generate a summary of the case status — financials, risk, claims, documents.",
+    parameters: { type: "object", properties: {
+      focus: { type: "string", enum: ["financial","risk","claims","documents","full"], description: "Aspect to focus on (default: full)" }
+    }}
+  }}
+];
+
+function buildSystemPrompt(tab, reqs, claims, docs) {
+  const totalBilled = reqs.reduce((s, r) => s + (r.totalBilled || 0), 0);
+  const totalExcel = reqs.reduce((s, r) => s + (r.excelTotal || 0), 0);
+  const highRisk = reqs.filter(r => computeRisk(r) === "HIGH").length;
+  const totalOwner = claims.reduce((s, c) => s + c.ownerAmount, 0);
+  const totalAgreed = claims.reduce((s, c) => s + c.agreedAmount, 0);
+  const disputed = claims.filter(c => c.status === "DISPUTED").length;
+  const uploadedDocs = docs.filter(d => d.storagePath).length;
+
+  return `You are an AI assistant for the Tharp Case Manager — a construction litigation tool for Montana Contracting Corp v. Tharp/Bumgardner (AAA Case No. 01-24-0004-6683).
+
+CASE: Residential renovation at 515 N. Midland Ave, Upper Nyack NY. AIA A110-2021 (Cost of Work + 25% OH&P). Arbitrator: Robin S. Abramowitz.
+MC (contractor, our client) billed ${fmtDollar(totalBilled)} across 15 requisitions. Excel tracker total: ${fmtDollar(totalExcel)}.
+${highRisk} requisitions flagged HIGH RISK. Owners made 24 claims totaling ${fmtDollar(totalOwner)}; MC agreed to ${fmtDollar(totalAgreed)} in credits. ${disputed} claims DISPUTED.
+${docs.length} documents (${uploadedDocs} with files). Currently viewing: "${tab}" tab.
+
+RULES:
+1. Map "REQ-3", "req 3", "#3" etc. to the correct reqId (1-15).
+2. Match claims by description keywords or ID number.
+3. Be concise — this is legal case management, precision over verbosity.
+4. Execute multiple tool calls when needed.
+5. After actions, briefly confirm what you did.`;
+}
+
+function buildContextHints(msg, reqs, claims, docs) {
+  const hints = [];
+  const reqRefs = msg.match(/req[quistion]*[- _#.]?(\d{1,2})/gi);
+  if (reqRefs) {
+    reqRefs.forEach(ref => {
+      const num = parseInt(ref.match(/(\d{1,2})/)[1]);
+      const req = reqs.find(r => r.id === num);
+      if (req) hints.push(`[REQ-${String(num).padStart(2,"0")}: billed=${fmtDollar(req.totalBilled)}, flags=[${req.flags.join(",")}], backup=${req.backupStatus}]`);
+    });
+  }
+  const claimRefs = msg.match(/claim[- #]?(\d{1,2})/gi);
+  if (claimRefs) {
+    claimRefs.forEach(ref => {
+      const num = parseInt(ref.match(/(\d{1,2})/)[1]);
+      const claim = claims.find(c => c.id === num);
+      if (claim) hints.push(`[Claim #${num}: "${claim.description}", status=${claim.status}, owner=${fmtDollar(claim.ownerAmount)}]`);
+    });
+  }
+  return hints.length > 0 ? "\n\nREFERENCED DATA:\n" + hints.join("\n") : "";
+}
+
+async function callOpenAI(messages, tools, systemPrompt) {
+  const apiKey = window._openaiKey;
+  if (!apiKey) throw new Error("OpenAI API key not configured. Add your key to supabase-config.json and rebuild.");
+  const res = await fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
+    body: JSON.stringify({
+      model: "gpt-4o", messages: [{ role: "system", content: systemPrompt }, ...messages],
+      tools, tool_choice: "auto", temperature: 0.3, max_tokens: 1024
+    })
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({}));
+    throw new Error(err.error?.message || "OpenAI API error " + res.status);
+  }
+  return await res.json();
+}
+
+function executeToolCall(name, args, appState, callbacks, actions) {
+  const { reqs, claims, docs } = appState;
+  const { setTab, updateReq, updateClaim, updateDoc, addDoc, removeDoc } = callbacks;
+
+  switch (name) {
+    case "navigate_tab":
+      setTab(args.tab);
+      actions.push({ icon: "📍", summary: "Navigated to " + args.tab + " tab" });
+      return { success: true, navigatedTo: args.tab };
+
+    case "update_requisition": {
+      const req = reqs.find(r => r.id === args.reqId);
+      if (!req) return { error: "REQ-" + args.reqId + " not found" };
+      updateReq(args.reqId, args.updates);
+      actions.push({ icon: "💰", summary: "Updated REQ-" + String(args.reqId).padStart(2, "0") + ": " + Object.keys(args.updates).join(", ") });
+      return { success: true, updated: "REQ-" + args.reqId };
+    }
+
+    case "flag_requisition": {
+      const req = reqs.find(r => r.id === args.reqId);
+      if (!req) return { error: "REQ-" + args.reqId + " not found" };
+      let flags = [...req.flags];
+      if (args.action === "add" && !flags.includes(args.flag)) flags.push(args.flag);
+      if (args.action === "remove") flags = flags.filter(f => f !== args.flag);
+      updateReq(args.reqId, { flags });
+      actions.push({ icon: "🚩", summary: (args.action === "add" ? "Added" : "Removed") + ' flag "' + args.flag + '" on REQ-' + String(args.reqId).padStart(2, "0") });
+      return { success: true, flags };
+    }
+
+    case "update_claim": {
+      const claim = claims.find(c => c.id === args.claimId);
+      if (!claim) return { error: "Claim #" + args.claimId + " not found" };
+      updateClaim(args.claimId, args.updates);
+      actions.push({ icon: "⚖️", summary: "Updated claim #" + args.claimId + ": " + Object.keys(args.updates).join(", ") });
+      return { success: true };
+    }
+
+    case "add_document": {
+      const id = "doc-ai-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
+      addDoc({
+        id, category: args.category || "other", name: args.name,
+        date: args.date || new Date().toISOString().slice(0, 10),
+        description: args.description || "", parties: args.parties || "",
+        status: args.status || "draft", notes: args.notes || "",
+        tags: args.tags || [], linkedReqs: args.linkedReqs || [],
+        storagePath: null, fileName: null, fileSize: 0, mimeType: null,
+        extractedText: null, vendor: null, costCode: null
+      });
+      actions.push({ icon: "📄", summary: 'Added document "' + args.name + '" (' + (args.category || "other") + ")" });
+      return { success: true, docId: id };
+    }
+
+    case "update_document": {
+      const doc = docs.find(d => d.id === args.docId);
+      if (!doc) return { error: "Document " + args.docId + " not found" };
+      updateDoc(args.docId, args.updates);
+      actions.push({ icon: "📝", summary: 'Updated "' + doc.name + '": ' + Object.keys(args.updates).join(", ") });
+      return { success: true };
+    }
+
+    case "search_documents": {
+      const q = (args.query || "").toLowerCase();
+      const results = docs.filter(d => {
+        if (args.category && d.category !== args.category) return false;
+        return d.name.toLowerCase().includes(q) || (d.description || "").toLowerCase().includes(q)
+          || (d.tags || []).some(t => t.toLowerCase().includes(q))
+          || (d.extractedText || "").toLowerCase().includes(q)
+          || (d.vendor || "").toLowerCase().includes(q) || (d.notes || "").toLowerCase().includes(q);
+      }).slice(0, 10).map(d => ({ id: d.id, name: d.name, category: d.category, date: d.date, tags: (d.tags || []).slice(0, 5), hasFile: !!d.storagePath, status: d.status }));
+      return { results, totalMatches: results.length };
+    }
+
+    case "analyze_document": {
+      const doc = docs.find(d => d.id === args.docId);
+      if (!doc) return { error: "Document " + args.docId + " not found" };
+      return { id: doc.id, name: doc.name, category: doc.category, date: doc.date, parties: doc.parties, status: doc.status, tags: doc.tags, linkedReqs: doc.linkedReqs, vendor: doc.vendor, costCode: doc.costCode, extractedText: (doc.extractedText || "").slice(0, 2000), notes: doc.notes };
+    }
+
+    case "case_summary": {
+      const focus = args.focus || "full";
+      const summary = {};
+      if (focus === "full" || focus === "financial") {
+        summary.financial = { totalBilled: reqs.reduce((s, r) => s + (r.totalBilled || 0), 0), totalExcel: reqs.reduce((s, r) => s + (r.excelTotal || 0), 0), totalRetainage: reqs.reduce((s, r) => s + (r.retainageHeld || 0), 0) };
+      }
+      if (focus === "full" || focus === "risk") {
+        const dist = { HIGH: 0, MEDIUM: 0, LOW: 0, CLEAR: 0 };
+        reqs.forEach(r => dist[computeRisk(r)]++);
+        summary.risk = dist;
+      }
+      if (focus === "full" || focus === "claims") {
+        summary.claims = { total: claims.length, totalOwner: claims.reduce((s, c) => s + c.ownerAmount, 0), totalAgreed: claims.reduce((s, c) => s + c.agreedAmount, 0), disputed: claims.filter(c => c.status === "DISPUTED").length, agreed: claims.filter(c => c.status === "AGREED").length };
+      }
+      if (focus === "full" || focus === "documents") {
+        summary.documents = { total: docs.length, withFiles: docs.filter(d => d.storagePath).length };
+      }
+      return summary;
+    }
+
+    default:
+      return { error: "Unknown tool: " + name };
+  }
+}
+
+async function handleAIRequest(userMessage, appState, callbacks) {
+  const { tab, reqs, claims, docs } = appState;
+  const systemPrompt = buildSystemPrompt(tab, reqs, claims, docs);
+  const contextHints = buildContextHints(userMessage, reqs, claims, docs);
+  let messages = [{ role: "user", content: userMessage + contextHints }];
+  const actions = [];
+
+  for (let round = 0; round < 5; round++) {
+    const result = await callOpenAI(messages, AI_TOOLS, systemPrompt);
+    const choice = result.choices[0];
+
+    if (choice.finish_reason === "stop" || !choice.message.tool_calls) {
+      return { text: choice.message.content || "Done.", actions };
+    }
+
+    messages.push(choice.message);
+    for (const tc of choice.message.tool_calls) {
+      const args = JSON.parse(tc.function.arguments);
+      const toolResult = executeToolCall(tc.function.name, args, appState, callbacks, actions);
+      messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(toolResult) });
+    }
+  }
+  return { text: "Completed all requested actions.", actions };
+}
+
+// ── AI Auto-Analysis on Upload ───────────────────────────────────────────────
+async function analyzeUploadedDoc(doc, extractedText, reqs) {
+  const apiKey = window._openaiKey;
+  if (!apiKey || !extractedText) return null;
+
+  const reqSummary = reqs.slice(0, 15).map(r => "REQ-" + String(r.id).padStart(2, "0") + ": " + (r.date || "no date") + ", " + fmtDollar(r.totalBilled)).join("\n");
+
+  const prompt = `Analyze this document for a construction case (Montana Contracting v. Tharp, AIA A110 Cost-Plus).
+
+DOCUMENT: "${doc.name}" (category: ${doc.category})
+Current tags: [${(doc.tags || []).join(", ")}]
+
+TEXT (first 2000 chars):
+${extractedText.slice(0, 2000)}
+
+REQUISITION PERIODS:
+${reqSummary}
+
+Return JSON with applicable enhancements:
+{"category":"best fit","description":"1-line description","tags":["additional tags"],"linkedReqs":["REQ-XX"],"vendor":"vendor name","costCode":"XX — Name","notes":"audit observations"}
+Only include fields you can confidently determine. Return valid JSON only.`;
+
+  try {
+    const res = await fetch("https://api.openai.com/v1/chat/completions", {
+      method: "POST",
+      headers: { "Content-Type": "application/json", "Authorization": "Bearer " + apiKey },
+      body: JSON.stringify({ model: "gpt-4o", messages: [{ role: "user", content: prompt }], temperature: 0.2, max_tokens: 512, response_format: { type: "json_object" } })
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    const ai = JSON.parse(data.choices[0].message.content);
+
+    const updates = {};
+    if (ai.category && ai.category !== doc.category && doc.category === "other") updates.category = ai.category;
+    if (ai.description) updates.description = ai.description;
+    const mergedTags = [...new Set([...(doc.tags || []), ...(ai.tags || [])])];
+    if (mergedTags.length > (doc.tags || []).length) updates.tags = mergedTags;
+    const mergedReqs = [...new Set([...(doc.linkedReqs || []), ...(ai.linkedReqs || [])])];
+    if (mergedReqs.length > (doc.linkedReqs || []).length) updates.linkedReqs = mergedReqs;
+    if (ai.vendor && !doc.vendor) updates.vendor = ai.vendor;
+    if (ai.costCode && !doc.costCode) updates.costCode = ai.costCode;
+    if (ai.notes) updates.notes = (doc.notes ? doc.notes + "\n\n" : "") + "AI: " + ai.notes;
+    return Object.keys(updates).length > 0 ? updates : null;
+  } catch (err) {
+    console.warn("[AI] Upload analysis failed:", err.message);
+    return null;
+  }
+}
+
+// ── AI Command Bar ───────────────────────────────────────────────────────────
+function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, updateDoc, addDoc, removeDoc }) {
+  const [open, setOpen] = useState(false);
+  const [input, setInput] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const messagesEndRef = React.useRef(null);
+
+  useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
+
+  useEffect(() => {
+    const handler = (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "k") { e.preventDefault(); setOpen(prev => !prev); } };
+    window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, []);
+
+  const handleSend = async () => {
+    if (!input.trim() || loading) return;
+    const userMsg = input.trim();
+    setInput("");
+    setMessages(prev => [...prev, { role: "user", content: userMsg }]);
+    setLoading(true);
+    try {
+      const result = await handleAIRequest(userMsg,
+        { tab, reqs, claims, docs },
+        { setTab, updateReq, updateClaim, updateDoc, addDoc, removeDoc }
+      );
+      setMessages(prev => [...prev, { role: "assistant", content: result.text, actions: result.actions }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { role: "assistant", content: "Error: " + err.message, actions: [] }]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (!window._openaiKey) return null;
+
+  if (!open) {
+    return (
+      <button onClick={() => setOpen(true)} style={{
+        position: "fixed", bottom: 20, right: 24, zIndex: 1000,
+        padding: "12px 20px", borderRadius: 24,
+        background: T.navBg, color: "#fff", border: "none",
+        cursor: "pointer", fontFamily: T.font, fontSize: 13, fontWeight: 500,
+        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
+        display: "flex", alignItems: "center", gap: 8,
+      }}>
+        <span style={{ fontSize: 16 }}>⚡</span> Ask AI
+        <span style={{ fontSize: 10, color: T.navText, marginLeft: 4 }}>Ctrl+K</span>
+      </button>
+    );
+  }
+
+  return (
+    <div style={{
+      position: "fixed", bottom: 20, right: 24, zIndex: 1000,
+      width: 420, maxHeight: 520, borderRadius: 16,
+      background: T.surface, border: `1px solid ${T.border}`,
+      boxShadow: "0 8px 40px rgba(0,0,0,0.12)",
+      display: "flex", flexDirection: "column", fontFamily: T.font,
+    }}>
+      {/* Header */}
+      <div style={{
+        padding: "12px 16px", borderBottom: `1px solid ${T.border}`,
+        display: "flex", justifyContent: "space-between", alignItems: "center",
+      }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <span style={{ fontSize: 14 }}>⚡</span>
+          <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>AI Assistant</span>
+          <span style={{ fontSize: 10, color: T.textMuted }}>· {tab}</span>
+        </div>
+        <button onClick={() => setOpen(false)} style={{
+          background: "none", border: "none", cursor: "pointer", fontSize: 18,
+          color: T.textMuted, lineHeight: 1, padding: "2px 6px",
+        }}>×</button>
+      </div>
+
+      {/* Messages */}
+      <div style={{
+        flex: 1, overflow: "auto", padding: "12px 16px",
+        display: "flex", flexDirection: "column", gap: 10,
+        maxHeight: 360,
+      }}>
+        {messages.length === 0 && (
+          <div style={{ textAlign: "center", padding: "20px 0", color: T.textMuted, fontSize: 12 }}>
+            <div style={{ marginBottom: 8 }}>Ask me anything about the case.</div>
+            <div style={{ fontSize: 11, lineHeight: 1.6 }}>
+              Try: "Flag REQ-3 as duplicate billing"<br />
+              "What's the total disputed amount?"<br />
+              "Add a document for the Korth subcontract"
+            </div>
+          </div>
+        )}
+        {messages.map((msg, i) => (
+          <div key={i}>
+            <div style={{
+              maxWidth: "85%",
+              marginLeft: msg.role === "user" ? "auto" : 0,
+              marginRight: msg.role === "assistant" ? "auto" : 0,
+              padding: "8px 12px", borderRadius: 12,
+              background: msg.role === "user" ? T.accentBg : T.bg,
+              border: `1px solid ${msg.role === "user" ? T.accentBorder : T.border}`,
+              fontSize: 12, color: T.text, lineHeight: 1.5, whiteSpace: "pre-wrap",
+            }}>
+              {msg.content}
+            </div>
+            {msg.actions && msg.actions.length > 0 && (
+              <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 3 }}>
+                {msg.actions.map((action, j) => (
+                  <div key={j} style={{
+                    padding: "6px 10px", borderRadius: 8,
+                    background: T.greenBg, border: `1px solid ${T.green}22`,
+                    fontSize: 10, color: T.green,
+                    display: "flex", gap: 6, alignItems: "center",
+                  }}>
+                    <span>{action.icon}</span>
+                    <span>{action.summary}</span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        ))}
+        {loading && (
+          <div style={{ fontSize: 12, color: T.textMuted, padding: "8px 0" }}>Thinking...</div>
+        )}
+        <div ref={messagesEndRef} />
+      </div>
+
+      {/* Input */}
+      <div style={{
+        padding: "12px 16px", borderTop: `1px solid ${T.border}`,
+        display: "flex", gap: 8,
+      }}>
+        <input
+          type="text" value={input}
+          onChange={e => setInput(e.target.value)}
+          onKeyDown={e => { if (e.key === "Enter") handleSend(); }}
+          placeholder="Ask about the case..."
+          autoFocus
+          style={{
+            flex: 1, padding: "8px 12px", borderRadius: 8,
+            border: `1px solid ${T.border}`, fontSize: 13,
+            fontFamily: T.font, color: T.text, background: T.bg,
+          }}
+        />
+        <button onClick={handleSend} disabled={loading || !input.trim()} style={{
+          padding: "8px 16px", borderRadius: 8, cursor: loading ? "default" : "pointer",
+          fontFamily: T.font, fontSize: 12, fontWeight: 600,
+          border: "none", background: loading ? T.border : T.accent,
+          color: loading ? T.textMuted : "#fff",
+        }}>
+          {loading ? "..." : "Send"}
+        </button>
+      </div>
+    </div>
+  );
+}
+
 // ── ROOT ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [tab, setTab] = useState("dashboard");
@@ -3628,6 +4131,14 @@ export default function App() {
         {tab === "simulator" && <ArbitrationSimulator reqs={reqs} claims={claims} />}
         {tab === "strategy" && <Strategy claims={claims} reqs={reqs} />}
       </div>
+
+      {/* AI Assistant */}
+      <CommandBar
+        tab={tab} setTab={setTab}
+        reqs={reqs} updateReq={updateReq}
+        claims={claims} updateClaim={updateClaim}
+        docs={docs} updateDoc={updateDoc} addDoc={addDoc} removeDoc={removeDoc}
+      />
     </div>
   );
 }

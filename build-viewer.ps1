@@ -26,9 +26,18 @@ if (Test-Path $configPath) {
     } else {
         Write-Host "Supabase: DISABLED (using localStorage only — edit supabase-config.json to enable)"
     }
+    # Read OpenAI key
+    if ($config.openaiApiKey -and $config.openaiApiKey -ne "YOUR_OPENAI_KEY") {
+        $openaiKey = $config.openaiApiKey
+        Write-Host "OpenAI: ENABLED"
+    } else {
+        Write-Host "OpenAI: DISABLED (no API key — edit supabase-config.json to enable)"
+    }
 } else {
     Write-Host "Supabase: DISABLED (no config file found)"
 }
+
+$openaiKey = if ($openaiKey) { $openaiKey } else { "" }
 
 # Determine Supabase script tag
 $supabaseScript = ""
@@ -129,6 +138,9 @@ $html = @"
       // Expose connection status and Supabase client for the UI
       window._storageMode = sb ? "cloud" : "local";
       window._sb = sb;
+
+      // OpenAI config (injected at build time)
+      window._openaiKey = "$openaiKey";
     })();
   </script>
 
