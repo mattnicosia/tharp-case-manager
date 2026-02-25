@@ -177,6 +177,7 @@ const EXCEL_TRADES = {
   13: { "Concrete": -24.11, "Masonry": -9902.87, "Railing (Allowance)": -2737.85, "Custom Casework": 3975.00, "Framing (Material)": -556.86, "Framing (Labor)": -2400.00, "Stairs & Railings (Allowance)": -720.00, "Interior Trim": 11548.96, "Insulation": 4599.68, "Composite Roof Shingles": 487.68, "Siding and Related Trim": 8300.66, "Doors, Frames & HW": -5151.53, "Windows": -825.00, "Drywall & Carpentry": -7992.49, "Tile": -12100.00, "Wood Flooring": -7325.22, "HVAC": -8545.13, "Electric": -41823.63, "Excavation and Fill": -1200.00 },
   14: { "Masonry": 75.00, "Custom Casework": 2081.25, "Stairs & Railings (Allowance)": 6619.40, "Interior Trim": 1291.71, "Drywall & Carpentry": 11159.69, "Wood Flooring": 20225.22, "Painting": -1997.50, "HVAC": 72615.00 },
   15: { "Railing (Allowance)": 7440.00, "Stairs & Railings (Allowance)": -7440.00, "Siding and Related Trim": 146.31, "Electric": 5015.00 },
+  16: { "Foundation Waterproofing": 500.00, "Sawcutting": 8000.00, "Masonry": 20382.13, "Railing (Allowance)": 4943.66, "Custom Casework": 41793.75, "Insulation": 15819.92, "Doors, Frames & HW": 22622.47, "Shower Enclosures": 20000.00, "Windows": 6675.00, "Drywall & Carpentry": 5125.35, "Tile": 2700.00, "Wood Flooring": 1950.00, "Painting": 240.00, "Plumbing": 15450.00, "Electric": 49940.00, "Excavation and Fill": 8192.50, "Cooling": -3102.70 },
 };
 
 const REQ_DEFAULTS = (i) => ({
@@ -219,11 +220,12 @@ const EXCEL_DATA = [
   [-90489.90,-72392.71, -18097.19,  "2023-01-08", "13R1"],
   [140087.21,112069.77,  28017.44,  "2023-04-23", "14"],
   [6451.64,   5161.31,   1290.33,   "2023-05-24", "15"],
+  [235461.28, 188369.02, 47092.26,  "2024-01-30", "16"],
 ];
 
-const REQS_INITIAL = Array.from({ length: 16 }, (_, i) => {
+const REQS_INITIAL = Array.from({ length: 17 }, (_, i) => {
   const base = REQ_DEFAULTS(i);
-  if (i < 15) {
+  if (i < 16) {
     const [excelTotal, excelSubtotal, excelFee, month, pdfReqNum] = EXCEL_DATA[i];
     return { ...base, date: month, excelTotal, excelSubtotal, excelFee, pdfReqNum,
       // Auto-flag REQ-13 (negative req) and REQ-08 (largest)
@@ -1403,6 +1405,71 @@ KEY FINDINGS:
       strongly suggests project relationship deteriorated before termination.`,
 };
 
+REQS_INITIAL[15] = {
+  ...REQS_INITIAL[15],
+  totalBilled: 235461.28,
+  laborCost: 0,
+  materialCost: 47236.35,
+  subCost: 141136.63,
+  flags: ["sub_as_labor", "markup_on_markup", "co_missing", "rate_anomaly", "no_timesheet"],
+  notes: `REQ-16 — APPLICATION #16 — Period 01/01/24 to 01/30/24
+G702: Original Contract $1,183,411.00 | Net COs $602,758.41 | Contract Sum $1,786,169.41
+Total Completed to Date: $1,839,330.96 | Retainage $0 | Previous Certificates: $1,603,869.68
+CURRENT PAYMENT DUE: $235,461.28 | Balance to Finish: -$53,161.55
+Architect Certified: $235,461.28
+
+G703 GRAND TOTAL THIS PERIOD: $235,461.28
+Contract lines TP: $252,880.48 | CO lines TP: -$17,419.20 | Net: $235,461.28
+
+MAJOR LINE ITEMS THIS PERIOD:
+  Electric: $49,940.00 (billed $101,775 / $101,775 SV = 100%)
+  Custom Casework: $41,793.75 (billed $97,125 / $62,500 SV = 155.40% — OVER BUDGET)
+  OH&P (25%): $27,487.80
+  Doors & Frames: $22,622.47 (billed $25,275 / $25,275 SV = 100%)
+  Masonry: $20,382.13 (billed $67,000 / $45,000 SV = 148.89% — OVER BUDGET)
+  Shower Enclosures: $20,000.00 (100% billed this period, new line)
+  Insulation: $15,819.92 (billed $30,000 / $15,000 SV = 200.00% — MASSIVELY OVER BUDGET)
+  Plumbing: $15,450.00 (billed $95,850 / $95,850 SV = 100%)
+  Excavation: $8,192.50 (billed $28,000 / $28,000 SV = 100%)
+  Sawcutting: $8,000.00 (100% billed this period, new line)
+  Window Install: $6,675.00
+  Drywall: $5,125.35
+  Balcony Railing: $4,943.66
+  Tile: $2,700.00
+  Flooring: $1,950.00
+  Cooling: -$3,102.70 (credit)
+
+OVER-BUDGET G703 LINES (cumulative):
+  Framing Material: 165.19% ($69,281 vs $41,945 SV) — over by $27,336
+  Custom Casework: 155.40% ($97,125 vs $62,500 SV) — over by $34,625
+  Spiral Stair: 122.59% ($24,559 vs $20,033 SV) — over by $4,526
+  Insulation: 200.00% ($30,000 vs $15,000 SV) — over by $15,000
+  Siding: 118.11% ($65,999 vs $55,878 SV) — over by $10,121
+  Roofing: 115.60% ($53,178 vs $46,000 SV) — over by $7,178
+  Interior Trim: 113.14% ($36,543 vs $32,300 SV) — over by $4,243
+  Framing Labor: 114.28% ($44,483 vs $38,925 SV) — over by $5,558
+  Concrete: 101.39% ($27,424 vs $27,043 SV) — over by $381
+  HVAC: 108.98% ($73,815 vs $67,736 SV) — over by $6,079
+
+CHANGE ORDER STATUS:
+  131 PCOs on schedule ($602,758.41 total)
+  COs increased from $545,776 (REQ-15) to $602,758 — added $56,983 in new COs
+  CO completion: $586,815.13 of $602,758.41 = 97.36%
+  $135,385 in unapplied credit COs STILL at 0% (carried from REQ-15)
+
+KEY FINDINGS:
+  1. LARGEST SINGLE REQUISITION: $235,461 exceeds REQ-08 ($192,165) as the biggest bill.
+  2. PROJECT OVER-BILLED: Total completed $1,839,331 vs contract sum $1,786,169 = 102.97% ($53,162 over).
+  3. INSULATION AT 200%: Billed $30,000 on a $15,000 line item — double the budgeted amount.
+  4. CUSTOM CASEWORK AT 155%: $34,625 over budget with no CO to cover the overage.
+  5. FRAMING MATERIAL AT 165%: $27,336 over budget — largest dollar overbilling.
+  6. UNAPPLIED CREDITS PERSIST: Same $135,385 in credit COs at 0% from REQ-15 remain unapplied.
+  7. NEW CO ADDITIONS: $56,983 in new COs added (net) since REQ-15 but credits still not applied.
+  8. NO TIMECARDS: Zero employee timecards (consistent with all prior REQs).
+  9. OH&P: $27,487.80 charged this period. Applied to all lines including over-budget ones.
+  10. NEGATIVE BALANCE: Project at -$53,162 balance. MC billed beyond contract + COs.`,
+};
+
 // ── Storage ───────────────────────────────────────────────────────────────────
 async function storageGet(key) {
   try { const r = await window.storage.get(key); return r ? JSON.parse(r.value) : null; }
@@ -2573,7 +2640,7 @@ const PARTY_ANALYSIS = {
       "Agreed credits ($21.6K) show good faith on legitimate items",
     ],
     weaknesses: [
-      "Systemic documentation failures across all 15 requisitions (§15.3.2)",
+      "Systemic documentation failures across all 16 requisitions (§15.3.2)",
       "No timecards for 13 of 15 billing periods — labor costs unverifiable",
       "Out-of-period invoices: up to 19 months (ABC Supply in REQ-15)",
       "$135K in unapplied credits acknowledged but never credited to owner",
@@ -3026,7 +3093,8 @@ const DOCS_INITIAL = [
   { id: "doc-015", category: "requisition", name: "REQ-12 — August 2023", date: "2023-08-31", description: "Twelfth requisition.", parties: "MC", status: "submitted", notes: "" },
   { id: "doc-016", category: "requisition", name: "REQ-13 — September 2023", date: "2023-09-30", description: "Thirteenth requisition.", parties: "MC", status: "submitted", notes: "" },
   { id: "doc-017", category: "requisition", name: "REQ-14 — October 2023", date: "2023-10-31", description: "Fourteenth requisition.", parties: "MC", status: "submitted", notes: "" },
-  { id: "doc-018", category: "requisition", name: "REQ-15 — November 2023", date: "2023-11-30", description: "Fifteenth and final requisition.", parties: "MC", status: "submitted", notes: "" },
+  { id: "doc-018", category: "requisition", name: "REQ-15 — November 2023", date: "2023-11-30", description: "Fifteenth requisition.", parties: "MC", status: "submitted", notes: "" },
+  { id: "doc-018b", category: "requisition", name: "REQ-16 — January 2024", date: "2024-01-30", description: "Sixteenth requisition. Largest single requisition at $235,461. Project over-billed by $53,162. Multiple lines over budget (Insulation 200%, Custom Casework 155%, Framing Material 165%).", parties: "MC", status: "submitted", notes: "" },
   { id: "doc-019", category: "arbitration", name: "AAA Demand for Arbitration", date: "2024-01-15", description: "Filed under AAA Case No. 01-24-0004-6683. Construction Industry Arbitration Rules.", parties: "MC / Tharp", status: "filed", notes: "" },
   { id: "doc-020", category: "arbitration", name: "Arbitrator Appointment — Robin S. Abramowitz", date: "2024-03-01", description: "AAA Construction Panel arbitrator assigned. Bond, Schoeneck & King PLLC.", parties: "AAA", status: "confirmed", notes: "" },
   { id: "doc-021", category: "correspondence", name: "Owner Punch List / Deficiency Claims", date: "2023-12-01", description: "Owner's list of alleged construction deficiencies including fireplace, air returns, and misc items.", parties: "Tharp", status: "received", notes: "" },
@@ -3592,9 +3660,9 @@ const AI_TOOLS = [
   }},
   { type: "function", function: {
     name: "update_requisition",
-    description: "Update fields on a requisition (REQ-01 through REQ-15). Can update amounts, backup status, notes, documentation flags.",
+    description: "Update fields on a requisition (REQ-01 through REQ-16). Can update amounts, backup status, notes, documentation flags.",
     parameters: { type: "object", properties: {
-      reqId: { type: "integer", description: "Requisition ID (1-15)", minimum: 1, maximum: 15 },
+      reqId: { type: "integer", description: "Requisition ID (1-16)", minimum: 1, maximum: 16 },
       updates: { type: "object", properties: {
         totalBilled: { type: "number" }, retainageHeld: { type: "number" },
         laborCost: { type: "number" }, materialCost: { type: "number" }, subCost: { type: "number" },
@@ -3608,7 +3676,7 @@ const AI_TOOLS = [
     name: "flag_requisition",
     description: "Add or remove an audit flag on a requisition. Flags: blended_rate, sub_as_labor, overhead_as_material, missing_invoice, markup_on_markup, duplicate, no_timesheet, rate_anomaly, no_scope_desc, owner_supplied, co_missing, retainage_error",
     parameters: { type: "object", properties: {
-      reqId: { type: "integer", description: "Requisition ID (1-15)", minimum: 1, maximum: 15 },
+      reqId: { type: "integer", description: "Requisition ID (1-16)", minimum: 1, maximum: 16 },
       flag: { type: "string", enum: ["blended_rate","sub_as_labor","overhead_as_material","missing_invoice","markup_on_markup","duplicate","no_timesheet","rate_anomaly","no_scope_desc","owner_supplied","co_missing","retainage_error"] },
       action: { type: "string", enum: ["add","remove"] }
     }, required: ["reqId","flag","action"] }
@@ -3688,12 +3756,12 @@ function buildSystemPrompt(tab, reqs, claims, docs) {
   return `You are an AI assistant for the Tharp Case Manager — a construction litigation tool for Montana Contracting Corp v. Tharp/Bumgardner (AAA Case No. 01-24-0004-6683).
 
 CASE: Residential renovation at 515 N. Midland Ave, Upper Nyack NY. AIA A110-2021 (Cost of Work + 25% OH&P). Arbitrator: Robin S. Abramowitz.
-MC (contractor, our client) billed ${fmtDollar(totalBilled)} across 15 requisitions. Excel tracker total: ${fmtDollar(totalExcel)}.
+MC (contractor, our client) billed ${fmtDollar(totalBilled)} across 16 requisitions. Excel tracker total: ${fmtDollar(totalExcel)}.
 ${highRisk} requisitions flagged HIGH RISK. Owners made 24 claims totaling ${fmtDollar(totalOwner)}; MC agreed to ${fmtDollar(totalAgreed)} in credits. ${disputed} claims DISPUTED.
 ${docs.length} documents (${uploadedDocs} with files). Currently viewing: "${tab}" tab.
 
 RULES:
-1. Map "REQ-3", "req 3", "#3" etc. to the correct reqId (1-15).
+1. Map "REQ-3", "req 3", "#3" etc. to the correct reqId (1-16).
 2. Match claims by description keywords or ID number.
 3. Be concise — this is legal case management, precision over verbosity.
 4. Execute multiple tool calls when needed.
