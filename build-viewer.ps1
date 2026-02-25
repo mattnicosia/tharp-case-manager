@@ -42,7 +42,7 @@ $openaiKey = if ($openaiKey) { $openaiKey } else { "" }
 # Determine Supabase script tag
 $supabaseScript = ""
 if ($supabaseUrl) {
-    $supabaseScript = '<script src="https://unpkg.com/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>'
+    $supabaseScript = '<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>'
 }
 
 # Build the HTML
