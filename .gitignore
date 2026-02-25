@@ -1,0 +1,9 @@
+# Ignore local-only files
+supabase-config.json
+CLAUDE/
+
+# OS files
+.DS_Store
+Thumbs.db
+desktop.ini
+*.lnk
