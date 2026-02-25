@@ -139,8 +139,8 @@ $html = @"
       window._storageMode = sb ? "cloud" : "local";
       window._sb = sb;
 
-      // OpenAI config (injected at build time)
-      window._openaiKey = "$openaiKey";
+      // OpenAI key loaded from localStorage at runtime (not embedded in build)
+      window._openaiKey = localStorage.getItem("tharp-openai-key") || "";
     })();
   </script>
 
