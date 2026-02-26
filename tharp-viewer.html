@@ -282,7 +282,9 @@ const BACKUP_VARIANCE = {
     { trade: "9200 Drywall & Carpentry", desc: "Self-Performed Drywall/Carpentry (partial realloc → Decking CO, PCCO#120, #121)", vendor: "Montana Contracting", amount: 13012.50 },
   ]},
   15: { amountBilled: 5161.31,   backupDocs: 5161.31,   directLabor: 0, items: [] },
-  16: { amountBilled: 188369.02, backupDocs: 0,         directLabor: 0, items: [] },
+  16: { amountBilled: 188369.02, backupDocs: 0,         directLabor: 56982.57, items: [
+    { trade: "CO#128 Owner-Supplied Items", desc: "25% markup on owner-provided materials (Contract §3.3) — owner refused to furnish receipts when requested 1/8/2024", vendor: "Various (owner-furnished)", amount: 56982.57 },
+  ]},
 };
 
 const REQ_DEFAULTS = (i) => ({
