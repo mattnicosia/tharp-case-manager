@@ -1544,7 +1544,7 @@ const VENDOR_MAP = [
 ];
 
 function autoClassifyFile(fileName) {
-  const result = { category: "other", tags: [], linkedReqs: [], vendor: null, costCode: null };
+  const result = { category: "other", status: "received", tags: [], linkedReqs: [], vendor: null, costCode: null };
   const name = fileName || "";
   const lower = name.toLowerCase();
 
@@ -1569,6 +1569,26 @@ function autoClassifyFile(fileName) {
   else if (CO_PATTERN.test(lower)) result.category = result.category === "other" ? "change_order" : result.category;
   else if (INVOICE_PATTERN.test(lower)) result.category = result.category === "other" ? "invoice" : result.category;
   else if (INSPECTION_PATTERN.test(lower)) result.category = result.category === "other" ? "inspection" : result.category;
+
+  // Auto-assign status based on category
+  const STATUS_BY_CATEGORY = {
+    requisition: "submitted",   // MC submitted requisitions to owner
+    invoice: "received",        // invoices received from subs/vendors
+    change_order: "active",     // COs are active until resolved
+    contract: "active",         // contracts are active documents
+    correspondence: "received", // letters/emails received
+    inspection: "filed",        // inspection reports are filed
+    photo: "filed",             // photos are filed as evidence
+    arbitration: "filed",       // legal filings
+    other: "received",          // default for unknown
+  };
+  result.status = STATUS_BY_CATEGORY[result.category] || "received";
+
+  // Refine status from filename keywords
+  if (/final|executed|signed|closed/i.test(lower)) result.status = "final";
+  else if (/draft/i.test(lower)) result.status = "draft";
+  else if (/disput|reject/i.test(lower)) result.status = "disputed";
+  else if (/approv|confirm|accept/i.test(lower)) result.status = "confirmed";
 
   // Detect cost codes (e.g., "01-" prefix in filename)
   const ccMatch = name.match(/\b(\d{2})[- ]/);
@@ -3211,7 +3231,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
         date: new Date().toISOString().slice(0, 10),
         description: classify.vendor ? `${classify.vendor} — auto-imported` : "Auto-imported",
         parties: classify.vendor || "",
-        status: "draft",
+        status: classify.status || "received",
         notes: "",
         storagePath: path,
         fileName: file.name,
@@ -3948,11 +3968,11 @@ async function analyzeUploadedDoc(doc, extractedText, reqs) {
   const apiKey = window._openaiKey;
   if (!apiKey || !extractedText) return null;
 
-  const reqSummary = reqs.slice(0, 15).map(r => "REQ-" + String(r.id).padStart(2, "0") + ": " + (r.date || "no date") + ", " + fmtDollar(r.totalBilled)).join("\n");
+  const reqSummary = reqs.map(r => "REQ-" + String(r.id).padStart(2, "0") + ": " + (r.date || "no date") + ", " + fmtDollar(r.totalBilled)).join("\n");
 
-  const prompt = `Analyze this document for a construction case (Montana Contracting v. Tharp, AIA A110 Cost-Plus).
+  const prompt = `Analyze this document for a construction case (Montana Contracting v. Tharp, AIA A110 Cost-Plus). REQ-16 (Jan 2024) is the FINAL INVOICE.
 
-DOCUMENT: "${doc.name}" (category: ${doc.category})
+DOCUMENT: "${doc.name}" (category: ${doc.category}, current status: ${doc.status})
 Current tags: [${(doc.tags || []).join(", ")}]
 
 TEXT (first 2000 chars):
@@ -3962,7 +3982,10 @@ REQUISITION PERIODS:
 ${reqSummary}
 
 Return JSON with applicable enhancements:
-{"category":"best fit","description":"1-line description","tags":["additional tags"],"linkedReqs":["REQ-XX"],"vendor":"vendor name","costCode":"XX — Name","notes":"audit observations"}
+{"category":"best fit","status":"best status","description":"1-line description","tags":["additional tags"],"linkedReqs":["REQ-XX"],"vendor":"vendor name","costCode":"XX — Name","notes":"audit observations"}
+
+STATUS OPTIONS: "draft" (working doc), "submitted" (sent by MC), "received" (from other party/sub), "filed" (formally filed/recorded), "confirmed" (verified by both sides), "active" (ongoing/in-use), "disputed" (contested), "final" (locked/complete).
+Choose the status that best fits what this document IS — not "draft" unless it truly is an unfinished document.
 Only include fields you can confidently determine. Return valid JSON only.`;
 
   try {
@@ -3977,6 +4000,8 @@ Only include fields you can confidently determine. Return valid JSON only.`;
 
     const updates = {};
     if (ai.category && ai.category !== doc.category && doc.category === "other") updates.category = ai.category;
+    const validStatuses = ["draft","submitted","received","filed","confirmed","active","disputed","final"];
+    if (ai.status && validStatuses.includes(ai.status)) updates.status = ai.status;
     if (ai.description) updates.description = ai.description;
     const mergedTags = [...new Set([...(doc.tags || []), ...(ai.tags || [])])];
     if (mergedTags.length > (doc.tags || []).length) updates.tags = mergedTags;
