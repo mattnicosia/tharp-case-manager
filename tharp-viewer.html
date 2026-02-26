@@ -1352,7 +1352,7 @@ REQS_INITIAL[14] = {
   materialCost: 146.31,
   subCost: 5015.00,
   flags: ["sub_as_labor", "blended_rate", "co_missing", "rate_anomaly"],
-  notes: `REQ-15 — APPLICATION #15 (FINAL REQUISITION) — Period 12/01/23 to 12/30/23
+  notes: `REQ-15 — APPLICATION #15 — Period 12/01/23 to 12/30/23
 G702: Contract Sum $1,729,186.84 | Total Completed $1,603,869.68 | Retainage $0
 Net Change Orders: $545,775.84 (DECREASED $90,637.63 from REQ-14 — COs removed/credited)
 Application Date: 1/17/2024 (filed in January 2024)
@@ -1400,7 +1400,7 @@ KEY FINDINGS:
   8. THINNEST BACKUP: Only 2 pages of backup for entire requisition. No backup for
      $7,440 Balcony Railing TP shown on G703 line item.
   9. NO TIMECARDS: Zero employee timecards (consistent with all prior REQs).
-  10. 7-MONTH GAP: No requisitions from May through November 2023. Final REQ bills
+  10. 7-MONTH GAP: No requisitions from May through November 2023. REQ-15 bills
       only $6,451.64. Combined with $135K in unapplied credits and the CO decrease,
       strongly suggests project relationship deteriorated before termination.`,
 };
@@ -2465,7 +2465,8 @@ function Reconciliation({ reqs }) {
             { req: "REQ-11", variance: "+$40,957.56", reason: "CO billing $32,766.05 plus hidden $8,191.51 CO OH&P (exactly 25% of CO total). First REQ with timecards — but supervision/general conditions coded as billable (overhead per §9.3.1). Korth painting $49,450 split base/CO. Multiple materials miscoded to Painting CO. Carpentry $9,825 with no labor/material breakdown.", severity: "red" },
             { req: "REQ-12", variance: "+$22,537.26", reason: "CO billing $18,029.81 plus hidden $4,507.46 CO OH&P (25% pattern — third consecutive REQ). Boards & Beams LLC submitted ESTIMATES as backup (not invoices — §15.3.2). Beckerle receipt dated 1/4/2023 in December billing. CO number discrepancies between backup and G703. Korth painting cumulative $63,742 exceeds $49,450 contract.", severity: "red" },
             { req: "REQ-14", variance: "+$116,226.72", reason: "G703 TP $256,313.93 vs Excel $140,087.21. HVAC $72,615 (108.98% over budget) includes $17K disputed payment ('previously rejected due to disagreements with client'). Korth #9922 reconciliation invoice: painting sub billing carpentry ($26,252 subtotal, credits $60,605 of prior REQ-11/12/13 invoices). Glen Rock Stair #59548 potential duplicate (also in REQ-13). Glen Rock #58852 six months out-of-period. 7 of 9 new COs at 100% immediately. No timecards.", severity: "red" },
-            { req: "REQ-15", variance: "$0.00", reason: "ZERO VARIANCE — ONLY requisition where G703 TP ($6,451.64) matches Excel exactly. FINAL requisition after 7-month gap. However: $135,385 in UNAPPLIED credit COs at 0% — PCO#130 'GC Owner Variance Split' ($66,389), PCO#129 'Allowance Reconciliation' ($24,248), plus 5 other credits never applied to owner. CO total DECREASED $90,637 — unprecedented. Only 2 backup pages; both invoices out-of-period (ABC Supply 19 months, DeLeonardis 5 months). No timecards.", severity: "amber" },
+            { req: "REQ-15", variance: "$0.00", reason: "ZERO VARIANCE — ONLY requisition where G703 TP ($6,451.64) matches Excel exactly. After 7-month gap. However: $135,385 in UNAPPLIED credit COs at 0% — PCO#130 'GC Owner Variance Split' ($66,389), PCO#129 'Allowance Reconciliation' ($24,248), plus 5 other credits never applied to owner. CO total DECREASED $90,637 — unprecedented. Only 2 backup pages; both invoices out-of-period (ABC Supply 19 months, DeLeonardis 5 months). No timecards.", severity: "amber" },
+            { req: "REQ-16", variance: "N/A", reason: "FINAL INVOICE — LARGEST REQUISITION ($235,461.28). Project OVER-BILLED by $53,162 (102.97% of contract sum). 10+ G703 lines over budget: Insulation 200%, Custom Casework 155%, Framing Material 165%, Siding 118%, Roofing 116%. $135,385 in unapplied credit COs STILL at 0%. 131 PCOs on schedule. New COs added ($56,983 net) but owner credits remain unapplied. No timecards. OH&P $27,487 applied to over-budget lines.", severity: "red" },
           ].map(item => (
             <div key={item.req} style={{ padding: 14, background: item.severity === "red" ? T.redBg : T.amberBg, border: `1px solid ${item.severity === "red" ? T.redBorder : T.amberBorder}`, borderRadius: 8 }}>
               <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
@@ -3760,8 +3761,15 @@ MC (contractor, our client) billed ${fmtDollar(totalBilled)} across 16 requisiti
 ${highRisk} requisitions flagged HIGH RISK. Owners made 24 claims totaling ${fmtDollar(totalOwner)}; MC agreed to ${fmtDollar(totalAgreed)} in credits. ${disputed} claims DISPUTED.
 ${docs.length} documents (${uploadedDocs} with files). Currently viewing: "${tab}" tab.
 
+KEY FACTS:
+- REQ-16 (Jan 2024) is the FINAL INVOICE. Largest single requisition at $235,461.
+- Project is OVER-BILLED by $53,162 (total completed $1,839,331 vs contract sum $1,786,169 = 102.97%).
+- $135,385 in unapplied credit COs remain at 0% across REQ-15 and REQ-16 (PCO#130 $66,389, PCO#129 $24,248, plus 5 others).
+- 10+ G703 lines over budget: Insulation 200%, Custom Casework 155%, Framing Material 165%.
+- Zero employee timecards across all 16 requisitions.
+
 RULES:
-1. Map "REQ-3", "req 3", "#3" etc. to the correct reqId (1-16).
+1. Map "REQ-3", "req 3", "#3" etc. to the correct reqId (1-16). REQ-16 is the final invoice.
 2. Match claims by description keywords or ID number.
 3. Be concise — this is legal case management, precision over verbosity.
 4. Execute multiple tool calls when needed.
