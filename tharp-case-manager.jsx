@@ -15,7 +15,7 @@ const T = {
   borderStrong: "#D4D0C8",
   text: "#1A1814",
   textMid: "#5C5852",
-  textMuted: "#9E9A93",
+  textMuted: "#8A867F",
   accent: "#C8942A",
   accentBg: "#FFF8EC",
   accentBorder: "#F0D28A",
@@ -39,8 +39,58 @@ const T = {
   navActive: "#FFFFFF",
   font: "'DM Sans', system-ui, -apple-system, sans-serif",
   mono: "'DM Mono', 'Fira Code', monospace",
-  num: "'DM Sans', system-ui, -apple-system, sans-serif",
+  // Shadows
+  sh1: "0 1px 2px rgba(0,0,0,0.04), 0 1px 4px rgba(0,0,0,0.03)",
+  sh2: "0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
+  sh3: "0 8px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04)",
+  // Transitions
+  fast: "all 0.12s ease",
+  med: "all 0.2s ease",
 };
+
+// ── Icon System (inline SVG) ─────────────────────────────────────────────────
+function Ic({ name, size = 16, color = "currentColor", sw = 1.75, style = {} }) {
+  const P = {
+    "file-text":    "M14.5 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V7.5L14.5 2z|M14 2v6h6|M16 13H8|M16 17H8|M10 9H8",
+    "folder":       "M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z",
+    "dollar":       "M12 1v22|M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6",
+    "refresh":      "M23 4v6h-6|M1 20v-6h6|M3.51 9a9 9 0 0114.85-3.36L23 10|M20.49 15a9 9 0 01-14.85 3.36L1 14",
+    "mail":         "M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z|M22 6l-10 7L2 6",
+    "receipt":      "M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z|M16 8H8|M16 12H8|M10 16H8",
+    "search":       "M19 19l-4.35-4.35|M11 19a8 8 0 100-16 8 8 0 000 16z",
+    "camera":       "M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z|M12 13a4 4 0 100-8 4 4 0 000 8z",
+    "scale":        "M16 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z|M2 16l3-8 3 8c-.87.65-1.92 1-3 1s-2.13-.35-3-1z|M7 21h10|M12 3v18|M3 7h2c2 0 5-1 7-2 2 1 5 2 7 2h2",
+    "book":         "M4 19.5A2.5 2.5 0 016.5 17H20|M4 19.5A2.5 2.5 0 006.5 22H20V2H6.5A2.5 2.5 0 004 4.5v15z",
+    "bar-chart":    "M12 20V10|M18 20V4|M6 20v-4",
+    "edit":         "M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7|M18.5 2.5a2.12 2.12 0 013 3L12 15l-4 1 1-4 9.5-9.5z",
+    "image":        "M19 3H5a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2V5a2 2 0 00-2-2z|M8.5 10a1.5 1.5 0 100-3 1.5 1.5 0 000 3z|M21 15l-5-5L5 21",
+    "zap":          "M13 2L3 14h9l-1 10 10-12h-9l1-10z",
+    "settings":     "M12 15a3 3 0 100-6 3 3 0 000 6z|M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83 0 2 2 0 010-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 112.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 114 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06a1.65 1.65 0 00-.33 1.82V9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z",
+    "cloud":        "M18 10h-1.26A8 8 0 109 20h9a5 5 0 000-10z",
+    "key":          "M21 2l-2 2m-7.61 7.61a5.5 5.5 0 11-7.78 7.78 5.5 5.5 0 017.78-7.78zm0 0L15.5 7.5m0 0l3 3L22 7l-3-3m-3.5 3.5L19 4",
+    "check":        "M20 6L9 17l-5-5",
+    "alert":        "M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z|M12 9v4|M12 17h.01",
+    "flag":         "M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z|M4 22V15",
+    "x":            "M18 6L6 18|M6 6l12 12",
+    "map-pin":      "M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z|M12 10a3 3 0 100-6 3 3 0 000 6z",
+    "shield":       "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z",
+    "users":        "M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2|M9 11a4 4 0 100-8 4 4 0 000 8z|M23 21v-2a4 4 0 00-3-3.87|M16 3.13a4 4 0 010 7.75",
+    "upload":       "M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4|M17 8l-5-5-5 5|M12 3v12",
+    "chevron-r":    "M9 18l6-6-6-6",
+    "clipboard":    "M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2|M9 2h6a1 1 0 011 1v1a1 1 0 01-1 1H9a1 1 0 01-1-1V3a1 1 0 011-1z",
+    "trending-up":  "M23 6l-9.5 9.5-5-5L1 18|M17 6h6v6",
+    "crosshair":    "M12 22a10 10 0 100-20 10 10 0 000 20z|M22 12h-4|M6 12H2|M12 6V2|M12 22v-4",
+  };
+  const d = P[name];
+  if (!d) return null;
+  return (
+    <svg width={size} height={size} viewBox="0 0 24 24" fill="none"
+      stroke={color} strokeWidth={sw} strokeLinecap="round" strokeLinejoin="round"
+      style={{ display: "inline-block", verticalAlign: "middle", flexShrink: 0, ...style }}>
+      {d.split("|").map((seg, i) => <path key={i} d={seg} />)}
+    </svg>
+  );
+}
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 const AUDIT_FLAGS = [
@@ -1435,13 +1485,13 @@ function formatFileSize(bytes) {
   return (bytes / Math.pow(1024, i)).toFixed(i > 0 ? 1 : 0) + " " + units[i];
 }
 
-function getMimeIcon(mime) {
-  if (!mime) return "📄";
-  if (mime.startsWith("image/")) return "🖼️";
-  if (mime === "application/pdf") return "📕";
-  if (mime.includes("sheet") || mime.includes("excel") || mime.includes("xlsx")) return "📊";
-  if (mime.includes("word") || mime.includes("doc")) return "📝";
-  return "📄";
+function getMimeIcon(mime, size = 16, color = T.textMid) {
+  if (!mime) return <Ic name="file-text" size={size} color={color} />;
+  if (mime.startsWith("image/")) return <Ic name="image" size={size} color={color} />;
+  if (mime === "application/pdf") return <Ic name="book" size={size} color={color} />;
+  if (mime.includes("sheet") || mime.includes("excel") || mime.includes("xlsx")) return <Ic name="bar-chart" size={size} color={color} />;
+  if (mime.includes("word") || mime.includes("doc")) return <Ic name="edit" size={size} color={color} />;
+  return <Ic name="file-text" size={size} color={color} />;
 }
 
 // ── Auto-Categorization Engine ───────────────────────────────────────────────
@@ -1662,7 +1712,7 @@ const $ = (n) => "$" + (Math.abs(n || 0)).toLocaleString("en-US", { minimumFract
 // ── Shared Components ─────────────────────────────────────────────────────────
 function Badge({ label, style: { color, bg, border } }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", fontSize: 11, fontWeight: 500, letterSpacing: 0.3, padding: "2px 8px", borderRadius: 4, background: bg, color, border: `1px solid ${border}`, fontFamily: T.font, whiteSpace: "nowrap" }}>
+    <span style={{ display: "inline-flex", alignItems: "center", fontSize: 11, fontWeight: 500, letterSpacing: 0.2, padding: "3px 10px", borderRadius: 6, background: bg, color, border: `1px solid ${border}`, fontFamily: T.font, whiteSpace: "nowrap", lineHeight: 1.4 }}>
       {label}
     </span>
   );
@@ -1674,36 +1724,36 @@ function Mono({ children, color = T.text, size = 13 }) {
 
 function SectionTitle({ title, subtitle }) {
   return (
-    <div style={{ marginBottom: 20 }}>
-      <h2 style={{ margin: 0, fontSize: 20, fontWeight: 600, color: T.text, fontFamily: T.font, letterSpacing: -0.4 }}>{title}</h2>
-      {subtitle && <p style={{ margin: "3px 0 0", fontSize: 13, color: T.textMuted, fontFamily: T.font }}>{subtitle}</p>}
+    <div style={{ marginBottom: 24 }}>
+      <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: T.text, fontFamily: T.font, letterSpacing: -0.5, lineHeight: 1.2 }}>{title}</h2>
+      {subtitle && <p style={{ margin: "6px 0 0", fontSize: 13, color: T.textMid, fontFamily: T.font, lineHeight: 1.5 }}>{subtitle}</p>}
     </div>
   );
 }
 
 function Card({ children, style = {}, padding = 20 }) {
   return (
-    <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding, boxShadow: "0 1px 3px rgba(0,0,0,0.05)", ...style }}>
+    <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding, boxShadow: T.sh1, overflow: "hidden", ...style }}>
       {children}
     </div>
   );
 }
 
 function CardLabel({ label }) {
-  return <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.8, color: T.textMuted, textTransform: "uppercase", marginBottom: 10, fontFamily: T.font }}>{label}</div>;
+  return <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.8, color: T.textMuted, textTransform: "uppercase", marginBottom: 12, fontFamily: T.font }}>{label}</div>;
 }
 
 function KPI({ label, value, sub, color = T.text, accent = false, isMoney = false, rawAmount = 0 }) {
   return (
-    <Card style={{ borderTop: accent ? `3px solid ${T.accent}` : undefined }}>
-      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.6, color: T.textMuted, textTransform: "uppercase", marginBottom: 8, fontFamily: T.font }}>{label}</div>
-      <div style={{ marginBottom: 3 }}>
+    <Card style={{ borderTop: accent ? `3px solid ${T.accent}` : undefined, overflow: "visible" }}>
+      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 10, fontFamily: T.font }}>{label}</div>
+      <div style={{ marginBottom: 4 }}>
         {isMoney
           ? <Money amount={rawAmount} color={color} size="xl" />
-          : <span style={{ fontFamily: T.num, fontSize: 28, fontWeight: 600, color, letterSpacing: -1 }}>{value}</span>
+          : <span style={{ fontFamily: T.font, fontSize: 28, fontWeight: 700, color, letterSpacing: -1 }}>{value}</span>
         }
       </div>
-      {sub && <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font, marginTop: 2 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font, marginTop: 4 }}>{sub}</div>}
     </Card>
   );
 }
@@ -1711,26 +1761,27 @@ function KPI({ label, value, sub, color = T.text, accent = false, isMoney = fals
 function TextInput({ label, value, onChange, type = "text" }) {
   const [focused, setFocused] = useState(false);
   return (
-    <div style={{ marginBottom: 12 }}>
-      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>{label}</label>
+    <div style={{ marginBottom: 14 }}>
+      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.3, marginBottom: 5, fontFamily: T.font }}>{label}</label>
       <input type={type} value={value ?? ""} onChange={e => onChange(type === "number" ? parseFloat(e.target.value) || 0 : e.target.value)}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        style={{ width: "100%", background: T.surface, border: `1px solid ${focused ? T.accent : T.border}`, borderRadius: 6, padding: "7px 10px", color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: type === "number" ? T.mono : T.font, transition: "border-color 0.15s" }} />
+        style={{ width: "100%", background: T.bg, border: `1px solid ${focused ? T.accent : T.border}`, borderRadius: 8, padding: "8px 12px", color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: type === "number" ? T.mono : T.font, transition: T.fast }} />
     </div>
   );
 }
 
 function SegmentControl({ options, value, onChange, colorFn }) {
   return (
-    <div style={{ display: "flex", gap: 4 }}>
+    <div style={{ display: "flex", gap: 4, background: T.bg, borderRadius: 8, padding: 3 }}>
       {options.map(opt => {
         const active = value === opt;
-        const col = colorFn ? colorFn(opt) : { color: T.text, bg: T.surfaceHover, border: T.border };
+        const col = colorFn ? colorFn(opt) : { color: T.text, bg: T.surface, border: T.border };
         return (
           <button key={opt} onClick={() => onChange(opt)} style={{
-            flex: 1, padding: "6px 8px", borderRadius: 6, border: `1px solid ${active ? col.border : T.border}`,
-            background: active ? col.bg : T.surface, color: active ? col.color : T.textMuted,
-            fontSize: 11, fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: T.font, transition: "all 0.12s",
+            flex: 1, padding: "6px 8px", borderRadius: 6, border: active ? `1px solid ${col.border}` : "1px solid transparent",
+            background: active ? col.bg : "transparent", color: active ? col.color : T.textMuted,
+            fontSize: 11, fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: T.font, transition: T.fast,
+            boxShadow: active ? T.sh1 : "none",
           }}>{opt}</button>
         );
       })}
@@ -1777,8 +1828,8 @@ function Dashboard({ reqs, claims }) {
             return (
               <div key={level} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
                 <Badge label={level} style={s} />
-                <div style={{ flex: 1, height: 6, background: T.border, borderRadius: 3, overflow: "hidden" }}>
-                  <div style={{ height: 6, background: s.color, width: `${pct}%`, borderRadius: 3, transition: "width 0.5s ease", opacity: 0.8 }} />
+                <div style={{ flex: 1, height: 10, background: T.border, borderRadius: 5, overflow: "hidden" }}>
+                  <div style={{ height: 10, background: s.color, width: `${pct}%`, borderRadius: 5, transition: "width 0.4s ease" }} />
                 </div>
                 <span style={{ fontFamily: T.mono, fontSize: 13, color: T.textMid, minWidth: 32, textAlign: "right" }}>{riskDist[level]}</span>
               </div>
@@ -1985,8 +2036,8 @@ function AuditRisk({ reqs }) {
                   <span style={{ fontSize: 12, color: T.textMid, fontFamily: T.font, maxWidth: "80%", lineHeight: 1.3 }}>{flag.label}</span>
                   <span style={{ fontFamily: T.mono, fontSize: 12, color: col }}>{freq[flag.id]}</span>
                 </div>
-                <div style={{ height: 5, background: T.border, borderRadius: 3 }}>
-                  <div style={{ height: 5, borderRadius: 3, background: col, width: `${(freq[flag.id] / 16) * 100}%`, opacity: 0.75 }} />
+                <div style={{ height: 10, background: T.border, borderRadius: 5 }}>
+                  <div style={{ height: 10, borderRadius: 5, background: col, width: `${(freq[flag.id] / 16) * 100}%` }} />
                 </div>
               </div>
             );
@@ -2726,7 +2777,7 @@ function ArbitrationSimulator({ reqs, claims }) {
   if (customMode) allSims.push({ arb: activeArb, sim });
 
   const pctBar = (val, max, color) => (
-    <div style={{ width: "100%", height: 6, background: T.border, borderRadius: 3, overflow: "hidden" }}>
+    <div style={{ width: "100%", height: 10, background: T.border, borderRadius: 5, overflow: "hidden" }}>
       <div style={{ width: `${Math.min(100, (val / max) * 100)}%`, height: "100%", background: color, borderRadius: 3, transition: "width 0.4s ease" }} />
     </div>
   );
@@ -3010,15 +3061,15 @@ function ArbitrationSimulator({ reqs, claims }) {
 // ── DOCUMENTS ────────────────────────────────────────────────────────────────
 
 const DOC_CATEGORIES = [
-  { id: "contract", label: "Contract Documents", icon: "📄", color: T.accent },
-  { id: "requisition", label: "Requisitions / Pay Apps", icon: "💰", color: T.green },
-  { id: "change_order", label: "Change Orders", icon: "🔄", color: T.blue },
-  { id: "correspondence", label: "Correspondence", icon: "✉️", color: T.purple },
-  { id: "invoice", label: "Invoices & Backup", icon: "🧾", color: T.amber },
-  { id: "inspection", label: "Inspections & Reports", icon: "🔍", color: T.red },
-  { id: "photo", label: "Photos & Media", icon: "📷", color: T.textMid },
-  { id: "arbitration", label: "Arbitration Filings", icon: "⚖️", color: T.accent },
-  { id: "other", label: "Other", icon: "📁", color: T.textMuted },
+  { id: "contract", label: "Contract Documents", ic: "file-text", color: T.accent },
+  { id: "requisition", label: "Requisitions / Pay Apps", ic: "dollar", color: T.green },
+  { id: "change_order", label: "Change Orders", ic: "refresh", color: T.blue },
+  { id: "correspondence", label: "Correspondence", ic: "mail", color: T.purple },
+  { id: "invoice", label: "Invoices & Backup", ic: "receipt", color: T.amber },
+  { id: "inspection", label: "Inspections & Reports", ic: "search", color: T.red },
+  { id: "photo", label: "Photos & Media", ic: "camera", color: T.textMid },
+  { id: "arbitration", label: "Arbitration Filings", ic: "scale", color: T.accent },
+  { id: "other", label: "Other", ic: "folder", color: T.textMuted },
 ];
 
 const DOCS_INITIAL = [
@@ -3246,7 +3297,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
         >
           {uploading.length === 0 ? (
             <div>
-              <div style={{ fontSize: 28, marginBottom: 6 }}>📁</div>
+              <div style={{ marginBottom: 8 }}><Ic name="upload" size={28} color={T.textMuted} /></div>
               <div style={{ fontSize: 13, fontWeight: 500, color: T.text, fontFamily: T.font }}>
                 Drop files here to upload, or <span style={{ color: T.accent, textDecoration: "underline" }}>browse</span>
               </div>
@@ -3296,7 +3347,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
               border: `1.5px solid ${filter === c.id ? c.color : T.border}`,
               background: filter === c.id ? (c.color + "12") : T.surface,
               color: filter === c.id ? c.color : T.textMid,
-            }}>{c.icon} {c.label} ({c.count})</button>
+            }}><Ic name={c.ic} size={13} color={filter === c.id ? c.color : T.textMid} style={{ marginRight: 5 }} />{c.label} ({c.count})</button>
           ))}
         </div>
 
@@ -3345,7 +3396,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
                     style={{ cursor: "pointer", background: active ? T.accentBg : "transparent", transition: "background 0.1s" }}
                     onMouseEnter={e => { if (!active) e.currentTarget.style.background = T.surfaceHover; }}
                     onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}>
-                    <td style={{ ...TdStyle, width: 36, textAlign: "center", fontSize: 16 }}>{hasFile ? getMimeIcon(doc.mimeType) : cat.icon}</td>
+                    <td style={{ ...TdStyle, width: 36, textAlign: "center" }}>{hasFile ? getMimeIcon(doc.mimeType, 18, cat.color) : <Ic name={cat.ic} size={18} color={cat.color} />}</td>
                     <td style={TdStyle}>
                       <div style={{ fontWeight: 500 }}>{doc.name}</div>
                       <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>
@@ -3399,7 +3450,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
 
       {/* Edit Sidebar */}
       {editing && (
-        <div style={{ position: "sticky", top: 100 }}>
+        <div style={{ position: "sticky", top: 16 }}>
           <Card>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <CardLabel label="Edit Document" />
@@ -3410,7 +3461,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
             {editing.storagePath && (
               <div style={{ marginBottom: 14, padding: "10px 12px", borderRadius: 8, background: T.bg, border: `1px solid ${T.border}` }}>
                 <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
-                  <span style={{ fontSize: 18 }}>{getMimeIcon(editing.mimeType)}</span>
+                  <span>{getMimeIcon(editing.mimeType, 20, T.accent)}</span>
                   <div style={{ flex: 1, overflow: "hidden" }}>
                     <div style={{ fontSize: 12, fontWeight: 500, fontFamily: T.font, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{editing.fileName}</div>
                     <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.font }}>{formatFileSize(editing.fileSize)} · {(editing.mimeType || "unknown").split("/").pop()}</div>
@@ -3506,7 +3557,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
               <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Category</label>
               <select value={editing.category} onChange={e => updateDoc(editing.id, { category: e.target.value })}
                 style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface }}>
-                {DOC_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+                {DOC_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
               </select>
             </div>
             <TextInput label="Document Name" value={editing.name} onChange={v => updateDoc(editing.id, { name: v })} />
@@ -3553,7 +3604,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
 
       {/* Add Sidebar */}
       {adding && (
-        <div style={{ position: "sticky", top: 100 }}>
+        <div style={{ position: "sticky", top: 16 }}>
           <Card>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
               <CardLabel label="Add New Document" />
@@ -3563,7 +3614,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
               <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Category</label>
               <select value={newDoc.category} onChange={e => setNewDoc(prev => ({ ...prev, category: e.target.value }))}
                 style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface }}>
-                {DOC_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.icon} {c.label}</option>)}
+                {DOC_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
               </select>
             </div>
             <TextInput label="Document Name *" value={newDoc.name} onChange={v => setNewDoc(prev => ({ ...prev, name: v }))} />
@@ -3767,14 +3818,14 @@ function executeToolCall(name, args, appState, callbacks, actions) {
   switch (name) {
     case "navigate_tab":
       setTab(args.tab);
-      actions.push({ icon: "📍", summary: "Navigated to " + args.tab + " tab" });
+      actions.push({ icon: "map-pin", summary: "Navigated to " + args.tab + " tab" });
       return { success: true, navigatedTo: args.tab };
 
     case "update_requisition": {
       const req = reqs.find(r => r.id === args.reqId);
       if (!req) return { error: "REQ-" + args.reqId + " not found" };
       updateReq(args.reqId, args.updates);
-      actions.push({ icon: "💰", summary: "Updated REQ-" + String(args.reqId).padStart(2, "0") + ": " + Object.keys(args.updates).join(", ") });
+      actions.push({ icon: "dollar", summary: "Updated REQ-" + String(args.reqId).padStart(2, "0") + ": " + Object.keys(args.updates).join(", ") });
       return { success: true, updated: "REQ-" + args.reqId };
     }
 
@@ -3785,7 +3836,7 @@ function executeToolCall(name, args, appState, callbacks, actions) {
       if (args.action === "add" && !flags.includes(args.flag)) flags.push(args.flag);
       if (args.action === "remove") flags = flags.filter(f => f !== args.flag);
       updateReq(args.reqId, { flags });
-      actions.push({ icon: "🚩", summary: (args.action === "add" ? "Added" : "Removed") + ' flag "' + args.flag + '" on REQ-' + String(args.reqId).padStart(2, "0") });
+      actions.push({ icon: "flag", summary: (args.action === "add" ? "Added" : "Removed") + ' flag "' + args.flag + '" on REQ-' + String(args.reqId).padStart(2, "0") });
       return { success: true, flags };
     }
 
@@ -3793,7 +3844,7 @@ function executeToolCall(name, args, appState, callbacks, actions) {
       const claim = claims.find(c => c.id === args.claimId);
       if (!claim) return { error: "Claim #" + args.claimId + " not found" };
       updateClaim(args.claimId, args.updates);
-      actions.push({ icon: "⚖️", summary: "Updated claim #" + args.claimId + ": " + Object.keys(args.updates).join(", ") });
+      actions.push({ icon: "scale", summary: "Updated claim #" + args.claimId + ": " + Object.keys(args.updates).join(", ") });
       return { success: true };
     }
 
@@ -3808,7 +3859,7 @@ function executeToolCall(name, args, appState, callbacks, actions) {
         storagePath: null, fileName: null, fileSize: 0, mimeType: null,
         extractedText: null, vendor: null, costCode: null
       });
-      actions.push({ icon: "📄", summary: 'Added document "' + args.name + '" (' + (args.category || "other") + ")" });
+      actions.push({ icon: "file-text", summary: 'Added document "' + args.name + '" (' + (args.category || "other") + ")" });
       return { success: true, docId: id };
     }
 
@@ -3816,7 +3867,7 @@ function executeToolCall(name, args, appState, callbacks, actions) {
       const doc = docs.find(d => d.id === args.docId);
       if (!doc) return { error: "Document " + args.docId + " not found" };
       updateDoc(args.docId, args.updates);
-      actions.push({ icon: "📝", summary: 'Updated "' + doc.name + '": ' + Object.keys(args.updates).join(", ") });
+      actions.push({ icon: "edit", summary: 'Updated "' + doc.name + '": ' + Object.keys(args.updates).join(", ") });
       return { success: true };
     }
 
@@ -3992,14 +4043,14 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
   if (!open) {
     return (
       <button onClick={() => setOpen(true)} style={{
-        position: "fixed", bottom: 20, right: 24, zIndex: 1000,
-        padding: "12px 20px", borderRadius: 24,
+        position: "fixed", bottom: 24, right: 28, zIndex: 1000,
+        padding: "12px 22px", borderRadius: 28,
         background: T.navBg, color: "#fff", border: "none",
         cursor: "pointer", fontFamily: T.font, fontSize: 13, fontWeight: 500,
-        boxShadow: "0 4px 20px rgba(0,0,0,0.15)",
-        display: "flex", alignItems: "center", gap: 8,
+        boxShadow: T.sh3,
+        display: "flex", alignItems: "center", gap: 8, transition: T.med,
       }}>
-        <span style={{ fontSize: 16 }}>⚡</span> Ask AI
+        <Ic name="zap" size={15} color="#fff" /> Ask AI
         <span style={{ fontSize: 10, color: T.navText, marginLeft: 4 }}>Ctrl+K</span>
       </button>
     );
@@ -4007,10 +4058,10 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
 
   return (
     <div style={{
-      position: "fixed", bottom: 20, right: 24, zIndex: 1000,
-      width: 420, maxHeight: 520, borderRadius: 16,
+      position: "fixed", bottom: 24, right: 28, zIndex: 1000,
+      width: 420, maxHeight: 540, borderRadius: 16,
       background: T.surface, border: `1px solid ${T.border}`,
-      boxShadow: "0 8px 40px rgba(0,0,0,0.12)",
+      boxShadow: T.sh3,
       display: "flex", flexDirection: "column", fontFamily: T.font,
     }}>
       {/* Header */}
@@ -4019,7 +4070,7 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
         display: "flex", justifyContent: "space-between", alignItems: "center",
       }}>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <span style={{ fontSize: 14 }}>⚡</span>
+          <Ic name="zap" size={14} color={T.accent} />
           <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>AI Assistant</span>
           <span style={{ fontSize: 10, color: T.textMuted }}>· {tab}</span>
         </div>
@@ -4027,7 +4078,7 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
           <button onClick={() => setShowSettings(!showSettings)} title="Settings" style={{
             background: "none", border: "none", cursor: "pointer", fontSize: 14,
             color: T.textMuted, lineHeight: 1, padding: "2px 6px",
-          }}>⚙</button>
+          }}><Ic name="settings" size={14} color={T.textMuted} /></button>
           <button onClick={() => setOpen(false)} style={{
             background: "none", border: "none", cursor: "pointer", fontSize: 18,
             color: T.textMuted, lineHeight: 1, padding: "2px 6px",
@@ -4063,7 +4114,7 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
       {/* No API Key Prompt */}
       {!apiKey && !showSettings && (
         <div style={{ padding: "24px 16px", textAlign: "center" }}>
-          <div style={{ fontSize: 28, marginBottom: 8 }}>🔑</div>
+          <div style={{ marginBottom: 10 }}><Ic name="key" size={28} color={T.accent} /></div>
           <div style={{ fontSize: 13, fontWeight: 500, color: T.text, marginBottom: 4, fontFamily: T.font }}>Connect OpenAI</div>
           <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 12, fontFamily: T.font, lineHeight: 1.5 }}>
             Enter your OpenAI API key to enable AI-powered commands, document analysis, and case insights.
@@ -4113,7 +4164,7 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
                     fontSize: 10, color: T.green,
                     display: "flex", gap: 6, alignItems: "center",
                   }}>
-                    <span>{action.icon}</span>
+                    <Ic name={action.icon} size={12} color={T.green} />
                     <span>{action.summary}</span>
                   </div>
                 ))}
@@ -4251,34 +4302,35 @@ export default function App() {
   return (
     <div style={{ background: T.bg, minHeight: "100vh", fontFamily: T.font }}>
       {/* Top Bar */}
-      <div style={{ background: T.navBg, padding: "0 24px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 52 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <span style={{ fontSize: 13, fontWeight: 600, color: "#FFFFFF", letterSpacing: -0.2, fontFamily: T.font }}>Montana Contracting</span>
-          <span style={{ color: "#3a3832", fontSize: 16 }}>·</span>
-          <span style={{ fontSize: 12, color: T.navText, fontFamily: T.font }}>Tharp / Bumgardner Case</span>
+      <div style={{ background: T.navBg, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 52 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <Ic name="shield" size={16} color={T.accent} />
+          <span style={{ fontSize: 14, fontWeight: 600, color: "#FFFFFF", letterSpacing: -0.2, fontFamily: T.font }}>Montana Contracting</span>
+          <span style={{ width: 1, height: 16, background: "#333028", display: "inline-block" }}></span>
+          <span style={{ fontSize: 12, color: T.navText, fontFamily: T.font }}>Tharp / Bumgardner</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          {saved && <span style={{ fontSize: 11, color: T.green, fontFamily: T.font }}>{"Saved" + (window._storageMode === "cloud" ? " to cloud" : "")}</span>}
-          <span style={{ fontSize: 11, padding: "3px 8px", borderRadius: 10, background: window._storageMode === "cloud" ? "#16A34A22" : "#D9770622", color: window._storageMode === "cloud" ? T.green : T.amber, fontFamily: T.font }}>{window._storageMode === "cloud" ? "\u2601 Cloud" : "\u26A1 Local"}</span>
-          <span style={{ fontSize: 11, color: "#3a3832", fontFamily: T.mono }}>515 N. Midland Ave · Upper Nyack NY</span>
+          {saved && <span style={{ fontSize: 11, color: T.green, fontFamily: T.font, display: "flex", alignItems: "center", gap: 4 }}><Ic name="check" size={12} color={T.green} />{"Saved" + (window._storageMode === "cloud" ? " to cloud" : "")}</span>}
+          <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 10, background: window._storageMode === "cloud" ? "#16A34A15" : "#D9770615", color: window._storageMode === "cloud" ? T.green : T.amber, fontFamily: T.font, display: "inline-flex", alignItems: "center", gap: 5 }}><Ic name="cloud" size={12} color={window._storageMode === "cloud" ? T.green : T.amber} />{window._storageMode === "cloud" ? "Cloud" : "Local"}</span>
+          <span style={{ fontSize: 11, color: "#5a5648", fontFamily: T.font }}>515 N. Midland Ave, Upper Nyack NY</span>
         </div>
       </div>
 
       {/* Nav */}
-      <div style={{ background: T.surface, borderBottom: `1px solid ${T.border}`, padding: "0 24px", display: "flex", gap: 0 }}>
+      <div style={{ background: T.surface, borderBottom: `1px solid ${T.border}`, padding: "0 32px", display: "flex", gap: 2 }}>
         {TABS.map(t => (
           <button key={t.id} onClick={() => setTab(t.id)} style={{
-            background: "none", border: "none", cursor: "pointer", padding: "13px 16px",
+            background: "none", border: "none", cursor: "pointer", padding: "14px 18px",
             fontSize: 13, fontWeight: tab === t.id ? 600 : 400, fontFamily: T.font,
             color: tab === t.id ? T.text : T.textMuted,
-            borderBottom: tab === t.id ? `2px solid ${T.accent}` : "2px solid transparent",
-            marginBottom: -1, transition: "all 0.12s",
+            borderBottom: tab === t.id ? `3px solid ${T.accent}` : "3px solid transparent",
+            marginBottom: -1, transition: T.fast, letterSpacing: -0.1,
           }}>{t.label}</button>
         ))}
       </div>
 
       {/* Content */}
-      <div style={{ padding: "28px 24px", maxWidth: 1400, margin: "0 auto" }}>
+      <div style={{ padding: "32px 32px", maxWidth: 1400, margin: "0 auto" }}>
         {tab === "dashboard" && <Dashboard reqs={reqs} claims={claims} />}
         {tab === "requisitions" && <Requisitions reqs={reqs} updateReq={updateReq} />}
         {tab === "reconciliation" && <Reconciliation reqs={reqs} />}
