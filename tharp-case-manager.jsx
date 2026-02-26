@@ -155,6 +155,31 @@ const EXCEL_TRADES = {
   16: { "Foundation Waterproofing": 500.00, "Sawcutting": 8000.00, "Masonry": 20382.13, "Railing (Allowance)": 4943.66, "Custom Casework": 41793.75, "Insulation": 15819.92, "Doors, Frames & HW": 22622.47, "Shower Enclosures": 20000.00, "Windows": 6675.00, "Drywall & Carpentry": 5125.35, "Tile": 2700.00, "Wood Flooring": 1950.00, "Painting": 240.00, "Plumbing": 15450.00, "Electric": 49940.00, "Excavation and Fill": 8192.50, "Cooling": -3102.70 },
 };
 
+// ── BACKUP VARIANCE DATA ─────────────────────────────────────────────────────
+// Cost of Work (CM Tracker subtotal) vs Sum of Backup Docs (actual invoices on file)
+// Direct Labor = self-performed work by Montana Contracting (no third-party invoice)
+const BACKUP_VARIANCE = {
+  1:  { backupDocs: 48195.09,  directLabor: 0, items: [] },
+  2:  { backupDocs: 77879.79,  directLabor: 6510.00, items: [
+    { trade: "2100 Demolition", desc: "Self-Performed Demolition", vendor: "Montana Contracting", amount: 5790.00 },
+    { trade: "6400-S Framing Labor", desc: "Self-Performed Framing", vendor: "Montana Contracting", amount: 720.00 },
+  ]},
+  3:  { backupDocs: 85453.91,  directLabor: 0, items: [] },
+  4:  { backupDocs: 71981.16,  directLabor: 0, items: [] },
+  5:  { backupDocs: 111522.67, directLabor: 0, items: [] },
+  6:  { backupDocs: 55312.79,  directLabor: 0, items: [] },
+  7:  { backupDocs: 72366.73,  directLabor: 0, items: [] },
+  8:  { backupDocs: 161769.79, directLabor: 4860.00, items: [] },
+  9:  { backupDocs: 39642.74,  directLabor: 0, items: [] },
+  10: { backupDocs: 61384.79,  directLabor: 16230.00, items: [] },
+  11: { backupDocs: 62449.13,  directLabor: 0, items: [] },
+  12: { backupDocs: 55871.07,  directLabor: 0, items: [] },
+  13: { backupDocs: 147271.75, directLabor: 0, items: [] },
+  14: { backupDocs: 192733.58, directLabor: 0, items: [] },
+  15: { backupDocs: 5161.31,   directLabor: 0, items: [] },
+  16: { backupDocs: 0,         directLabor: 0, items: [] },
+};
+
 const REQ_DEFAULTS = (i) => ({
   id: i + 1,
   reqNumber: `REQ-${String(i + 1).padStart(2, "0")}`,
@@ -2491,6 +2516,169 @@ function Reconciliation({ reqs }) {
             </div>
           ))}
         </div>
+      </Card>
+
+      {/* ── BACKUP DOCUMENTATION VARIANCE ─────────────────────────────────── */}
+      <BackupVariance reqs={reqs} />
+    </div>
+  );
+}
+
+function BackupVariance({ reqs }) {
+  const [expRow, setExpRow] = useState(null);
+
+  // Build rows from BACKUP_VARIANCE + EXCEL_DATA
+  const rows = reqs.slice(0, 16).map((req, i) => {
+    const bv = BACKUP_VARIANCE[i + 1] || {};
+    const costOfWork = EXCEL_DATA[i] ? EXCEL_DATA[i][1] : 0; // excelSubtotal = cost of work pre-fee
+    const backupDocs = bv.backupDocs || 0;
+    const rawVariance = backupDocs - costOfWork;
+    const directLabor = bv.directLabor || 0;
+    const revisedTotal = backupDocs + directLabor;
+    const revisedVariance = revisedTotal - costOfWork;
+    const items = bv.items || [];
+    // status
+    let status = "pending";
+    if (i + 1 === 16 && backupDocs === 0) status = "critical";
+    else if (Math.abs(revisedVariance) < 1) status = "reconciled";
+    else if (revisedVariance > 0) status = "surplus";
+    else if (directLabor > 0 && revisedVariance < 0) status = "partial";
+    else if (Math.abs(revisedVariance) < 200) status = "minor";
+    else status = "unreconciled";
+    return { req, i, costOfWork, backupDocs, rawVariance, directLabor, revisedTotal, revisedVariance, items, status };
+  });
+
+  const totalCostOfWork = rows.reduce((s, r) => s + r.costOfWork, 0);
+  const totalBackupDocs = rows.reduce((s, r) => s + r.backupDocs, 0);
+  const totalDirectLabor = rows.reduce((s, r) => s + r.directLabor, 0);
+  const totalRevisedVar = rows.reduce((s, r) => s + r.revisedVariance, 0);
+  const reconCount = rows.filter(r => r.status === "reconciled").length;
+  const surplusCount = rows.filter(r => r.status === "surplus").length;
+  const unreconCount = rows.filter(r => r.status === "unreconciled" || r.status === "critical").length;
+
+  const statusBadge = (st) => {
+    const m = {
+      reconciled:   { label: "RECONCILED", color: T.green, bg: T.greenBg, border: T.greenBorder },
+      surplus:      { label: "SURPLUS",    color: T.green, bg: T.greenBg, border: T.greenBorder },
+      minor:        { label: "MINOR",      color: T.amber, bg: T.amberBg, border: T.amberBorder },
+      partial:      { label: "PARTIAL",    color: T.amber, bg: T.amberBg, border: T.amberBorder },
+      unreconciled: { label: "OPEN",       color: T.red,   bg: T.redBg,   border: T.redBorder },
+      critical:     { label: "CRITICAL",   color: T.red,   bg: T.redBg,   border: T.redBorder },
+      pending:      { label: "PENDING",    color: T.textMuted, bg: T.surfaceHover, border: T.border },
+    }[st] || { label: st, color: T.textMuted, bg: T.surfaceHover, border: T.border };
+    return <Badge label={m.label} style={{ color: m.color, bg: m.bg, border: m.border }} />;
+  };
+
+  const Th = { padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg, whiteSpace: "nowrap" };
+  const Td = { padding: "10px 14px", fontSize: 13, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
+
+  return (
+    <div style={{ marginTop: 28 }}>
+      <SectionTitle
+        title="Backup Documentation Variance"
+        subtitle="Cost of Work (CM Tracker subtotal) vs actual invoices on file — variance explained by self-performed labor"
+      />
+
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+        <KPI label="Total Cost of Work" isMoney rawAmount={totalCostOfWork} sub="Pre-fee subtotals, REQs 1–16" color={T.blue} />
+        <KPI label="Backup Docs on File" isMoney rawAmount={totalBackupDocs} sub="Third-party invoices" color={T.text} />
+        <KPI label="Direct Labor Found" isMoney rawAmount={totalDirectLabor} sub="Self-performed, no invoice" color={T.amber} />
+        <KPI label="Revised Variance" isMoney rawAmount={Math.abs(totalRevisedVar)} sub={`${reconCount + surplusCount} closed · ${unreconCount} open`} color={totalRevisedVar < -1000 ? T.red : T.green} />
+      </div>
+
+      <Card padding={0} style={{ marginBottom: 20 }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr>
+              <th style={Th}>REQ</th>
+              <th style={{ ...Th, textAlign: "right" }}>COST OF WORK</th>
+              <th style={{ ...Th, textAlign: "right" }}>BACKUP DOCS</th>
+              <th style={{ ...Th, textAlign: "right" }}>VARIANCE</th>
+              <th style={{ ...Th, textAlign: "right" }}>DIRECT LABOR</th>
+              <th style={{ ...Th, textAlign: "right" }}>REVISED TOTAL</th>
+              <th style={{ ...Th, textAlign: "right" }}>REVISED VAR.</th>
+              <th style={{ ...Th, textAlign: "center" }}>STATUS</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map(row => {
+              const isExp = expRow === row.i;
+              const hasItems = row.items.length > 0;
+              const rvColor = Math.abs(row.revisedVariance) < 1 ? T.green : row.revisedVariance > 0 ? T.green : Math.abs(row.revisedVariance) < 200 ? T.amber : T.red;
+              return (
+                <React.Fragment key={row.i}>
+                  <tr
+                    style={{ background: isExp ? T.accentBg : "transparent", cursor: hasItems ? "pointer" : "default", transition: T.fast }}
+                    onClick={() => hasItems && setExpRow(isExp ? null : row.i)}
+                    onMouseEnter={e => { if (!isExp) e.currentTarget.style.background = T.surfaceHover; }}
+                    onMouseLeave={e => { if (!isExp) e.currentTarget.style.background = "transparent"; }}>
+                    <td style={{ ...Td, fontFamily: T.mono, fontWeight: 500, color: T.accent }}>
+                      {row.req.reqNumber}
+                      {hasItems && <span style={{ fontSize: 10, color: T.accent, marginLeft: 6 }}>{isExp ? "▲" : "▼"}</span>}
+                    </td>
+                    <td style={{ ...Td, textAlign: "right" }}><Money amount={row.costOfWork} color={T.textMid} size="sm" /></td>
+                    <td style={{ ...Td, textAlign: "right" }}>
+                      {row.backupDocs > 0 ? <Money amount={row.backupDocs} color={T.text} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                    </td>
+                    <td style={{ ...Td, textAlign: "right" }}>
+                      <Money amount={Math.abs(row.rawVariance)} color={row.rawVariance >= 0 ? T.green : T.red} size="sm" neg={row.rawVariance < 0} />
+                    </td>
+                    <td style={{ ...Td, textAlign: "right" }}>
+                      {row.directLabor > 0 ? <Money amount={row.directLabor} color={T.amber} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                    </td>
+                    <td style={{ ...Td, textAlign: "right" }}><Money amount={row.revisedTotal} color={T.text} size="sm" /></td>
+                    <td style={{ ...Td, textAlign: "right" }}>
+                      <Money amount={Math.abs(row.revisedVariance)} color={rvColor} size="sm" neg={row.revisedVariance < 0} />
+                    </td>
+                    <td style={{ ...Td, textAlign: "center" }}>{statusBadge(row.status)}</td>
+                  </tr>
+                  {isExp && (
+                    <tr>
+                      <td colSpan={8} style={{ padding: 0, borderBottom: `1px solid ${T.border}` }}>
+                        <div style={{ background: T.bg, padding: "14px 24px 14px 60px" }}>
+                          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.6, color: T.textMuted, marginBottom: 10, fontFamily: T.font }}>
+                            SELF-PERFORMED LABOR — {row.req.reqNumber}
+                          </div>
+                          {row.items.map((item, j) => (
+                            <div key={j} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: `1px solid ${T.border}` }}>
+                              <div>
+                                <span style={{ fontSize: 12, fontWeight: 500, color: T.text, fontFamily: T.font }}>{item.desc}</span>
+                                <span style={{ fontSize: 11, color: T.textMuted, fontFamily: T.font, marginLeft: 10 }}>{item.trade} · {item.vendor}</span>
+                              </div>
+                              <Money amount={item.amount} color={T.amber} size="sm" />
+                            </div>
+                          ))}
+                          <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, marginTop: 4 }}>
+                            <span style={{ fontSize: 12, fontWeight: 600, color: T.textMid, fontFamily: T.font }}>Total Direct Labor</span>
+                            <Money amount={row.directLabor} color={T.amber} size="sm" />
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+                  )}
+                </React.Fragment>
+              );
+            })}
+          </tbody>
+          <tfoot>
+            <tr style={{ background: T.bg }}>
+              <td style={{ ...Td, fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "none", letterSpacing: 0.5 }}>TOTALS</td>
+              <td style={{ ...Td, textAlign: "right", borderBottom: "none" }}><Money amount={totalCostOfWork} color={T.blue} size="sm" /></td>
+              <td style={{ ...Td, textAlign: "right", borderBottom: "none" }}><Money amount={totalBackupDocs} color={T.text} size="sm" /></td>
+              <td style={{ ...Td, textAlign: "right", borderBottom: "none" }}>
+                <Money amount={Math.abs(totalBackupDocs - totalCostOfWork)} color={T.red} size="sm" neg={totalBackupDocs - totalCostOfWork < 0} />
+              </td>
+              <td style={{ ...Td, textAlign: "right", borderBottom: "none" }}><Money amount={totalDirectLabor} color={T.amber} size="sm" /></td>
+              <td style={{ ...Td, textAlign: "right", borderBottom: "none" }}><Money amount={totalBackupDocs + totalDirectLabor} color={T.text} size="sm" /></td>
+              <td style={{ ...Td, textAlign: "right", borderBottom: "none" }}>
+                <Money amount={Math.abs(totalRevisedVar)} color={totalRevisedVar < -1000 ? T.red : T.green} size="sm" neg={totalRevisedVar < 0} />
+              </td>
+              <td style={{ ...Td, textAlign: "center", borderBottom: "none" }}>
+                <span style={{ fontSize: 11, fontFamily: T.mono, color: T.textMuted }}>{reconCount + surplusCount}/{rows.length}</span>
+              </td>
+            </tr>
+          </tfoot>
+        </table>
       </Card>
     </div>
   );
