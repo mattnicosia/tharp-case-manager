@@ -1816,10 +1816,10 @@ function SegmentControl({ options, value, onChange, colorFn }) {
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function Dashboard({ reqs, claims }) {
   const totalBilled = reqs.reduce((s, r) => s + (r.totalBilled || 0), 0);
-  const totalRetainage = reqs.reduce((s, r) => s + (r.retainageHeld || 0), 0);
   const highRisk = reqs.filter(r => computeRisk(r) === "HIGH").length;
   const totalOwner = claims.reduce((s, c) => s + c.ownerAmount, 0);
   const totalAgreed = claims.reduce((s, c) => s + c.agreedAmount, 0);
+  const openBalance = totalBilled - totalAgreed;
   const totalWaived = claims.filter(c => c.status === "WAIVED").reduce((s, c) => s + c.ownerAmount, 0);
   const totalDisputed = claims.filter(c => c.status === "DISPUTED").reduce((s, c) => s + c.ownerAmount, 0);
 
@@ -1832,7 +1832,7 @@ function Dashboard({ reqs, claims }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 12 }}>
         <KPI label="Total Billed" isMoney rawAmount={totalBilled} sub="16 payment applications" accent color={T.accent} />
-        <KPI label="Retainage Held" isMoney rawAmount={totalRetainage} sub="Withheld by owners" color={T.red} />
+        <KPI label="Open Balance" isMoney rawAmount={openBalance} sub="Billed minus agreed credits" color={T.amber} />
         <KPI label="High Risk Reqs" value={`${highRisk}/16`} sub="Require mitigation" color={highRisk > 0 ? T.red : T.green} />
       </div>
 
