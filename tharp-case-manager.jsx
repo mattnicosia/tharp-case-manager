@@ -160,6 +160,7 @@ const REQ_DEFAULTS = (i) => ({
   reqNumber: `REQ-${String(i + 1).padStart(2, "0")}`,
   date: "",
   totalBilled: 0,        // PDF / AIA G702 certified amount
+  paidAmount: 0,         // Payments received from owner
   architectApproved: 0,
   retainageHeld: 0,
   laborCost: 0,
@@ -219,6 +220,7 @@ const REQS_INITIAL = Array.from({ length: 17 }, (_, i) => {
 REQS_INITIAL[0] = {
   ...REQS_INITIAL[0],
   totalBilled: 60373.25,
+  paidAmount: 60373.25,
   architectApproved: 60373.25,
   retainageHeld: 0,
   laborCost: 18360.00,
@@ -250,6 +252,7 @@ Total overhead-as-materials exposure this req: $50.88 minimum`,
 REQS_INITIAL[1] = {
   ...REQS_INITIAL[1],
   totalBilled: 105487.24,
+  paidAmount: 105487.24,
   architectApproved: 105487.24,
   retainageHeld: 0,
   laborCost: 11020.00,
@@ -295,6 +298,7 @@ CRITICAL: NO TIMESHEETS or payroll records in entire 30-page backup. Framing Lab
 REQS_INITIAL[2] = {
   ...REQS_INITIAL[2],
   totalBilled: 102311.39,
+  paidAmount: 100511.39,
   architectApproved: 102311.39,
   retainageHeld: 0,
   laborCost: 10300.00,
@@ -341,6 +345,7 @@ CRITICAL: NO TIMESHEETS or payroll records in entire 38-page backup. Framing Lab
 REQS_INITIAL[3] = {
   ...REQS_INITIAL[3],
   totalBilled: 129156.71,
+  paidAmount: 130958.71,
   architectApproved: 129156.71,
   retainageHeld: 0,
   laborCost: 12838.39,
@@ -391,6 +396,7 @@ CRITICAL: NO TIMESHEETS or payroll records in entire 64-page backup. Demolition 
 REQS_INITIAL[4] = {
   ...REQS_INITIAL[4],
   totalBilled: 95486.18,
+  paidAmount: 95486.18,
   architectApproved: 95486.18,
   retainageHeld: 0,
   laborCost: 31400.00,
@@ -492,6 +498,7 @@ CRITICAL: NO TIMESHEETS or payroll records in entire 44-page backup. H&J $31,400
 REQS_INITIAL[5] = {
   ...REQS_INITIAL[5],
   totalBilled: 76455.82,
+  paidAmount: 76455.82,
   architectApproved: 76455.82,
   retainageHeld: 0,
   laborCost: -2387.21,
@@ -601,6 +608,7 @@ CRITICAL: NO TIMESHEETS or payroll records in entire 40-page backup. Framing Lab
 REQS_INITIAL[6] = {
   ...REQS_INITIAL[6],
   totalBilled: 90146.26,
+  paidAmount: 90192.96,
   architectApproved: 90146.26,
   retainageHeld: 0,
   laborCost: 0,
@@ -680,6 +688,7 @@ CRITICAL: NO TIMESHEETS in 34 pages. $0 direct labor. All work through subcontra
 REQS_INITIAL[7] = {
   ...REQS_INITIAL[7],
   totalBilled: 192165.00,
+  paidAmount: 192165.00,
   architectApproved: 192165.00,
   retainageHeld: 0,
   laborCost: 4425.00,
@@ -790,7 +799,8 @@ CRITICAL: LARGEST REQ at $192,165. Four over-budget lines (Framing Mat 165%, Fra
 // ─── REQ-09 Override (Invoice #9.pdf — 26 pages) ─────────────────────────────
 REQS_INITIAL[8] = {
   ...REQS_INITIAL[8],
-  totalBilled: 50361.29,
+  totalBilled: 50381.66,
+  paidAmount: 57523.35,
   architectApproved: 50361.29,
   retainageHeld: 0,
   laborCost: 687.50,
@@ -874,6 +884,7 @@ KEY FINDINGS:
 REQS_INITIAL[9] = {
   ...REQS_INITIAL[9],
   totalBilled: 90418.49,
+  paidAmount: 84016.30,
   architectApproved: 90418.49,
   retainageHeld: 0,
   laborCost: 1035.00,
@@ -971,6 +982,7 @@ KEY FINDINGS:
 REQS_INITIAL[10] = {
   ...REQS_INITIAL[10],
   totalBilled: 92651.29,
+  paidAmount: 92651.29,
   laborCost: 3431.93,
   materialCost: 7313.15,
   subCost: 30609.90,
@@ -1048,6 +1060,7 @@ KEY FINDINGS:
 REQS_INITIAL[11] = {
   ...REQS_INITIAL[11],
   totalBilled: 71831.85,
+  paidAmount: 71831.85,
   laborCost: 0,
   materialCost: 4655.67,
   subCost: 34780.00,
@@ -1116,6 +1129,7 @@ KEY FINDINGS:
 REQS_INITIAL[12] = {
   ...REQS_INITIAL[12],
   totalBilled: 184238.97,
+  paidAmount: 184238.97,
   laborCost: 0,
   materialCost: 4782.53,
   subCost: 67610.18,
@@ -1229,6 +1243,7 @@ KEY FINDINGS:
 REQS_INITIAL[13] = {
   ...REQS_INITIAL[13],
   totalBilled: 256313.93,
+  paidAmount: 0,
   laborCost: 0,
   materialCost: 3856.42,
   subCost: 108213.35,
@@ -1323,6 +1338,7 @@ KEY FINDINGS:
 REQS_INITIAL[14] = {
   ...REQS_INITIAL[14],
   totalBilled: 6451.64,
+  paidAmount: 0,
   laborCost: 0,
   materialCost: 146.31,
   subCost: 5015.00,
@@ -1383,6 +1399,7 @@ KEY FINDINGS:
 REQS_INITIAL[15] = {
   ...REQS_INITIAL[15],
   totalBilled: 235461.28,
+  paidAmount: 0,
   laborCost: 0,
   materialCost: 47236.35,
   subCost: 141136.63,
@@ -1792,10 +1809,11 @@ function SegmentControl({ options, value, onChange, colorFn }) {
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
 function Dashboard({ reqs, claims }) {
   const totalBilled = reqs.reduce((s, r) => s + (r.totalBilled || 0), 0);
+  const totalPaid = reqs.reduce((s, r) => s + (r.paidAmount || 0), 0);
   const highRisk = reqs.filter(r => computeRisk(r) === "HIGH").length;
   const totalOwner = claims.reduce((s, c) => s + c.ownerAmount, 0);
   const totalAgreed = claims.reduce((s, c) => s + c.agreedAmount, 0);
-  const openBalance = totalBilled - totalAgreed;
+  const openBalance = totalBilled - totalPaid;
   const totalWaived = claims.filter(c => c.status === "WAIVED").reduce((s, c) => s + c.ownerAmount, 0);
   const totalDisputed = claims.filter(c => c.status === "DISPUTED").reduce((s, c) => s + c.ownerAmount, 0);
 
@@ -1808,7 +1826,7 @@ function Dashboard({ reqs, claims }) {
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 12 }}>
         <KPI label="Total Billed" isMoney rawAmount={totalBilled} sub="16 payment applications" accent color={T.accent} />
-        <KPI label="Open Balance" isMoney rawAmount={openBalance} sub="Billed minus agreed credits" color={T.amber} />
+        <KPI label="Open Balance" isMoney rawAmount={openBalance} sub="Billed minus payments received" color={T.amber} />
         <KPI label="High Risk Reqs" value={`${highRisk}/16`} sub="Require mitigation" color={highRisk > 0 ? T.red : T.green} />
       </div>
 
