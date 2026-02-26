@@ -208,6 +208,7 @@ const BACKUP_VARIANCE = {
   ]},
   15: { amountBilled: 5161.31,   backupDocs: 5161.31,   directLabor: 0, items: [] },
   16: { amountBilled: 188369.02, backupDocs: 0,         directLabor: 56982.57, items: [
+    { trade: "CO#127 GC/Owner Variance Split", desc: "50/50 base budget savings credit to owner (Contract §3.3.2) — 26 trades reconciled", vendor: "Credit to Owner", amount: -66389.39 },
     { trade: "CO#128 Owner-Supplied Items", desc: "25% markup on owner-provided materials (Contract §3.3) — owner refused to furnish receipts when requested 1/8/2024", vendor: "Various (owner-furnished)", amount: 56982.57 },
   ]},
 };
