@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Tharp Case Manager</title>
+  <title>Arbitai â€” Construction Arbitration Intelligence</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
     html, body, #root { height: 100%; width: 100%; }
@@ -81,6 +81,11 @@ fontLink.rel = "stylesheet";
 fontLink.href = "https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,300;0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&family=DM+Mono:wght@400;500&display=swap";
 document.head.appendChild(fontLink);
 
+// ── CSS Keyframes ────────────────────────────────────────────────────────────
+const styleSheet = document.createElement("style");
+styleSheet.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
+document.head.appendChild(styleSheet);
+
 // ── Design Tokens ─────────────────────────────────────────────────────────────
 const T = {
   bg: "#FAFAF8",
@@ -91,9 +96,10 @@ const T = {
   text: "#1A1814",
   textMid: "#5C5852",
   textMuted: "#8A867F",
-  accent: "#C8942A",
-  accentBg: "#FFF8EC",
-  accentBorder: "#F0D28A",
+  accent: "#B8860B",
+  accentBg: "#FDF8EE",
+  accentBorder: "#E8C860",
+  accentHover: "#A07608",
   red: "#DC2626",
   redBg: "#FEF2F2",
   redBorder: "#FECACA",
@@ -109,18 +115,17 @@ const T = {
   purple: "#7C3AED",
   purpleBg: "#F5F3FF",
   purpleBorder: "#DDD6FE",
-  navBg: "#1A1814",
+  navBg: "#111110",
   navText: "#9E9A93",
   navActive: "#FFFFFF",
   font: "'DM Sans', system-ui, -apple-system, sans-serif",
   mono: "'DM Mono', 'Fira Code', monospace",
-  // Shadows
-  sh1: "0 1px 2px rgba(0,0,0,0.04), 0 1px 4px rgba(0,0,0,0.03)",
-  sh2: "0 2px 8px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04)",
-  sh3: "0 8px 24px rgba(0,0,0,0.08), 0 2px 6px rgba(0,0,0,0.04)",
-  // Transitions
-  fast: "all 0.12s ease",
-  med: "all 0.2s ease",
+  radius: 12,
+  sh1: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
+  sh2: "0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
+  sh3: "0 12px 32px rgba(0,0,0,0.08), 0 4px 8px rgba(0,0,0,0.04)",
+  fast: "all 0.15s ease",
+  med: "all 0.25s ease",
 };
 
 // ── Icon System (inline SVG) ─────────────────────────────────────────────────
@@ -155,6 +160,10 @@ function Ic({ name, size = 16, color = "currentColor", sw = 1.75, style = {} }) 
     "clipboard":    "M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2|M9 2h6a1 1 0 011 1v1a1 1 0 01-1 1H9a1 1 0 01-1-1V3a1 1 0 011-1z",
     "trending-up":  "M23 6l-9.5 9.5-5-5L1 18|M17 6h6v6",
     "crosshair":    "M12 22a10 10 0 100-20 10 10 0 000 20z|M22 12h-4|M6 12H2|M12 6V2|M12 22v-4",
+    "grid":         "M3 3h7v7H3z|M14 3h7v7h-7z|M14 14h7v7h-7z|M3 14h7v7H3z",
+    "cpu":          "M6 2h12a4 4 0 014 4v12a4 4 0 01-4 4H6a4 4 0 01-4-4V6a4 4 0 014-4z|M9 9h6v6H9z|M9 1v2|M15 1v2|M9 21v2|M15 21v2|M1 9h2|M1 15h2|M21 9h2|M21 15h2",
+    "target":       "M12 22a10 10 0 100-20 10 10 0 000 20z|M12 18a6 6 0 100-12 6 6 0 000 12z|M12 14a2 2 0 100-4 2 2 0 000 4z",
+    "play":         "M5 3l14 9-14 9V3z",
   };
   const d = P[name];
   if (!d) return null;
@@ -1904,16 +1913,16 @@ function Mono({ children, color = T.text, size = 13 }) {
 
 function SectionTitle({ title, subtitle }) {
   return (
-    <div style={{ marginBottom: 24 }}>
-      <h2 style={{ margin: 0, fontSize: 24, fontWeight: 700, color: T.text, fontFamily: T.font, letterSpacing: -0.5, lineHeight: 1.2 }}>{title}</h2>
-      {subtitle && <p style={{ margin: "6px 0 0", fontSize: 13, color: T.textMid, fontFamily: T.font, lineHeight: 1.5 }}>{subtitle}</p>}
+    <div style={{ marginBottom: 24, paddingLeft: 16, borderLeft: `3px solid ${T.accent}` }}>
+      <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: T.text, fontFamily: T.font, letterSpacing: -0.5, lineHeight: 1.2 }}>{title}</h2>
+      {subtitle && <p style={{ margin: "4px 0 0", fontSize: 12, color: T.textMid, fontFamily: T.font, lineHeight: 1.5 }}>{subtitle}</p>}
     </div>
   );
 }
 
-function Card({ children, style = {}, padding = 20 }) {
+function Card({ children, style = {}, padding = 24 }) {
   return (
-    <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding, boxShadow: T.sh1, overflow: "hidden", ...style }}>
+    <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius, padding, boxShadow: T.sh2, overflow: "hidden", ...style }}>
       {children}
     </div>
   );
@@ -1966,6 +1975,33 @@ function SegmentControl({ options, value, onChange, colorFn }) {
         );
       })}
     </div>
+  );
+}
+
+function PrimaryButton({ label, onClick, icon, loading, size = "md", variant = "primary", style: extStyle = {} }) {
+  const [hover, setHover] = useState(false);
+  const sizes = { sm: { px: 14, py: 8, fs: 12 }, md: { px: 20, py: 10, fs: 13 }, lg: { px: 28, py: 14, fs: 14 } };
+  const s = sizes[size];
+  const variants = {
+    primary: { bg: T.accent, hoverBg: T.accentHover, color: "#fff", border: "none" },
+    secondary: { bg: T.surface, hoverBg: T.surfaceHover, color: T.text, border: `1px solid ${T.border}` },
+    ghost: { bg: "transparent", hoverBg: T.surfaceHover, color: T.textMid, border: "1px solid transparent" },
+  };
+  const v = variants[variant];
+  return (
+    <button onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
+      style={{
+        display: "inline-flex", alignItems: "center", gap: 8,
+        padding: `${s.py}px ${s.px}px`, borderRadius: 8,
+        background: hover ? v.hoverBg : v.bg, color: v.color,
+        border: v.border, cursor: loading ? "wait" : "pointer",
+        fontSize: s.fs, fontWeight: 600, fontFamily: T.font,
+        transition: T.fast, boxShadow: variant === "primary" ? T.sh1 : "none",
+        opacity: loading ? 0.7 : 1, letterSpacing: -0.1, ...extStyle,
+      }}>
+      {loading ? <span style={{ display: "inline-block", width: s.fs, height: s.fs, border: `2px solid ${v.color}40`, borderTopColor: v.color, borderRadius: "50%", animation: "spin .6s linear infinite" }} /> : icon && <Ic name={icon} size={s.fs} color={v.color} />}
+      {label}
+    </button>
   );
 }
 
@@ -2983,6 +3019,13 @@ function ArbitrationSimulator({ reqs, claims }) {
   const [mcLegalCustom, setMcLegalCustom] = useState(false);
   const [ownerLegalCustom, setOwnerLegalCustom] = useState(false);
   const [customResearch, setCustomResearch] = useState({ firm: "", yearsExp: "", practiceAreas: "", panelMemberships: "", publications: "", knownTendencies: "", notes: "" });
+  const [simResults, setSimResults] = useState(null);
+  const [simStale, setSimStale] = useState(true);
+  const [simRunning, setSimRunning] = useState(false);
+  const [allSimResults, setAllSimResults] = useState([]);
+
+  // Mark results stale when inputs change
+  useEffect(() => { setSimStale(true); }, [disputes, selectedIdx, customMode, customTraits, mcLegalIdx, ownerLegalIdx, mcCustomLegal, ownerCustomLegal, mcLegalCustom, ownerLegalCustom]);
 
   const activeArb = customMode
     ? { id: "custom", name: customName || "Custom Arbitrator", subtitle: "User-defined personality", traits: customTraits, color: T.textMid, bio: "" }
@@ -2991,11 +3034,21 @@ function ArbitrationSimulator({ reqs, claims }) {
   const mcLegal = mcLegalCustom ? mcCustomLegal : LEGAL_TEAM_PROFILES[mcLegalIdx].traits;
   const ownerLegal = ownerLegalCustom ? ownerCustomLegal : LEGAL_TEAM_PROFILES[ownerLegalIdx].traits;
 
-  const sim = simulateCase(activeArb, mcLegal, ownerLegal, disputes);
+  const handleRunSim = () => {
+    setSimRunning(true);
+    setTimeout(() => {
+      const result = simulateCase(activeArb, mcLegal, ownerLegal, disputes);
+      const allSims = ARBITRATOR_PROFILES.map(a => ({ arb: a, sim: simulateCase(a, mcLegal, ownerLegal, disputes) }));
+      if (customMode) allSims.push({ arb: activeArb, sim: result });
+      setSimResults(result);
+      setAllSimResults(allSims);
+      setSimStale(false);
+      setSimRunning(false);
+    }, 400);
+  };
 
-  // Run all profiles for comparison (with current legal teams)
-  const allSims = ARBITRATOR_PROFILES.map(a => ({ arb: a, sim: simulateCase(a, mcLegal, ownerLegal, disputes) }));
-  if (customMode) allSims.push({ arb: activeArb, sim });
+  const sim = simResults;
+  const allSims = allSimResults;
 
   const pctBar = (val, max, color) => (
     <div style={{ width: "100%", height: 10, background: T.border, borderRadius: 5, overflow: "hidden" }}>
@@ -3140,14 +3193,25 @@ function ArbitrationSimulator({ reqs, claims }) {
         </div>
       </Card>
 
+      {/* Run Simulation */}
+      <div style={{ display: "flex", alignItems: "center", gap: 16, marginBottom: 16 }}>
+        <PrimaryButton label={!sim ? "Run Simulation" : simStale ? "Resimulate" : "Simulation Complete"} icon={!sim || simStale ? "play" : "check"} size="lg" loading={simRunning} onClick={handleRunSim} variant={!sim || simStale ? "primary" : "secondary"} />
+        {simStale && sim && <span style={{ fontSize: 12, color: T.amber, fontFamily: T.font, display: "flex", alignItems: "center", gap: 6 }}><Ic name="alert" size={14} color={T.amber} />Parameters changed — resimulate for updated results</span>}
+        {sim && !simStale && <span style={{ fontSize: 12, color: T.green, fontFamily: T.font, display: "flex", alignItems: "center", gap: 6 }}><Ic name="check" size={14} color={T.green} />Results current</span>}
+      </div>
+
       {/* Simulation Results */}
+      {!sim ? (
+        <Card style={{ textAlign: "center", padding: 48 }}>
+          <Ic name="cpu" size={40} color={T.border} />
+          <div style={{ fontSize: 15, fontWeight: 500, color: T.textMid, fontFamily: T.font, marginTop: 16 }}>Configure arbitrator and legal teams above</div>
+          <div style={{ fontSize: 13, color: T.textMuted, fontFamily: T.font, marginTop: 6 }}>Then click <strong>Run Simulation</strong> to generate projected case outcomes</div>
+        </Card>
+      ) : (
       <Card>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
           <CardLabel label="Simulated Case Outcome" />
-          <button onClick={() => setCompareMode(!compareMode)} style={{
-            padding: "6px 12px", borderRadius: 6, border: `1px solid ${T.border}`, background: compareMode ? T.accentBg : T.surface,
-            cursor: "pointer", fontSize: 11, fontFamily: T.font, fontWeight: 500, color: compareMode ? T.accent : T.textMid,
-          }}>{compareMode ? "Hide Comparison" : "Compare All"}</button>
+          <PrimaryButton label={compareMode ? "Hide Comparison" : "Compare All"} onClick={() => setCompareMode(!compareMode)} variant={compareMode ? "secondary" : "ghost"} size="sm" icon="bar-chart" />
         </div>
 
         {/* Net Position Summary */}
@@ -3240,9 +3304,10 @@ function ArbitrationSimulator({ reqs, claims }) {
           </tbody>
         </table>
       </Card>
+      )}
 
       {/* Comparison Mode */}
-      {compareMode && (
+      {compareMode && sim && (
         <Card>
           <CardLabel label="All Arbitrators — Side-by-Side Comparison" />
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
@@ -3971,7 +4036,7 @@ function buildSystemPrompt(tab, reqs, claims, docs) {
   const disputed = claims.filter(c => c.status === "DISPUTED").length;
   const uploadedDocs = docs.filter(d => d.storagePath).length;
 
-  return `You are an AI assistant for the Tharp Case Manager — a construction litigation tool for Montana Contracting Corp v. Tharp/Bumgardner (AAA Case No. 01-24-0004-6683).
+  return `You are an AI assistant for Arbitai — a construction arbitration intelligence platform. Current case: for Montana Contracting Corp v. Tharp/Bumgardner (AAA Case No. 01-24-0004-6683).
 
 CASE: Residential renovation at 515 N. Midland Ave, Upper Nyack NY. AIA A110-2021 (Cost of Work + 25% OH&P). Arbitrator: Robin S. Abramowitz.
 MC (contractor, our client) billed ${fmtDollar(totalBilled)} across 16 requisitions. Excel tracker total: ${fmtDollar(totalExcel)}.
@@ -4514,43 +4579,50 @@ function App() {
   );
 
   const TABS = [
-    { id: "dashboard", label: "Dashboard" },
-    { id: "requisitions", label: "Requisitions" },
-    { id: "audit", label: "Audit Risk" },
-    { id: "claims", label: "Owner Claims" },
-    { id: "documents", label: "Documents" },
-    { id: "simulator", label: "Simulator" },
-    { id: "strategy", label: "Strategy" },
+    { id: "dashboard", label: "Dashboard", icon: "grid" },
+    { id: "requisitions", label: "Requisitions", icon: "file-text" },
+    { id: "audit", label: "Audit Risk", icon: "alert" },
+    { id: "claims", label: "Owner Claims", icon: "flag" },
+    { id: "documents", label: "Documents", icon: "folder" },
+    { id: "simulator", label: "Simulator", icon: "cpu" },
+    { id: "strategy", label: "Strategy", icon: "target" },
   ];
 
   return (
     <div style={{ background: T.bg, minHeight: "100vh", fontFamily: T.font }}>
       {/* Top Bar */}
-      <div style={{ background: T.navBg, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 52 }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Ic name="shield" size={16} color={T.accent} />
-          <span style={{ fontSize: 14, fontWeight: 600, color: "#FFFFFF", letterSpacing: -0.2, fontFamily: T.font }}>Montana Contracting</span>
-          <span style={{ width: 1, height: 16, background: "#333028", display: "inline-block" }}></span>
-          <span style={{ fontSize: 12, color: T.navText, fontFamily: T.font }}>Tharp / Bumgardner</span>
+      <div style={{ background: `linear-gradient(135deg, ${T.navBg} 0%, #1A1814 100%)`, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 56, borderBottom: `2px solid ${T.accent}` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
+          <Ic name="scale" size={20} color={T.accent} />
+          <span style={{ fontSize: 18, fontWeight: 700, color: "#FFFFFF", letterSpacing: -0.5, fontFamily: T.font }}>Arbitai</span>
+          <span style={{ width: 1, height: 20, background: "#333028", display: "inline-block", margin: "0 4px" }}></span>
+          <span style={{ fontSize: 11, color: T.navText, fontFamily: T.font, padding: "3px 10px", background: "rgba(255,255,255,0.06)", borderRadius: 6, letterSpacing: 0.2 }}>Montana v. Tharp</span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           {saved && <span style={{ fontSize: 11, color: T.green, fontFamily: T.font, display: "flex", alignItems: "center", gap: 4 }}><Ic name="check" size={12} color={T.green} />{"Saved" + (window._storageMode === "cloud" ? " to cloud" : "")}</span>}
           <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 10, background: window._storageMode === "cloud" ? "#16A34A15" : "#D9770615", color: window._storageMode === "cloud" ? T.green : T.amber, fontFamily: T.font, display: "inline-flex", alignItems: "center", gap: 5 }}><Ic name="cloud" size={12} color={window._storageMode === "cloud" ? T.green : T.amber} />{window._storageMode === "cloud" ? "Cloud" : "Local"}</span>
-          <span style={{ fontSize: 11, color: "#5a5648", fontFamily: T.font }}>515 N. Midland Ave, Upper Nyack NY</span>
+          <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(255,255,255,0.06)", color: T.navText, fontFamily: T.mono }}>v1.0</span>
         </div>
       </div>
 
       {/* Nav */}
       <div style={{ background: T.surface, borderBottom: `1px solid ${T.border}`, padding: "0 32px", display: "flex", gap: 2 }}>
-        {TABS.map(t => (
-          <button key={t.id} onClick={() => setTab(t.id)} style={{
-            background: "none", border: "none", cursor: "pointer", padding: "14px 18px",
-            fontSize: 13, fontWeight: tab === t.id ? 600 : 400, fontFamily: T.font,
-            color: tab === t.id ? T.text : T.textMuted,
-            borderBottom: tab === t.id ? `3px solid ${T.accent}` : "3px solid transparent",
-            marginBottom: -1, transition: T.fast, letterSpacing: -0.1,
-          }}>{t.label}</button>
-        ))}
+        {TABS.map(t => {
+          const active = tab === t.id;
+          return (
+            <button key={t.id} onClick={() => setTab(t.id)} style={{
+              background: "none", border: "none", cursor: "pointer", padding: "12px 20px",
+              display: "flex", alignItems: "center", gap: 7,
+              fontSize: 13, fontWeight: active ? 600 : 400, fontFamily: T.font,
+              color: active ? T.text : T.textMuted,
+              borderBottom: active ? `3px solid ${T.accent}` : "3px solid transparent",
+              marginBottom: -1, transition: T.fast, letterSpacing: -0.1,
+            }}>
+              <Ic name={t.icon} size={14} color={active ? T.accent : T.textMuted} sw={active ? 2 : 1.5} />
+              {t.label}
+            </button>
+          );
+        })}
       </div>
 
       {/* Content */}
