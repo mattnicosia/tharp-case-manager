@@ -2159,7 +2159,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {["REQ #", "DATE", "BILLED", "PAID", "DOCUMENTED", "GAP", "STATUS", "FLAGS"].map(h => (
+                {["REQ #", "DATE", "BILLED", "PAID", "SUB INVOICES", "SELF-PERFORMED", "GAP", "STATUS", "FLAGS"].map(h => (
                   <th key={h} style={{ ...ThStyle, textAlign: h === "REQ #" || h === "DATE" || h === "FLAGS" ? "left" : "right", ...(h === "STATUS" ? { textAlign: "center" } : {}) }}>{h}</th>
                 ))}
               </tr>
@@ -2186,7 +2186,10 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                       {isPaid ? <Money amount={req.paidAmount} color={T.green} size="sm" /> : <span style={{ fontFamily: T.mono, fontSize: 12, color: T.red }}>$0</span>}
                     </td>
                     <td style={{ ...TdStyle, textAlign: "right" }}>
-                      {bs.documented > 0 ? <Money amount={bs.documented} color={T.text} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                      {(bv?.backupDocs || 0) > 0 ? <Money amount={bv.backupDocs} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                    </td>
+                    <td style={{ ...TdStyle, textAlign: "right" }}>
+                      {(bv?.directLabor || 0) > 0 ? <Money amount={bv.directLabor} color={T.amber} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
                     </td>
                     <td style={{ ...TdStyle, textAlign: "right" }}>
                       {bs.gap > 1 ? <Money amount={bs.gap} color={T.red} size="sm" /> : bs.gap < -1 ? <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>surplus</span> : <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>—</span>}
@@ -2204,7 +2207,8 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                 <td colSpan={2} style={{ ...TdStyle, fontSize: 11, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, borderBottom: "none" }}>TOTALS</td>
                 <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totBilled} size="sm" /></td>
                 <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totPaid} color={T.green} size="sm" /></td>
-                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totDocumented} size="sm" /></td>
+                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totInvoices} size="sm" /></td>
+                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totSelfPerformed} color={T.amber} size="sm" /></td>
                 <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totGap} color={totGap > 1000 ? T.red : T.green} size="sm" /></td>
                 <td style={{ ...TdStyle, textAlign: "center", borderBottom: "none" }}>
                   <span style={{ fontSize: 11, fontFamily: T.mono, color: T.textMuted }}>{supportedCount}/16</span>
