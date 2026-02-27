@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 
 // ── Google Fonts ──────────────────────────────────────────────────────────────
 const fontLink = document.createElement("link");
@@ -2516,7 +2516,7 @@ function Strategy({ claims }) {
         <Card>
           <CardLabel label="Montana's Strongest Defenses" />
           {[
-            { title: "§21.11 Consequential Damages Waiver", detail: `Bars $26,600 delay/rental income claim and 10-yr energy cost estimates. Mutual waiver — applies equally to both parties. Clean statutory bar. Value: ${$(waivedClaims)}.` },
+            { title: "§21.11 Consequential Damages Waiver", detail: `Bars ${$(waivedClaims)} delay/rental income claim and 10-yr energy cost estimates. Mutual waiver — applies equally to both parties. Clean statutory bar.` },
             { title: "125 Change Orders → Delay Causation", detail: "Owner cannot simultaneously demand 125+ changes and claim delay damages. Every day beyond 240 has a CO-driven cause. Need signed CO log with dates." },
             { title: "Owner Refused Mechanical Engineer", detail: "HVAC design-build was owner's choice. Without MEP drawings, Montana cannot be held to an unspecified design standard. Document all written requests." },
             { title: "Architect Plan Failure (R-38 vs R-49)", detail: "Montana built to the plans it received. Architect never distributed revised R-49 drawings. Owner declined upgrade twice in writing." },
@@ -2654,104 +2654,121 @@ const TRAIT_LABELS = {
   pragmatism: { label: "Pragmatism", desc: "Tendency to split the difference vs. all-or-nothing" },
 };
 
-// Case-specific disputes — BALANCED assessment of both sides
-const CASE_DISPUTES = [
-  // ── OWNER CLAIMS (Owner seeking damages from MC) ──
-  {
-    id: "consequential", category: "owner_claim", title: "Consequential Damages — §21.11 Waiver",
-    description: "Delay damages ($26,600) + insulation energy costs ($3,000). Contract contains mutual waiver of consequential damages.",
-    amountAtStake: 29600,
-    ownerStrength: "18-month project overrun is real harm. Owner lived elsewhere paying rent. Energy cost difference is quantifiable. Some courts narrow waiver to exclude direct consequential damages.",
-    mcStrength: "§21.11 mutual waiver is unambiguous. 125 owner-initiated COs contributed to delay. Industry standard clause. Owner's own architect didn't object to timeline.",
-    traitEffect: { contractWeight: -0.8, docRequired: -0.2, ownerBias: 0.5, analyticalRigor: -0.2, industryStandard: -0.3, pragmatism: 0.3 },
-    baseOwnerRecovery: 0.08,
-  },
-  {
-    id: "fireplace", category: "owner_claim", title: "Fireplace Defects — Stone/Blueboard/Chips",
-    description: "Owner claims $45,000 for fireplace defects including visible blueboard, stone chips, and sloppy workmanship.",
-    amountAtStake: 45000,
-    ownerStrength: "Visible defects are documented in photos. Blueboard showing is objectively defective. Stone chipping suggests poor installation. $45K fireplace should meet basic aesthetic standards. Expert can testify to remediation cost.",
-    mcStrength: "Manufacturer rep inspected and approved. Owner selected stone type and color. Durock installation per spec. MC offered corrective work — owner refused. Refusal to allow repair undermines damage claim.",
-    traitEffect: { contractWeight: -0.3, docRequired: 0.1, ownerBias: 0.5, analyticalRigor: 0.0, industryStandard: -0.3, pragmatism: 0.4 },
-    baseOwnerRecovery: 0.25,
-  },
-  {
-    id: "air_returns", category: "owner_claim", title: "Air Returns & Air Handlers",
-    description: "Air return misplacement ($15K) + quiet air handler upgrade demand ($14K). Owner claims comfort and functionality compromised.",
-    amountAtStake: 29000,
-    ownerStrength: "HVAC comfort directly impacts livability. Noise complaints are subjective but real. Owner paying $1.7M expects a quiet home. Air return placement affects air quality and efficiency.",
-    mcStrength: "Existing framing prohibited original placement — documented at weekly architect meetings. No MEP spec ever provided by owner/architect. Air handlers installed under budget per contract. Owner refused professional mechanical engineer recommendation. Upgrade beyond contract scope.",
-    traitEffect: { contractWeight: -0.4, docRequired: -0.1, ownerBias: 0.5, analyticalRigor: -0.1, industryStandard: -0.4, pragmatism: 0.4 },
-    baseOwnerRecovery: 0.18,
-  },
-  {
-    id: "defective_misc", category: "owner_claim", title: "Defective Work — Roofing/Shower/Drain/Doors/Warranty",
-    description: "Roofing ($8.5K), shower glass ($3K), french drain ($10K), doors ($3K), warranty escrow ($10K), insulation ($2K), sink ($99).",
-    amountAtStake: 36599,
-    ownerStrength: "Curled shingles are visible and documented. Doors with gaps/rattles are objectively defective. French drain leaked for months. Multiple items suggest pattern of poor workmanship. Owner paid $1.7M and deserves completed punchlist.",
-    mcStrength: "Roofing: manufacturer confirmed common nailing, minor fix sufficient. Shower: plans show 3 panes, not one-piece. Drain: existed pre-MC, installed upside down before MC arrived. Doors: punchlist items — will complete upon final payment. Warranty: per contract, issued upon final payment which owner withholds.",
-    traitEffect: { contractWeight: -0.2, docRequired: 0.1, ownerBias: 0.4, analyticalRigor: 0.1, industryStandard: -0.2, pragmatism: 0.5 },
-    baseOwnerRecovery: 0.32,
-  },
-  {
-    id: "agreed_credits", category: "owner_claim", title: "Agreed Credits & Corrections",
-    description: "Items MC already conceded: switches ($3,300), floor ($9,719), beam ($600), door trim ($2,260), painting/staining/ceiling ($4,690).",
-    amountAtStake: 21569,
-    ownerStrength: "MC's own concessions. Values reflect MC's agreed amounts. Non-contestable at this point.",
-    mcStrength: "Credits already calculated at actual cost, not owner's inflated estimates. Shows MC's good faith willingness to address legitimate issues.",
-    traitEffect: { contractWeight: 0.0, docRequired: 0.0, ownerBias: 0.0, analyticalRigor: 0.0, industryStandard: 0.0, pragmatism: 0.0 },
-    baseOwnerRecovery: 1.0,
-  },
-  // ── MC COUNTERCLAIMS (MC seeking credits/offsets from Owner) ──
-  {
-    id: "unapplied_credits", category: "mc_counter", title: "Unapplied CO Credits on G703",
-    description: "$135,385 in credit COs at 0% on REQ-15 G703: PCO#130 'GC-Owner Variance Split' ($66,389), PCO#129 'Allowance Reconciliation' ($24,248), plus 5 others.",
-    amountAtStake: 135385,
-    mcStrength: "Credits are ON MC's own G703 schedule. MC acknowledged variances. PCO#130 title literally says 'Owner Variance Split.' These are documented admissions of amounts owed to owner.",
-    ownerWeakness: "Owner never demanded application of these credits. Credits remained at 0% for months. Owner's own review failed to catch this. Some credits may reflect incomplete change order accounting rather than amounts owed.",
-    traitEffect: { contractWeight: 0.4, docRequired: 0.4, ownerBias: -0.2, analyticalRigor: 0.6, industryStandard: 0.1, pragmatism: 0.3 },
-    baseMcRecovery: 0.35,
-  },
-  {
-    id: "hidden_ohp", category: "mc_counter", title: "CO OH&P Markup Questions",
-    description: "REQs 11-14 show 25% markup on change orders not separately itemized on G703. Pattern across 4 consecutive requisitions.",
-    amountAtStake: 50000,
-    mcStrength: "AIA A110 cost-plus contracts typically allow OH&P on all work including changes. 25% is the contractual rate. MC applied it consistently. Not 'hidden' — it's the contract rate.",
-    ownerWeakness: "CO subtotals don't appear as separate G703 line items, making auditing difficult. Owner approved REQs without questioning. But lack of transparency on cost-plus contract is problematic — §15.3.2 requires clear documentation.",
-    traitEffect: { contractWeight: 0.3, docRequired: 0.5, ownerBias: -0.1, analyticalRigor: 0.6, industryStandard: -0.3, pragmatism: 0.2 },
-    baseMcRecovery: 0.25,
-  },
-  {
-    id: "base_to_co", category: "mc_counter", title: "Base-to-CO Reclassification (REQ-13R1)",
-    description: "REQ-13R1 shows ~$92K in base credits offset by new CO billing. Work originally billed as base contract appears reclassified as change orders, generating additional markup.",
-    amountAtStake: 92000,
-    mcStrength: "Reclassification generated additional OH&P on the same work. Pattern visible in the revised requisition. Credits in one column, new CO charges in another.",
-    ownerWeakness: "Reclassification may reflect legitimate scope clarification — COs sometimes absorb base work when scope changes. Very complex forensic argument requiring expert testimony. Hard to prove intent vs. accounting correction. Owner approved the revised requisition.",
-    traitEffect: { contractWeight: 0.4, docRequired: 0.3, ownerBias: -0.1, analyticalRigor: 0.5, industryStandard: -0.4, pragmatism: 0.3 },
-    baseMcRecovery: 0.20,
-  },
-  {
-    id: "korth_overbilling", category: "mc_counter", title: "Korth Painting — Over Contract Value",
-    description: "Korth & Shannahan billed $89,942 vs $49,450 contract — 182%. Sub billed carpentry ($26,252) through painting line item.",
-    amountAtStake: 40492,
-    mcStrength: "Numbers are clear: 182% of contract value. Painting sub billing carpentry work is cross-trade contamination. Over-budget by $40K+.",
-    ownerWeakness: "Cost-plus contract means actual costs are billed — if Korth did extra work, owner pays. MC approved and processed all Korth invoices. Some overbilling may reflect legitimate change order work. Owner's architect didn't flag the overrun during monthly reviews.",
-    traitEffect: { contractWeight: 0.3, docRequired: 0.4, ownerBias: -0.1, analyticalRigor: 0.5, industryStandard: -0.2, pragmatism: 0.3 },
-    baseMcRecovery: 0.35,
-  },
-  {
-    id: "documentation_failures", category: "mc_counter", title: "MC Documentation Deficiencies (§15.3.2)",
-    description: "Systemic issues: estimates as invoices, no timecards (13 of 15 REQs), anonymous subs, out-of-period invoices (up to 19 months), supervision as billable cost.",
-    amountAtStake: 40000,
-    mcStrength: "§15.3.2 requires documentation for all costs. MC failed systematically. Estimates are not invoices. Missing timecards means labor costs are unverifiable. Out-of-period billing suggests inaccurate accounting.",
-    ownerWeakness: "Owner approved every requisition without objection. Owner's architect reviewed and didn't flag issues. Industry reality: residential construction documentation is often imperfect. Not every documentation gap equals overbilling — MC may have underbilled on some items too.",
-    traitEffect: { contractWeight: 0.4, docRequired: 0.7, ownerBias: 0.0, analyticalRigor: 0.5, industryStandard: -0.5, pragmatism: 0.2 },
-    baseMcRecovery: 0.22,
-  },
-];
+// Case-specific disputes — BALANCED assessment, amounts computed from live data
+function buildCaseDisputes(claims) {
+  const cl = id => claims.find(c => c.id === id) || {};
+  const sumCl = ids => ids.reduce((s, id) => s + (cl(id).ownerAmount || 0), 0);
+  const totalAgreed = claims.reduce((s, c) => s + (c.agreedAmount || 0), 0);
+  const agreedItems = claims.filter(c => c.agreedAmount > 0);
+  const req13Billed = REQS_INITIAL[12].totalBilled || 0;
+  const unappliedCredits = Math.abs(BACKUP_VARIANCE[16]?.items?.filter(it => it.amount < 0).reduce((s, it) => s + it.amount, 0) || 135385);
+  const korthOver = 40492; // Korth contract value not in structured data
+  const ohpEstimate = 50000; // estimate — no structured data source
+  const docEstimate = 40000; // estimate — no structured data source
 
-// Party strengths/weaknesses for balanced display
-const PARTY_ANALYSIS = {
+  return [
+    // ── OWNER CLAIMS (Owner seeking damages from MC) ──
+    {
+      id: "consequential", category: "owner_claim", title: "Consequential Damages — §21.11 Waiver",
+      description: `Delay damages (${$(cl(5).ownerAmount)}) + insulation energy costs (${$(cl(1).ownerAmount)}). Contract contains mutual waiver of consequential damages.`,
+      amountAtStake: sumCl([5, 1]),
+      ownerStrength: "18-month project overrun is real harm. Owner lived elsewhere paying rent. Energy cost difference is quantifiable. Some courts narrow waiver to exclude direct consequential damages.",
+      mcStrength: "§21.11 mutual waiver is unambiguous. 125 owner-initiated COs contributed to delay. Industry standard clause. Owner's own architect didn't object to timeline.",
+      traitEffect: { contractWeight: -0.8, docRequired: -0.2, ownerBias: 0.5, analyticalRigor: -0.2, industryStandard: -0.3, pragmatism: 0.3 },
+      baseOwnerRecovery: 0.08,
+    },
+    {
+      id: "fireplace", category: "owner_claim", title: "Fireplace Defects — Stone/Blueboard/Chips",
+      description: `Owner claims ${$(cl(4).ownerAmount)} for fireplace defects including visible blueboard, stone chips, and sloppy workmanship.`,
+      amountAtStake: cl(4).ownerAmount || 0,
+      ownerStrength: `Visible defects are documented in photos. Blueboard showing is objectively defective. Stone chipping suggests poor installation. ${$(cl(4).ownerAmount)} fireplace should meet basic aesthetic standards. Expert can testify to remediation cost.`,
+      mcStrength: "Manufacturer rep inspected and approved. Owner selected stone type and color. Durock installation per spec. MC offered corrective work — owner refused. Refusal to allow repair undermines damage claim.",
+      traitEffect: { contractWeight: -0.3, docRequired: 0.1, ownerBias: 0.5, analyticalRigor: 0.0, industryStandard: -0.3, pragmatism: 0.4 },
+      baseOwnerRecovery: 0.25,
+    },
+    {
+      id: "air_returns", category: "owner_claim", title: "Air Returns & Air Handlers",
+      description: `Air return misplacement (${$(cl(3).ownerAmount)}) + quiet air handler upgrade demand (${$(cl(9).ownerAmount)}). Owner claims comfort and functionality compromised.`,
+      amountAtStake: sumCl([3, 9]),
+      ownerStrength: `HVAC comfort directly impacts livability. Noise complaints are subjective but real. Owner paying $1.7M expects a quiet home. Air return placement affects air quality and efficiency.`,
+      mcStrength: "Existing framing prohibited original placement — documented at weekly architect meetings. No MEP spec ever provided by owner/architect. Air handlers installed under budget per contract. Owner refused professional mechanical engineer recommendation. Upgrade beyond contract scope.",
+      traitEffect: { contractWeight: -0.4, docRequired: -0.1, ownerBias: 0.5, analyticalRigor: -0.1, industryStandard: -0.4, pragmatism: 0.4 },
+      baseOwnerRecovery: 0.18,
+    },
+    {
+      id: "defective_misc", category: "owner_claim", title: "Defective Work — Roofing/Shower/Drain/Doors/Warranty",
+      description: `Roofing (${$(cl(8).ownerAmount)}), shower glass (${$(cl(6).ownerAmount)}), french drain (${$(cl(19).ownerAmount)}), doors (${$(cl(23).ownerAmount)}), warranty escrow (${$(cl(24).ownerAmount)}), insulation (${$(cl(11).ownerAmount)}), sink (${$(cl(21).ownerAmount)}).`,
+      amountAtStake: sumCl([8, 6, 19, 23, 24, 11, 21]),
+      ownerStrength: "Curled shingles are visible and documented. Doors with gaps/rattles are objectively defective. French drain leaked for months. Multiple items suggest pattern of poor workmanship. Owner paid $1.7M and deserves completed punchlist.",
+      mcStrength: "Roofing: manufacturer confirmed common nailing, minor fix sufficient. Shower: plans show 3 panes, not one-piece. Drain: existed pre-MC, installed upside down before MC arrived. Doors: punchlist items — will complete upon final payment. Warranty: per contract, issued upon final payment which owner withholds.",
+      traitEffect: { contractWeight: -0.2, docRequired: 0.1, ownerBias: 0.4, analyticalRigor: 0.1, industryStandard: -0.2, pragmatism: 0.5 },
+      baseOwnerRecovery: 0.32,
+    },
+    {
+      id: "agreed_credits", category: "owner_claim", title: "Agreed Credits & Corrections",
+      description: `Items MC already conceded: ${agreedItems.slice(0, 5).map(c => `${c.description.split("—")[0].trim()} (${$(c.agreedAmount)})`).join(", ")}.`,
+      amountAtStake: totalAgreed,
+      ownerStrength: "MC's own concessions. Values reflect MC's agreed amounts. Non-contestable at this point.",
+      mcStrength: "Credits already calculated at actual cost, not owner's inflated estimates. Shows MC's good faith willingness to address legitimate issues.",
+      traitEffect: { contractWeight: 0.0, docRequired: 0.0, ownerBias: 0.0, analyticalRigor: 0.0, industryStandard: 0.0, pragmatism: 0.0 },
+      baseOwnerRecovery: 1.0,
+    },
+    // ── MC COUNTERCLAIMS (MC seeking credits/offsets from Owner) ──
+    {
+      id: "unapplied_credits", category: "mc_counter", title: "Unapplied CO Credits on G703",
+      description: `${$(unappliedCredits)} in credit COs at 0% on REQ-15 G703: PCO#130 'GC-Owner Variance Split' ($66,389), PCO#129 'Allowance Reconciliation' ($24,248), plus 5 others.`,
+      amountAtStake: unappliedCredits,
+      mcStrength: "Credits are ON MC's own G703 schedule. MC acknowledged variances. PCO#130 title literally says 'Owner Variance Split.' These are documented admissions of amounts owed to owner.",
+      ownerWeakness: "Owner never demanded application of these credits. Credits remained at 0% for months. Owner's own review failed to catch this. Some credits may reflect incomplete change order accounting rather than amounts owed.",
+      traitEffect: { contractWeight: 0.4, docRequired: 0.4, ownerBias: -0.2, analyticalRigor: 0.6, industryStandard: 0.1, pragmatism: 0.3 },
+      baseMcRecovery: 0.35,
+    },
+    {
+      id: "hidden_ohp", category: "mc_counter", title: "CO OH&P Markup Questions",
+      description: `REQs 11-14 show 25% markup on change orders not separately itemized on G703. Pattern across 4 consecutive requisitions. Estimated exposure: ${$(ohpEstimate)}.`,
+      amountAtStake: ohpEstimate,
+      mcStrength: "AIA A110 cost-plus contracts typically allow OH&P on all work including changes. 25% is the contractual rate. MC applied it consistently. Not 'hidden' — it's the contract rate.",
+      ownerWeakness: "CO subtotals don't appear as separate G703 line items, making auditing difficult. Owner approved REQs without questioning. But lack of transparency on cost-plus contract is problematic — §15.3.2 requires clear documentation.",
+      traitEffect: { contractWeight: 0.3, docRequired: 0.5, ownerBias: -0.1, analyticalRigor: 0.6, industryStandard: -0.3, pragmatism: 0.2 },
+      baseMcRecovery: 0.25,
+    },
+    {
+      id: "base_to_co", category: "mc_counter", title: "Base-to-CO Reclassification (REQ-13R1)",
+      description: `REQ-13R1 shows ${$(req13Billed)} in revised billing. Work originally billed as base contract appears reclassified as change orders, generating additional markup.`,
+      amountAtStake: req13Billed,
+      mcStrength: "Reclassification generated additional OH&P on the same work. Pattern visible in the revised requisition. Credits in one column, new CO charges in another.",
+      ownerWeakness: "Reclassification may reflect legitimate scope clarification — COs sometimes absorb base work when scope changes. Very complex forensic argument requiring expert testimony. Hard to prove intent vs. accounting correction. Owner approved the revised requisition.",
+      traitEffect: { contractWeight: 0.4, docRequired: 0.3, ownerBias: -0.1, analyticalRigor: 0.5, industryStandard: -0.4, pragmatism: 0.3 },
+      baseMcRecovery: 0.20,
+    },
+    {
+      id: "korth_overbilling", category: "mc_counter", title: "Korth Painting — Over Contract Value",
+      description: `Korth & Shannahan billed $89,942 vs $49,450 contract — 182%. Sub billed carpentry ($26,252) through painting line item. Overage: ${$(korthOver)}.`,
+      amountAtStake: korthOver,
+      mcStrength: `Numbers are clear: 182% of contract value. Painting sub billing carpentry work is cross-trade contamination. Over-budget by ${$(korthOver)}.`,
+      ownerWeakness: "Cost-plus contract means actual costs are billed — if Korth did extra work, owner pays. MC approved and processed all Korth invoices. Some overbilling may reflect legitimate change order work. Owner's architect didn't flag the overrun during monthly reviews.",
+      traitEffect: { contractWeight: 0.3, docRequired: 0.4, ownerBias: -0.1, analyticalRigor: 0.5, industryStandard: -0.2, pragmatism: 0.3 },
+      baseMcRecovery: 0.35,
+    },
+    {
+      id: "documentation_failures", category: "mc_counter", title: "MC Documentation Deficiencies (§15.3.2)",
+      description: `Systemic issues: estimates as invoices, no timecards (13 of 15 REQs), anonymous subs, out-of-period invoices (up to 19 months), supervision as billable cost. Estimated exposure: ${$(docEstimate)}.`,
+      amountAtStake: docEstimate,
+      mcStrength: "§15.3.2 requires documentation for all costs. MC failed systematically. Estimates are not invoices. Missing timecards means labor costs are unverifiable. Out-of-period billing suggests inaccurate accounting.",
+      ownerWeakness: "Owner approved every requisition without objection. Owner's architect reviewed and didn't flag issues. Industry reality: residential construction documentation is often imperfect. Not every documentation gap equals overbilling — MC may have underbilled on some items too.",
+      traitEffect: { contractWeight: 0.4, docRequired: 0.7, ownerBias: 0.0, analyticalRigor: 0.5, industryStandard: -0.5, pragmatism: 0.2 },
+      baseMcRecovery: 0.22,
+    },
+  ];
+}
+
+// Party strengths/weaknesses — amounts computed from live data
+function buildPartyAnalysis(claims, reqs) {
+  const totalAgreed = claims.reduce((s, c) => s + (c.agreedAmount || 0), 0);
+  const totalPaid = reqs.reduce((s, r) => s + (r.paidAmount || 0), 0);
+  const waivedTotal = claims.filter(c => c.status === "WAIVED").reduce((s, c) => s + (c.ownerAmount || 0), 0);
+  const unappliedCredits = Math.abs(BACKUP_VARIANCE[16]?.items?.filter(it => it.amount < 0).reduce((s, it) => s + it.amount, 0) || 135385);
+  return {
   mc: {
     strengths: [
       "§21.11 consequential waiver is clear and enforceable",
@@ -2760,13 +2777,13 @@ const PARTY_ANALYSIS = {
       "Manufacturer approved fireplace installation",
       "Framing constraints on air returns documented at weekly meetings",
       "Work substantially complete — owner occupying the home",
-      "Agreed credits ($21.6K) show good faith on legitimate items",
+      `Agreed credits (${$(totalAgreed)}) show good faith on legitimate items`,
     ],
     weaknesses: [
       "Systemic documentation failures across all 16 requisitions (§15.3.2)",
       "No timecards for 13 of 15 billing periods — labor costs unverifiable",
       "Out-of-period invoices: up to 19 months (ABC Supply in REQ-15)",
-      "$135K in unapplied credits acknowledged but never credited to owner",
+      `${$(unappliedCredits)} in unapplied credits acknowledged but never credited to owner`,
       "Korth painting at 182% of contract with cross-trade billing",
       "Estimates submitted as invoices (Boards & Beams in REQ-12)",
       "Hidden CO OH&P pattern across REQs 11-14",
@@ -2777,15 +2794,15 @@ const PARTY_ANALYSIS = {
   owner: {
     strengths: [
       "Visible, documented defects (fireplace blueboard, curled shingles, door gaps)",
-      "MC's own G703 shows $135K in unapplied credits — MC's admission",
+      `MC's own G703 shows ${$(unappliedCredits)} in unapplied credits — MC's admission`,
       "Cost-plus contract requires full transparency — MC failed §15.3.2",
-      "Paid $1.6M+ on a $1.18M base contract — significant investment",
+      `Paid ${$(totalPaid)} on a $1.18M base contract — significant investment`,
       "Multiple MC-agreed credits validate pattern of issues",
       "Punchlist items remain incomplete after 2+ years",
       "Expert testimony potential on defect remediation costs",
     ],
     weaknesses: [
-      "§21.11 waiver bars consequential/delay claims ($29.6K at risk)",
+      `§21.11 waiver bars consequential/delay claims (${$(waivedTotal)} at risk)`,
       "Approved every requisition without contemporaneous objection",
       "Refused MC's offers of corrective work on fireplace",
       "Refused mechanical engineer recommendation on HVAC",
@@ -2794,7 +2811,8 @@ const PARTY_ANALYSIS = {
       "Withheld final payment, triggering warranty/punchlist standoff",
     ],
   },
-};
+  };
+}
 
 // Legal team profiles
 const LEGAL_TEAM_PROFILES = [
@@ -2832,12 +2850,12 @@ const LEGAL_TRAIT_LABELS = {
   crossExam: { label: "Cross-Examination", desc: "Ability to undermine opposing witnesses and evidence" },
 };
 
-function simulateCase(arb, mcLegal, ownerLegal) {
+function simulateCase(arb, mcLegal, ownerLegal, disputes) {
   // Legal team quality modifiers (0.85-1.15 range)
   const mcLegalMod = mcLegal ? 0.85 + (Object.values(mcLegal).reduce((s,v) => s + v, 0) / Object.values(mcLegal).length) * 0.30 : 1.0;
   const ownerLegalMod = ownerLegal ? 0.85 + (Object.values(ownerLegal).reduce((s,v) => s + v, 0) / Object.values(ownerLegal).length) * 0.30 : 1.0;
 
-  const results = CASE_DISPUTES.map(d => {
+  const results = disputes.map(d => {
     let recovery;
     if (d.category === "owner_claim") {
       recovery = d.baseOwnerRecovery;
@@ -2876,6 +2894,8 @@ function simulateCase(arb, mcLegal, ownerLegal) {
 }
 
 function ArbitrationSimulator({ reqs, claims }) {
+  const disputes = useMemo(() => buildCaseDisputes(claims), [claims]);
+  const partyAnalysis = useMemo(() => buildPartyAnalysis(claims, reqs), [claims, reqs]);
   const [selectedIdx, setSelectedIdx] = useState(0);
   const [customMode, setCustomMode] = useState(false);
   const [customTraits, setCustomTraits] = useState({ contractWeight: 0.50, docRequired: 0.50, ownerBias: 0.50, analyticalRigor: 0.50, industryStandard: 0.50, pragmatism: 0.50 });
@@ -2896,10 +2916,10 @@ function ArbitrationSimulator({ reqs, claims }) {
   const mcLegal = mcLegalCustom ? mcCustomLegal : LEGAL_TEAM_PROFILES[mcLegalIdx].traits;
   const ownerLegal = ownerLegalCustom ? ownerCustomLegal : LEGAL_TEAM_PROFILES[ownerLegalIdx].traits;
 
-  const sim = simulateCase(activeArb, mcLegal, ownerLegal);
+  const sim = simulateCase(activeArb, mcLegal, ownerLegal, disputes);
 
   // Run all profiles for comparison (with current legal teams)
-  const allSims = ARBITRATOR_PROFILES.map(a => ({ arb: a, sim: simulateCase(a, mcLegal, ownerLegal) }));
+  const allSims = ARBITRATOR_PROFILES.map(a => ({ arb: a, sim: simulateCase(a, mcLegal, ownerLegal, disputes) }));
   if (customMode) allSims.push({ arb: activeArb, sim });
 
   const pctBar = (val, max, color) => (
@@ -3024,8 +3044,8 @@ function ArbitrationSimulator({ reqs, claims }) {
       <Card>
         <CardLabel label="Balanced Case Assessment — Both Parties" />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
-          {[{ party: "Montana Contracting (GC)", data: PARTY_ANALYSIS.mc, color: T.accent },
-            { party: "Tharp/Bumgardner (Owner)", data: PARTY_ANALYSIS.owner, color: T.blue }].map(({ party, data, color }) => (
+          {[{ party: "Montana Contracting (GC)", data: partyAnalysis.mc, color: T.accent },
+            { party: "Tharp/Bumgardner (Owner)", data: partyAnalysis.owner, color: T.blue }].map(({ party, data, color }) => (
             <div key={party}>
               <div style={{ fontSize: 13, fontWeight: 600, color, fontFamily: T.font, marginBottom: 10 }}>{party}</div>
               <div style={{ padding: 12, background: T.greenBg, border: `1px solid ${T.greenBorder}`, borderRadius: 8, marginBottom: 8 }}>
@@ -3060,12 +3080,12 @@ function ArbitrationSimulator({ reqs, claims }) {
           <div style={{ padding: 16, background: T.redBg, border: `1px solid ${T.redBorder}`, borderRadius: 10, textAlign: "center" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: T.red, letterSpacing: 0.5, marginBottom: 6 }}>OWNER RECOVERY</div>
             <div style={{ fontFamily: T.mono, fontSize: 22, fontWeight: 700, color: T.red }}>${sim.ownerTotal.toLocaleString()}</div>
-            <div style={{ fontSize: 11, color: T.textMuted, marginTop: 4 }}>of ${CASE_DISPUTES.filter(d=>d.category==="owner_claim").reduce((s,d)=>s+d.amountAtStake,0).toLocaleString()} claimed</div>
+            <div style={{ fontSize: 11, color: T.textMuted, marginTop: 4 }}>of ${disputes.filter(d=>d.category==="owner_claim").reduce((s,d)=>s+d.amountAtStake,0).toLocaleString()} claimed</div>
           </div>
           <div style={{ padding: 16, background: T.greenBg, border: `1px solid ${T.greenBorder}`, borderRadius: 10, textAlign: "center" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: T.green, letterSpacing: 0.5, marginBottom: 6 }}>MC COUNTER-RECOVERY</div>
             <div style={{ fontFamily: T.mono, fontSize: 22, fontWeight: 700, color: T.green }}>${sim.mcTotal.toLocaleString()}</div>
-            <div style={{ fontSize: 11, color: T.textMuted, marginTop: 4 }}>of ${CASE_DISPUTES.filter(d=>d.category==="mc_counter").reduce((s,d)=>s+d.amountAtStake,0).toLocaleString()} at stake</div>
+            <div style={{ fontSize: 11, color: T.textMuted, marginTop: 4 }}>of ${disputes.filter(d=>d.category==="mc_counter").reduce((s,d)=>s+d.amountAtStake,0).toLocaleString()} at stake</div>
           </div>
           <div style={{ padding: 16, background: sim.netPosition >= 0 ? T.greenBg : T.redBg, border: `1px solid ${sim.netPosition >= 0 ? T.greenBorder : T.redBorder}`, borderRadius: 10, textAlign: "center" }}>
             <div style={{ fontSize: 11, fontWeight: 600, color: sim.netPosition >= 0 ? T.green : T.red, letterSpacing: 0.5, marginBottom: 6 }}>MC NET POSITION</div>
