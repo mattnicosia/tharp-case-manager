@@ -336,21 +336,18 @@ const EXCEL_DATA = [
   [235461.28, 188369.02, 47092.26,  "2024-01-30", "16"],
 ];
 
-const REQS_INITIAL = Array.from({ length: 17 }, (_, i) => {
+const REQS_INITIAL = Array.from({ length: 16 }, (_, i) => {
   const base = REQ_DEFAULTS(i);
-  if (i < 16) {
-    const [excelTotal, excelSubtotal, excelFee, month, pdfReqNum] = EXCEL_DATA[i];
-    return { ...base, date: month, excelTotal, excelSubtotal, excelFee, pdfReqNum,
-      // Auto-flag REQ-13 (negative req) and REQ-08 (largest)
-      flags: i === 12 ? ["duplicate", "co_missing"] : [],
-      notes: i === 12
-        ? "⚠ NEGATIVE REQUISITION (-$90,489.90). REQ-13R1 represents a large credit/reconciliation req. Need to understand what was reversed and why. 19 trade lines show credits including Electric -$41,823.63, Tile -$12,100.00, Masonry -$9,902.87, Wood Flooring -$7,325.22, HVAC -$8,545.13, Drywall -$7,992.49. Possible causes: over-billing correction, disputed work removal, or scope reduction. CRITICAL: Obtain AIA G702 for this req and reconcile each reversal with a specific justification."
-        : i === 7
-        ? "REQ-08 is the largest single requisition at $192,165. 13 active trade lines including Tile $34,925, Wood Flooring $27,000, Electric $20,695, Composite Roof $21,394, Siding $12,776, Drywall $15,000. High priority for PDF backup review."
-        : "",
-    };
-  }
-  return base;
+  const [excelTotal, excelSubtotal, excelFee, month, pdfReqNum] = EXCEL_DATA[i];
+  return { ...base, date: month, excelTotal, excelSubtotal, excelFee, pdfReqNum,
+    // Auto-flag REQ-13 (negative req) and REQ-08 (largest)
+    flags: i === 12 ? ["duplicate", "co_missing"] : [],
+    notes: i === 12
+      ? "⚠ NEGATIVE REQUISITION (-$90,489.90). REQ-13R1 represents a large credit/reconciliation req. Need to understand what was reversed and why. 19 trade lines show credits including Electric -$41,823.63, Tile -$12,100.00, Masonry -$9,902.87, Wood Flooring -$7,325.22, HVAC -$8,545.13, Drywall -$7,992.49. Possible causes: over-billing correction, disputed work removal, or scope reduction. CRITICAL: Obtain AIA G702 for this req and reconcile each reversal with a specific justification."
+      : i === 7
+      ? "REQ-08 is the largest single requisition at $192,165. 13 active trade lines including Tile $34,925, Wood Flooring $27,000, Electric $20,695, Composite Roof $21,394, Siding $12,776, Drywall $15,000. High priority for PDF backup review."
+      : "",
+  };
 });
 
 // Override REQ-01 with PDF-derived data (already reviewed)
@@ -1120,9 +1117,14 @@ REQS_INITIAL[10] = {
   ...REQS_INITIAL[10],
   totalBilled: 92651.29,
   paidAmount: 92651.29,
+  architectApproved: 92651.29,
+  retainageHeld: 0,
   laborCost: 3431.93,
   materialCost: 7313.15,
   subCost: 30609.90,
+  backupStatus: "PARTIAL",
+  hasPayrollSupport: true,
+  hasInvoiceSupport: true,
   flags: ["sub_as_labor", "blended_rate", "overhead_as_material", "co_missing", "rate_anomaly"],
   notes: `REQ-11 — APPLICATION #11 — Period 11/01/22 to 11/30/22
 G702: Contract Sum $1,632,483.77 | Total Completed $1,085,033.29 | Retainage $0
@@ -1198,9 +1200,13 @@ REQS_INITIAL[11] = {
   ...REQS_INITIAL[11],
   totalBilled: 71831.85,
   paidAmount: 71831.85,
+  architectApproved: 71831.85,
+  retainageHeld: 0,
   laborCost: 0,
   materialCost: 4655.67,
   subCost: 34780.00,
+  backupStatus: "PARTIAL",
+  hasInvoiceSupport: true,
   flags: ["sub_as_labor", "blended_rate", "missing_invoice", "co_missing", "rate_anomaly"],
   notes: `REQ-12 — APPLICATION #12 — Period 12/01/22 to 12/31/22
 G702: Contract Sum $1,660,408.23 | Total Completed $1,156,865.14 | Retainage $0
@@ -1267,9 +1273,13 @@ REQS_INITIAL[12] = {
   ...REQS_INITIAL[12],
   totalBilled: 184238.97,
   paidAmount: 184238.97,
+  architectApproved: 184238.97,
+  retainageHeld: 0,
   laborCost: 0,
   materialCost: 4782.53,
   subCost: 67610.18,
+  backupStatus: "PARTIAL",
+  hasInvoiceSupport: true,
   flags: ["sub_as_labor", "blended_rate", "missing_invoice", "co_missing", "duplicate", "rate_anomaly", "markup_on_markup"],
   notes: `REQ-13R1 — APPLICATION #13 R1 (REVISED) — Period 01/01/23 to 03/23/23 (nearly 3 months)
 G702: Contract Sum $1,734,690.49 | Total Completed $1,341,104.11 | Retainage $0
@@ -1381,9 +1391,13 @@ REQS_INITIAL[13] = {
   ...REQS_INITIAL[13],
   totalBilled: 256313.93,
   paidAmount: 0,
+  architectApproved: 256313.93,
+  retainageHeld: 0,
   laborCost: 0,
   materialCost: 3856.42,
   subCost: 108213.35,
+  backupStatus: "PARTIAL",
+  hasInvoiceSupport: true,
   flags: ["sub_as_labor", "blended_rate", "missing_invoice", "co_missing", "duplicate", "rate_anomaly", "markup_on_markup"],
   notes: `REQ-14 — APPLICATION #14 — Period 04/01/23 to 04/30/23
 G702: Contract Sum $1,819,824.47 | Total Completed $1,597,418.04 | Retainage $0
@@ -1476,9 +1490,13 @@ REQS_INITIAL[14] = {
   ...REQS_INITIAL[14],
   totalBilled: 6451.64,
   paidAmount: 0,
+  architectApproved: 6451.64,
+  retainageHeld: 0,
   laborCost: 0,
   materialCost: 146.31,
   subCost: 5015.00,
+  backupStatus: "PARTIAL",
+  hasInvoiceSupport: true,
   flags: ["sub_as_labor", "blended_rate", "co_missing", "rate_anomaly"],
   notes: `REQ-15 — APPLICATION #15 — Period 12/01/23 to 12/30/23
 G702: Contract Sum $1,729,186.84 | Total Completed $1,603,869.68 | Retainage $0
@@ -1537,9 +1555,13 @@ REQS_INITIAL[15] = {
   ...REQS_INITIAL[15],
   totalBilled: 235461.28,
   paidAmount: 0,
+  architectApproved: 235461.28,
+  retainageHeld: 0,
   laborCost: 0,
   materialCost: 47236.35,
   subCost: 141136.63,
+  backupStatus: "PARTIAL",
+  hasInvoiceSupport: true,
   flags: ["sub_as_labor", "markup_on_markup", "co_missing", "rate_anomaly", "no_timesheet"],
   notes: `REQ-16 — APPLICATION #16 — Period 01/01/24 to 01/30/24
 G702: Original Contract $1,183,411.00 | Net COs $602,758.41 | Contract Sum $1,786,169.41
