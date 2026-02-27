@@ -1961,9 +1961,49 @@ function Dashboard({ reqs, claims }) {
 }
 
 // ── REQUISITIONS ──────────────────────────────────────────────────────────────
-function Requisitions({ reqs, updateReq }) {
+function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
   const [sel, setSel] = useState(null);
+  const [uploading, setUploading] = useState([]);
+  const [uploadSummary, setUploadSummary] = useState(null);
   const editing = sel ? reqs.find(r => r.id === sel) : null;
+  const reqDocs = editing ? docs.filter(d => (d.linkedReqs || []).includes(editing.reqNumber)) : [];
+  const backupData = editing ? BACKUP_VARIANCE[editing.id] : null;
+
+  const processReqFiles = async (files) => {
+    if (!files || files.length === 0) return;
+    if (!window._sb) { alert("File upload requires cloud mode (Supabase)."); return; }
+    const fileArr = Array.from(files);
+    setUploading(fileArr.map(f => ({ name: f.name, progress: 0, status: "pending" })));
+    for (let i = 0; i < fileArr.length; i++) {
+      const file = fileArr[i];
+      setUploading(prev => prev.map((u, j) => j === i ? { ...u, status: "uploading", progress: 30 } : u));
+      const classify = autoClassifyFile(file.name);
+      const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+      const storagePath = classify.category + "/" + Date.now() + "-" + safeName;
+      const path = await fileUpload(file, storagePath);
+      if (!path) { setUploading(prev => prev.map((u, j) => j === i ? { ...u, status: "error", progress: 100 } : u)); continue; }
+      setUploading(prev => prev.map((u, j) => j === i ? { ...u, progress: 60, status: "parsing" } : u));
+      let extractedText = null; let textTags = [];
+      const mime = file.type || "";
+      if (mime === "application/pdf") { const url = fileGetUrl(path); if (url) extractedText = await extractPdfText(url); }
+      else if (mime.includes("sheet") || mime.includes("excel") || file.name.match(/\.xlsx?$/i)) { extractedText = await extractXlsxData(file); }
+      if (extractedText) textTags = extractTagsFromText(extractedText);
+      const allLinkedReqs = [...new Set([editing.reqNumber, ...classify.linkedReqs, ...textTags.filter(t => t.match(/^REQ-\d{2}$/))])];
+      const allFileTags = [...new Set([...classify.tags, ...textTags, editing.reqNumber])];
+      setUploading(prev => prev.map((u, j) => j === i ? { ...u, progress: 90, status: "saving" } : u));
+      const id = "doc-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
+      addDoc({ id, category: classify.category || "requisition", name: file.name.replace(/\.[^.]+$/, "").replace(/[_-]/g, " "),
+        date: new Date().toISOString().slice(0, 10), description: `Uploaded from ${editing.reqNumber}`, parties: classify.vendor || "MC",
+        status: classify.status || "submitted", notes: "", storagePath: path, fileName: file.name, fileSize: file.size, mimeType: mime,
+        tags: allFileTags, linkedReqs: allLinkedReqs, extractedText, vendor: classify.vendor, costCode: classify.costCode });
+      if (window._openaiKey && extractedText) {
+        analyzeUploadedDoc({ id }, extractedText, docs).then(u => { if (u) updateDoc(id, u); }).catch(() => {});
+      }
+      setUploading(prev => prev.map((u, j) => j === i ? { ...u, progress: 100, status: "done" } : u));
+    }
+    setUploadSummary({ total: fileArr.length }); setTimeout(() => setUploading([]), 3000); setTimeout(() => setUploadSummary(null), 6000);
+  };
+
   const toggleFlag = (reqId, flagId) => {
     const req = reqs.find(r => r.id === reqId);
     const flags = req.flags.includes(flagId) ? req.flags.filter(f => f !== flagId) : [...req.flags, flagId];
@@ -1976,7 +2016,7 @@ function Requisitions({ reqs, updateReq }) {
   const TdStyle = { padding: "11px 14px", fontSize: 13, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: editing ? "1fr 400px" : "1fr", gap: 20, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: editing ? "1fr 480px" : "1fr", gap: 20, alignItems: "start" }}>
       <div>
         <SectionTitle title="Requisition Catalog" subtitle="16 payment applications · Click any row to enter data and set audit flags" />
         <Card padding={0}>
@@ -2084,6 +2124,130 @@ function Requisitions({ reqs, updateReq }) {
                 <textarea value={editing.notes} onChange={e => updateReq(editing.id, { notes: e.target.value })}
                   rows={3} style={{ width: "100%", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 6, padding: "8px 10px", color: T.text, fontSize: 13, outline: "none", resize: "vertical", boxSizing: "border-box", fontFamily: T.font, lineHeight: 1.6 }} />
               </div>
+
+              {/* ── LINKED DOCUMENTS ── */}
+              <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
+                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 8, fontFamily: T.font }}>
+                  DOCUMENTS ({reqDocs.length})
+                </label>
+                {reqDocs.length === 0 && (
+                  <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font, padding: "8px 0" }}>
+                    No documents linked to {editing.reqNumber}
+                  </div>
+                )}
+                {reqDocs.map(doc => {
+                  const hasFile = !!doc.storagePath;
+                  return (
+                    <div key={doc.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
+                      borderRadius: 6, background: T.bg, border: `1px solid ${T.border}`, marginBottom: 6,
+                      cursor: hasFile ? "pointer" : "default" }}
+                      onClick={() => { if (hasFile) { const url = fileGetUrl(doc.storagePath); if (url) window.open(url, "_blank"); } }}>
+                      <span style={{ flexShrink: 0 }}>{hasFile ? getMimeIcon(doc.mimeType, 18, T.accent) : <Ic name="file-text" size={18} color={T.textMuted} />}</span>
+                      <div style={{ flex: 1, overflow: "hidden" }}>
+                        <div style={{ fontSize: 12, fontWeight: 500, fontFamily: T.font, color: T.text,
+                          overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</div>
+                        <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.font }}>
+                          {doc.date}{hasFile ? ` \u00b7 ${formatFileSize(doc.fileSize)}` : ""}
+                        </div>
+                      </div>
+                      {hasFile && <span style={{ fontSize: 10, color: T.accent, fontFamily: T.font, flexShrink: 0 }}>View</span>}
+                    </div>
+                  );
+                })}
+                {/* Upload drop zone */}
+                <div onDragOver={e => e.preventDefault()}
+                  onDrop={e => { e.preventDefault(); processReqFiles(e.dataTransfer.files); }}
+                  onClick={() => document.getElementById(`req-upload-${editing.id}`)?.click()}
+                  style={{ border: `1.5px dashed ${T.border}`, borderRadius: 8, padding: "12px 14px", textAlign: "center",
+                    cursor: "pointer", background: T.bg, marginTop: 6 }}>
+                  {uploading.length === 0 ? (
+                    <>
+                      <Ic name="upload" size={18} color={T.textMuted} />
+                      <div style={{ fontSize: 11, color: T.textMid, fontFamily: T.font, marginTop: 4 }}>
+                        Drop files or <span style={{ color: T.accent, textDecoration: "underline" }}>browse</span> — auto-links to {editing.reqNumber}
+                      </div>
+                      <input id={`req-upload-${editing.id}`} type="file" multiple style={{ display: "none" }}
+                        onChange={e => { processReqFiles(e.target.files); e.target.value = ""; }} />
+                    </>
+                  ) : (
+                    <div style={{ textAlign: "left" }}>
+                      {uploading.map((u, i) => (
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0" }}>
+                          <span style={{ fontSize: 11, fontFamily: T.font, color: T.textMid, flex: 1,
+                            overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name}</span>
+                          <div style={{ width: 60, height: 3, borderRadius: 2, background: T.border, flexShrink: 0 }}>
+                            <div style={{ width: u.progress + "%", height: "100%", borderRadius: 2,
+                              background: u.status === "error" ? T.red : u.status === "done" ? T.green : T.accent }} />
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+                {uploadSummary && (
+                  <div style={{ fontSize: 11, color: T.green, fontFamily: T.font, marginTop: 6, textAlign: "center" }}>
+                    {uploadSummary.total} file(s) uploaded and linked to {editing.reqNumber}
+                  </div>
+                )}
+              </div>
+
+              {/* ── BACKUP VARIANCE ── */}
+              {backupData && (
+                <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${T.border}` }}>
+                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 8, fontFamily: T.font }}>
+                    BACKUP VARIANCE
+                  </label>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 10 }}>
+                    {[{ label: "BILLED", val: backupData.amountBilled, color: T.text },
+                      { label: "BACKUP", val: backupData.backupDocs, color: T.green },
+                      { label: "DIRECT LABOR", val: backupData.directLabor, color: backupData.directLabor > 0 ? T.amber : T.textMuted }
+                    ].map(c => (
+                      <div key={c.label} style={{ padding: "8px 8px", borderRadius: 6, background: T.bg, border: `1px solid ${T.border}` }}>
+                        <div style={{ fontSize: 9, color: T.textMuted, fontFamily: T.font, letterSpacing: 0.3 }}>{c.label}</div>
+                        <div style={{ fontSize: 12, fontWeight: 600, fontFamily: T.mono, color: c.color }}>
+                          ${c.val.toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                  {(() => {
+                    const gap = backupData.amountBilled - backupData.backupDocs - backupData.directLabor;
+                    return Math.abs(gap) > 1 ? (
+                      <div style={{ padding: "6px 10px", borderRadius: 6, marginBottom: 10,
+                        background: gap > 0 ? T.redBg : T.greenBg, border: `1px solid ${gap > 0 ? T.redBorder : T.greenBorder}`,
+                        fontSize: 11, fontFamily: T.font, color: gap > 0 ? T.red : T.green }}>
+                        {gap > 0 ? "Unsubstantiated gap" : "Over-documented by"}: ${Math.abs(gap).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                      </div>
+                    ) : (
+                      <div style={{ padding: "6px 10px", borderRadius: 6, marginBottom: 10,
+                        background: T.greenBg, border: `1px solid ${T.greenBorder}`,
+                        fontSize: 11, fontFamily: T.font, color: T.green }}>
+                        Fully substantiated
+                      </div>
+                    );
+                  })()}
+                  {backupData.items.length > 0 && (
+                    <div>
+                      <div style={{ fontSize: 10, fontWeight: 600, color: T.textMuted, fontFamily: T.font, letterSpacing: 0.3, marginBottom: 6 }}>
+                        LINE ITEMS ({backupData.items.length})
+                      </div>
+                      {backupData.items.map((item, idx) => (
+                        <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start",
+                          padding: "6px 8px", borderRadius: 4, background: idx % 2 === 0 ? T.bg : "transparent", fontSize: 11, fontFamily: T.font }}>
+                          <div style={{ flex: 1, minWidth: 0 }}>
+                            <div style={{ fontWeight: 500, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.desc}</div>
+                            <div style={{ fontSize: 9, color: T.textMuted }}>{item.trade}</div>
+                          </div>
+                          <div style={{ fontFamily: T.mono, fontSize: 11, color: item.amount < 0 ? T.red : T.amber,
+                            fontWeight: 500, flexShrink: 0, marginLeft: 8 }}>
+                            {item.amount < 0 ? "-" : ""}${Math.abs(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           </Card>
         </div>
@@ -4610,7 +4774,7 @@ export default function App() {
       {/* Content */}
       <div style={{ padding: "32px 32px", maxWidth: 1400, margin: "0 auto" }}>
         {tab === "dashboard" && <Dashboard reqs={reqs} claims={claims} />}
-        {tab === "requisitions" && <Requisitions reqs={reqs} updateReq={updateReq} />}
+        {tab === "requisitions" && <Requisitions reqs={reqs} updateReq={updateReq} docs={docs} updateDoc={updateDoc} addDoc={addDoc} />}
         {tab === "reconciliation" && <Reconciliation reqs={reqs} />}
         {tab === "audit" && <AuditRisk reqs={reqs} />}
         {tab === "claims" && <Claims claims={claims} updateClaim={updateClaim} />}
