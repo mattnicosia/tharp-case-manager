@@ -1815,6 +1815,18 @@ function extractTagsFromText(text) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
+function computeBackupStatus(bv) {
+  if (!bv) return { status: "pending", gap: 0, documented: 0 };
+  const documented = (bv.backupDocs || 0) + (bv.directLabor || 0);
+  const gap = (bv.amountBilled || 0) - documented;
+  let status = "pending";
+  if (Math.abs(gap) < 1 || gap < 0) status = "supported";
+  else if (bv.directLabor > 0 && gap > 0) status = "partial";
+  else if (Math.abs(gap) < 200) status = "supported";
+  else status = "needs_docs";
+  return { status, gap, documented };
+}
+
 function computeRisk(req) {
   if (!req.flags.length) return "CLEAR";
   const hasHigh = req.flags.some(f => AUDIT_FLAGS.find(a => a.id === f)?.risk === "HIGH");
@@ -2098,47 +2110,88 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
     const flags = req.flags.includes(flagId) ? req.flags.filter(f => f !== flagId) : [...req.flags, flagId];
     updateReq(reqId, { flags });
   };
-  const totals = { billed: 0, approved: 0, retainage: 0 };
-  reqs.forEach(r => { totals.billed += r.totalBilled || 0; totals.retainage += r.retainageHeld || 0; });
+  // Compute summary stats from BACKUP_VARIANCE
+  const bvRows = reqs.map(r => {
+    const bv = BACKUP_VARIANCE[r.id];
+    const bs = computeBackupStatus(bv);
+    return { ...bs, bv, req: r };
+  });
+  const totBilled = reqs.reduce((s, r) => s + (r.totalBilled || 0), 0);
+  const totPaid = reqs.reduce((s, r) => s + (r.paidAmount || 0), 0);
+  const totInvoices = bvRows.reduce((s, r) => s + ((r.bv?.backupDocs) || 0), 0);
+  const totSelfPerformed = bvRows.reduce((s, r) => s + ((r.bv?.directLabor) || 0), 0);
+  const totDocumented = totInvoices + totSelfPerformed;
+  const totCostBasis = bvRows.reduce((s, r) => s + ((r.bv?.amountBilled) || 0), 0);
+  const totGap = bvRows.reduce((s, r) => s + Math.max(0, r.gap), 0);
+  const supportedCount = bvRows.filter(r => r.status === "supported").length;
+  const needsDocsCount = bvRows.filter(r => r.status === "needs_docs").length;
+  const pctSupported = totCostBasis > 0 ? Math.round((totDocumented / totCostBasis) * 100) : 0;
 
-  const ThStyle = { padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg };
+  const ThStyle = { padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg, whiteSpace: "nowrap" };
   const TdStyle = { padding: "11px 14px", fontSize: 13, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
 
   return (
     <div style={{ display: "grid", gridTemplateColumns: editing ? "1fr 480px" : "1fr", gap: 20, alignItems: "start" }}>
       <div>
-        <SectionTitle title="Requisition Catalog" subtitle="16 payment applications · Click any row to enter data and set audit flags" />
+        <SectionTitle title="Requisitions" subtitle="16 payment applications · Tharp/Bumgardner · 515 N. Midland Ave, Upper Nyack NY" />
+
+        {/* Narrative Summary */}
+        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: "16px 20px", marginBottom: 16, lineHeight: 1.8 }}>
+          <div style={{ fontSize: 13, color: T.text, fontFamily: T.font }}>
+            Of <strong>${totCostBasis.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> in cost-of-work billing across 16 payment applications,{" "}
+            <strong>${totInvoices.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> is supported by third-party invoices on file.{" "}
+            An additional <strong>${totSelfPerformed.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> represents self-performed work by Montana Contracting.{" "}
+            <strong>{supportedCount} of 16</strong> requisitions are fully supported; <strong>{needsDocsCount}</strong> require additional documentation.{" "}
+            Open balance: <strong>${(totBilled - totPaid).toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> (REQs 14–16 unpaid).
+          </div>
+        </div>
+
+        {/* KPIs */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
+          <KPI label="Documentation Coverage" value={`${pctSupported}%`} sub={`${supportedCount} of 16 fully supported`} accent color={pctSupported >= 85 ? T.green : pctSupported >= 70 ? T.amber : T.red} />
+          <KPI label="Total Billed (G702)" isMoney rawAmount={totBilled} sub={`Paid: $${totPaid.toLocaleString()}`} color={T.text} />
+          <KPI label="Self-Performed Work" isMoney rawAmount={totSelfPerformed} sub="Montana in-house labor" color={T.amber} />
+          <KPI label="Unreconciled Gap" isMoney rawAmount={totGap} sub={`${needsDocsCount} req${needsDocsCount !== 1 ? "s" : ""} need docs`} color={totGap < 1000 ? T.green : T.red} />
+        </div>
+
+        {/* Main table */}
         <Card padding={0}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
               <tr>
-                {["REQ #", "DATE", "BILLED", "RETAINAGE", "BACKUP", "RISK", "FLAGS"].map(h => (
-                  <th key={h} style={ThStyle}>{h}</th>
+                {["REQ #", "DATE", "BILLED", "PAID", "DOCUMENTED", "GAP", "STATUS", "FLAGS"].map(h => (
+                  <th key={h} style={{ ...ThStyle, textAlign: h === "REQ #" || h === "DATE" || h === "FLAGS" ? "left" : "right", ...(h === "STATUS" ? { textAlign: "center" } : {}) }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {reqs.map(req => {
-                const risk = computeRisk(req);
-                const rs = riskStyle(risk);
+              {reqs.map((req, i) => {
+                const bv = BACKUP_VARIANCE[req.id];
+                const bs = computeBackupStatus(bv);
                 const active = sel === req.id;
+                const isPaid = (req.paidAmount || 0) > 0;
+                const stColor = bs.status === "supported" ? T.green : bs.status === "partial" ? T.amber : bs.status === "needs_docs" ? T.red : T.textMuted;
+                const stBg = bs.status === "supported" ? T.greenBg : bs.status === "partial" ? T.amberBg : bs.status === "needs_docs" ? T.redBg : T.surfaceHover;
+                const stBorder = bs.status === "supported" ? T.greenBorder : bs.status === "partial" ? T.amberBorder : bs.status === "needs_docs" ? T.redBorder : T.border;
+                const stLabel = bs.status === "supported" ? "SUPPORTED" : bs.status === "partial" ? "PARTIAL" : bs.status === "needs_docs" ? "NEEDS DOCS" : "PENDING";
                 return (
                   <tr key={req.id} onClick={() => setSel(active ? null : req.id)}
                     style={{ cursor: "pointer", background: active ? T.accentBg : "transparent", transition: "background 0.1s" }}
                     onMouseEnter={e => { if (!active) e.currentTarget.style.background = T.surfaceHover; }}
                     onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}>
                     <td style={{ ...TdStyle, fontFamily: T.mono, fontWeight: 500, color: T.accent }}>{req.reqNumber}</td>
-                    <td style={{ ...TdStyle, color: T.textMuted }}>{req.date || "—"}</td>
-                    <td style={TdStyle}>{req.totalBilled ? <Money amount={req.totalBilled} size="sm" /> : <span style={{ color: T.textMuted }}>—</span>}</td>
-                    <td style={TdStyle}>{req.retainageHeld ? <Money amount={req.retainageHeld} color={T.red} size="sm" /> : <span style={{ color: T.textMuted }}>—</span>}</td>
-                    <td style={TdStyle}>
-                      <Badge label={req.backupStatus} style={
-                        req.backupStatus === "COMPLETE" ? { color: T.green, bg: T.greenBg, border: T.greenBorder } :
-                        req.backupStatus === "PARTIAL" ? { color: T.amber, bg: T.amberBg, border: T.amberBorder } :
-                        { color: T.red, bg: T.redBg, border: T.redBorder }
-                      } />
+                    <td style={{ ...TdStyle, color: T.textMuted, fontSize: 12 }}>{req.date || "—"}</td>
+                    <td style={{ ...TdStyle, textAlign: "right" }}>{req.totalBilled ? <Money amount={req.totalBilled} size="sm" /> : <span style={{ color: T.textMuted }}>—</span>}</td>
+                    <td style={{ ...TdStyle, textAlign: "right" }}>
+                      {isPaid ? <Money amount={req.paidAmount} color={T.green} size="sm" /> : <span style={{ fontFamily: T.mono, fontSize: 12, color: T.red }}>$0</span>}
                     </td>
-                    <td style={TdStyle}><Badge label={risk} style={rs} /></td>
+                    <td style={{ ...TdStyle, textAlign: "right" }}>
+                      {bs.documented > 0 ? <Money amount={bs.documented} color={T.text} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                    </td>
+                    <td style={{ ...TdStyle, textAlign: "right" }}>
+                      {bs.gap > 1 ? <Money amount={bs.gap} color={T.red} size="sm" /> : bs.gap < -1 ? <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>surplus</span> : <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>—</span>}
+                    </td>
+                    <td style={{ ...TdStyle, textAlign: "center" }}><Badge label={stLabel} style={{ color: stColor, bg: stBg, border: stBorder }} /></td>
                     <td style={{ ...TdStyle, color: req.flags.length > 0 ? T.red : T.textMuted, fontFamily: T.mono, fontSize: 12 }}>
                       {req.flags.length > 0 ? `${req.flags.length}` : "—"}
                     </td>
@@ -2149,10 +2202,14 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
             <tfoot>
               <tr style={{ background: T.bg }}>
                 <td colSpan={2} style={{ ...TdStyle, fontSize: 11, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, borderBottom: "none" }}>TOTALS</td>
-                <td style={{ ...TdStyle, borderBottom: "none" }}><Money amount={totals.billed} size="sm" /></td>
-                <td style={{ ...TdStyle, borderBottom: "none" }}><Money amount={totals.approved} color={T.green} size="sm" /></td>
-                <td style={{ ...TdStyle, borderBottom: "none" }}><Money amount={totals.retainage} color={T.red} size="sm" /></td>
-                <td colSpan={3} style={{ borderBottom: "none" }} />
+                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totBilled} size="sm" /></td>
+                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totPaid} color={T.green} size="sm" /></td>
+                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totDocumented} size="sm" /></td>
+                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totGap} color={totGap > 1000 ? T.red : T.green} size="sm" /></td>
+                <td style={{ ...TdStyle, textAlign: "center", borderBottom: "none" }}>
+                  <span style={{ fontSize: 11, fontFamily: T.mono, color: T.textMuted }}>{supportedCount}/16</span>
+                </td>
+                <td style={{ borderBottom: "none" }} />
               </tr>
             </tfoot>
           </table>
@@ -2616,398 +2673,7 @@ function Strategy({ claims }) {
   );
 }
 
-// ── RECONCILIATION ────────────────────────────────────────────────────────────
-function Reconciliation({ reqs }) {
-  const [expanded, setExpanded] = useState(null);
-
-  const excelGrand = EXCEL_DATA.reduce((s, r) => s + r[0], 0);
-  const pdfGrand = reqs.slice(0, 15).reduce((s, r) => s + (r.totalBilled || 0), 0);
-  const totalVariance = pdfGrand - excelGrand;
-
-  const ThStyle = { padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg, whiteSpace: "nowrap" };
-  const TdStyle = { padding: "10px 14px", fontSize: 13, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
-
-  const varColor = (v) => v === 0 ? T.green : Math.abs(v) < 500 ? T.amber : T.red;
-
-  return (
-    <div>
-      <SectionTitle
-        title="Excel vs PDF Reconciliation"
-        subtitle="CM Tracker (Excel) compared to AIA G702 certified amounts (PDF) · Variance = PDF − Excel"
-      />
-
-      {/* Summary KPIs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
-        <KPI label="Excel CM Tracker Total" isMoney rawAmount={excelGrand} sub="15 reqs · Book1.xlsx" color={T.blue} />
-        <KPI label="PDF Certified Total" isMoney rawAmount={pdfGrand} sub="G702 amounts entered" color={pdfGrand > 0 ? T.text : T.textMuted} />
-        <KPI label="Total Variance" isMoney rawAmount={Math.abs(totalVariance)} sub={totalVariance > 0 ? "PDF > Excel (over-billed?)" : totalVariance < 0 ? "Excel > PDF (under-certified?)" : "Balanced"} color={varColor(totalVariance)} />
-        <KPI label="REQ-13R1 Credit" isMoney rawAmount={90489.90} sub="Large negative — needs scrutiny" color={T.red} />
-      </div>
-
-      {/* REQ-13 Warning */}
-      <div style={{ background: T.redBg, border: `1px solid ${T.redBorder}`, borderRadius: 10, padding: 16, marginBottom: 20, display: "flex", gap: 14 }}>
-        <span style={{ fontSize: 20, flexShrink: 0 }}>⚠</span>
-        <div>
-          <div style={{ fontSize: 13, fontWeight: 600, color: T.red, marginBottom: 4, fontFamily: T.font }}>REQ-13R1 — Negative Requisition Requires Explanation</div>
-          <div style={{ fontSize: 12, color: T.textMid, fontFamily: T.font, lineHeight: 1.6 }}>
-            REQ-13R1 shows <strong>-$90,489.90</strong> in the Excel tracker — the largest single-req swing in the project. This is a reconciliation or credit req covering 19 trade reversals including Electric -$41,824, Tile -$12,100, HVAC -$8,545, Wood Flooring -$7,325, Drywall -$7,992, and Masonry -$9,903. Each reversal needs a corresponding AIA G702 credit memo and documented justification. This will be a primary focus for opposing counsel.
-          </div>
-        </div>
-      </div>
-
-      {/* Main reconciliation table */}
-      <Card padding={0} style={{ marginBottom: 20 }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <th style={ThStyle}>REQ</th>
-              <th style={ThStyle}>PERIOD</th>
-              <th style={{ ...ThStyle, textAlign: "right", color: T.blue }}>EXCEL SUBTOTAL</th>
-              <th style={{ ...ThStyle, textAlign: "right", color: T.blue }}>EXCEL FEE (25%)</th>
-              <th style={{ ...ThStyle, textAlign: "right", color: T.blue }}>EXCEL TOTAL</th>
-              <th style={{ ...ThStyle, textAlign: "right" }}>PDF CERTIFIED</th>
-              <th style={{ ...ThStyle, textAlign: "right" }}>VARIANCE</th>
-              <th style={{ ...ThStyle, textAlign: "center" }}>STATUS</th>
-              <th style={{ ...ThStyle, textAlign: "center" }}>TRADES</th>
-            </tr>
-          </thead>
-          <tbody>
-            {reqs.slice(0, 15).map((req, i) => {
-              const [excelTotal, excelSub, excelFee, month, pdfReqNum] = EXCEL_DATA[i];
-              const pdf = req.totalBilled || 0;
-              const variance = pdf - excelTotal;
-              const vc = varColor(variance);
-              const isNeg = excelTotal < 0;
-              const isExpanded = expanded === i;
-              const trades = EXCEL_TRADES[i + 1] || {};
-              const tradeCount = Object.keys(trades).length;
-              const pdfEntered = pdf > 0;
-
-              return (
-                <>
-                  <tr key={i}
-                    style={{ background: isExpanded ? T.accentBg : "transparent", cursor: tradeCount > 0 ? "pointer" : "default" }}
-                    onClick={() => tradeCount > 0 && setExpanded(isExpanded ? null : i)}
-                    onMouseEnter={e => { if (!isExpanded) e.currentTarget.style.background = T.surfaceHover; }}
-                    onMouseLeave={e => { if (!isExpanded) e.currentTarget.style.background = "transparent"; }}>
-                    <td style={{ ...TdStyle, fontFamily: T.mono, fontWeight: 500, color: isNeg ? T.red : T.accent }}>
-                      {req.reqNumber}
-                      {isNeg && <span style={{ fontSize: 10, color: T.red, marginLeft: 6, fontWeight: 700 }}>CREDIT</span>}
-                    </td>
-                    <td style={{ ...TdStyle, color: T.textMuted, fontSize: 12 }}>{month}</td>
-                    <td style={{ ...TdStyle, textAlign: "right" }}>
-                      <Money amount={Math.abs(excelSub)} color={isNeg ? T.red : T.textMid} size="sm" neg={isNeg} />
-                    </td>
-                    <td style={{ ...TdStyle, textAlign: "right" }}>
-                      <Money amount={Math.abs(excelFee)} color={isNeg ? T.red : T.textMuted} size="sm" neg={isNeg} />
-                    </td>
-                    <td style={{ ...TdStyle, textAlign: "right" }}>
-                      <Money amount={Math.abs(excelTotal)} color={isNeg ? T.red : T.blue} size="sm" neg={isNeg} />
-                    </td>
-                    <td style={{ ...TdStyle, textAlign: "right" }}>
-                      {pdfEntered
-                        ? <Money amount={pdf} color={T.text} size="sm" />
-                        : <span style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font, fontStyle: "italic" }}>not entered</span>}
-                    </td>
-                    <td style={{ ...TdStyle, textAlign: "right" }}>
-                      {pdfEntered
-                        ? <Money amount={Math.abs(variance)} color={vc} size="sm" neg={variance < 0} />
-                        : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
-                    </td>
-                    <td style={{ ...TdStyle, textAlign: "center" }}>
-                      {pdfEntered
-                        ? <Badge label={variance === 0 ? "MATCH" : variance > 0 ? "PDF HIGH" : "EXCEL HIGH"}
-                            style={variance === 0
-                              ? { color: T.green, bg: T.greenBg, border: T.greenBorder }
-                              : { color: vc, bg: vc === T.red ? T.redBg : T.amberBg, border: vc === T.red ? T.redBorder : T.amberBorder }} />
-                        : <Badge label="PENDING" style={{ color: T.textMuted, bg: T.surfaceHover, border: T.border }} />}
-                    </td>
-                    <td style={{ ...TdStyle, textAlign: "center" }}>
-                      {tradeCount > 0 && (
-                        <span style={{ fontSize: 11, color: T.accent, fontFamily: T.font, cursor: "pointer" }}>
-                          {tradeCount} {isExpanded ? "▲" : "▼"}
-                        </span>
-                      )}
-                    </td>
-                  </tr>
-                  {isExpanded && (
-                    <tr key={`${i}-detail`}>
-                      <td colSpan={9} style={{ padding: 0, borderBottom: `1px solid ${T.border}` }}>
-                        <div style={{ background: T.bg, padding: "14px 24px 14px 60px" }}>
-                          <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.6, color: T.textMuted, marginBottom: 10, fontFamily: T.font }}>EXCEL TRADE LINE ITEMS — {req.reqNumber}</div>
-                          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "4px 24px" }}>
-                            {Object.entries(trades).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1])).map(([trade, val]) => (
-                              <div key={trade} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "5px 0", borderBottom: `1px solid ${T.border}` }}>
-                                <span style={{ fontSize: 12, color: val < 0 ? T.red : T.textMid, fontFamily: T.font }}>{trade}</span>
-                                <Money amount={Math.abs(val)} color={val < 0 ? T.red : T.text} size="xs" neg={val < 0} />
-                              </div>
-                            ))}
-                          </div>
-                          {req.notes && (
-                            <div style={{ marginTop: 12, padding: "10px 12px", background: T.amberBg, border: `1px solid ${T.amberBorder}`, borderRadius: 6 }}>
-                              <div style={{ fontSize: 11, fontWeight: 600, color: T.amber, marginBottom: 4, fontFamily: T.font }}>AUDIT NOTES</div>
-                              <div style={{ fontSize: 11, color: T.textMid, fontFamily: T.font, lineHeight: 1.6, whiteSpace: "pre-line" }}>{req.notes.substring(0, 400)}{req.notes.length > 400 ? "…" : ""}</div>
-                            </div>
-                          )}
-                        </div>
-                      </td>
-                    </tr>
-                  )}
-                </>
-              );
-            })}
-          </tbody>
-          <tfoot>
-            <tr style={{ background: T.bg }}>
-              <td colSpan={2} style={{ ...TdStyle, fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "none", letterSpacing: 0.5 }}>GRAND TOTALS</td>
-              <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}>
-                <Money amount={Math.abs(EXCEL_DATA.reduce((s,r)=>s+r[1],0))} color={T.blue} size="sm" />
-              </td>
-              <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}>
-                <Money amount={Math.abs(EXCEL_DATA.reduce((s,r)=>s+r[2],0))} color={T.textMuted} size="sm" />
-              </td>
-              <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}>
-                <Money amount={Math.abs(excelGrand)} color={T.blue} size="sm" />
-              </td>
-              <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}>
-                <Money amount={pdfGrand} color={T.text} size="sm" />
-              </td>
-              <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}>
-                <Money amount={Math.abs(totalVariance)} color={varColor(totalVariance)} size="sm" neg={totalVariance < 0} />
-              </td>
-              <td colSpan={2} style={{ borderBottom: "none" }} />
-            </tr>
-          </tfoot>
-        </table>
-      </Card>
-
-      {/* Variance explainer */}
-      <Card>
-        <CardLabel label="Known Variance Explanations" />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
-          {[
-            { req: "REQ-01", variance: "+$15,000.00", reason: "Kitchen Radiant CO (PCO#003) billed on AIA G702 at $15,000 but tracked as a separate change order line in Excel, not included in CM Tracker subtotal.", severity: "amber" },
-            { req: "REQ-13R1", variance: "+$274,728.87", reason: "LARGEST variance: G703 TP $184,238.97 vs Excel -$90,489.90. REVISED requisition (R1) with base-to-CO conversion pattern — base credits ~$92K while massive new CO billing generates additional OH&P. A Touch of Glass estimate-as-invoice ($6,850) + allocation overbilling ($14,775 coded vs $6,650 invoice). Potential duplicate Dykes Lumber #2302-079368. Eastern Contractor invoice 6 months out-of-period. Korth painting at 182% of contract ($89,942 vs $49,450). No timecards for 3-month period.", severity: "red" },
-            { req: "REQ-08", variance: "$0.00", reason: "PDF matches Excel exactly at $192,165.00. Largest single req — 13 active trades. Zero CO billing this period despite $252K scheduled. Four over-budget lines: Tile 135%, Framing Mat 165%, Framing Labor 119%, Roofing 113%.", severity: "green" },
-            { req: "REQ-09", variance: "+$6,045.74", reason: "COs (PCO#049 Fireplace Demo $1,340.30 + PCO#052 Balcony Railings $3,496.29 + $1,209.15 unidentified) billed on G702 but not in Excel base total. Cooling $3,102.70 billed with $0 scheduled and no backup. H&J rate anomaly: $55/hr siding vs $75/hr framing.", severity: "amber" },
-            { req: "REQ-10", variance: "+$52,342.29", reason: "MASSIVE CO component: G703 Grand Total $90,418.49 vs Excel $38,076.20. Same billing period as REQ-09 (both 10/01-10/30/22). Net COs jumped $82K. Anonymous $2,925 roofing sub, $15K firebox kit, Valley Mechanical HVAC $13,935. Framing Labor $675 with no backup.", severity: "red" },
-            { req: "REQ-11", variance: "+$40,957.56", reason: "CO billing $32,766.05 plus hidden $8,191.51 CO OH&P (exactly 25% of CO total). First REQ with timecards — but supervision/general conditions coded as billable (overhead per §9.3.1). Korth painting $49,450 split base/CO. Multiple materials miscoded to Painting CO. Carpentry $9,825 with no labor/material breakdown.", severity: "red" },
-            { req: "REQ-12", variance: "+$22,537.26", reason: "CO billing $18,029.81 plus hidden $4,507.46 CO OH&P (25% pattern — third consecutive REQ). Boards & Beams LLC submitted ESTIMATES as backup (not invoices — §15.3.2). Beckerle receipt dated 1/4/2023 in December billing. CO number discrepancies between backup and G703. Korth painting cumulative $63,742 exceeds $49,450 contract.", severity: "red" },
-            { req: "REQ-14", variance: "+$116,226.72", reason: "G703 TP $256,313.93 vs Excel $140,087.21. HVAC $72,615 (108.98% over budget) includes $17K disputed payment ('previously rejected due to disagreements with client'). Korth #9922 reconciliation invoice: painting sub billing carpentry ($26,252 subtotal, credits $60,605 of prior REQ-11/12/13 invoices). Glen Rock Stair #59548 potential duplicate (also in REQ-13). Glen Rock #58852 six months out-of-period. 7 of 9 new COs at 100% immediately. No timecards.", severity: "red" },
-            { req: "REQ-15", variance: "$0.00", reason: "ZERO VARIANCE — ONLY requisition where G703 TP ($6,451.64) matches Excel exactly. After 7-month gap. However: $135,385 in UNAPPLIED credit COs at 0% — PCO#130 'GC Owner Variance Split' ($66,389), PCO#129 'Allowance Reconciliation' ($24,248), plus 5 other credits never applied to owner. CO total DECREASED $90,637 — unprecedented. Only 2 backup pages; both invoices out-of-period (ABC Supply 19 months, DeLeonardis 5 months). No timecards.", severity: "amber" },
-            { req: "REQ-16", variance: "N/A", reason: "FINAL INVOICE — LARGEST REQUISITION ($235,461.28). Project OVER-BILLED by $53,162 (102.97% of contract sum). 10+ G703 lines over budget: Insulation 200%, Custom Casework 155%, Framing Material 165%, Siding 118%, Roofing 116%. $135,385 in unapplied credit COs STILL at 0%. 131 PCOs on schedule. New COs added ($56,983 net) but owner credits remain unapplied. No timecards. OH&P $27,487 applied to over-budget lines.", severity: "red" },
-          ].map(item => (
-            <div key={item.req} style={{ padding: 14, background: item.severity === "red" ? T.redBg : T.amberBg, border: `1px solid ${item.severity === "red" ? T.redBorder : T.amberBorder}`, borderRadius: 8 }}>
-              <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 6 }}>
-                <span style={{ fontFamily: T.mono, fontSize: 12, fontWeight: 600, color: item.severity === "red" ? T.red : T.amber }}>{item.req}</span>
-                <Money amount={parseFloat(item.variance.replace(/[^0-9.]/g,"")) || 0} color={item.severity === "red" ? T.red : T.amber} size="xs" neg={item.variance.startsWith("-")} />
-              </div>
-              <div style={{ fontSize: 12, color: T.textMid, fontFamily: T.font, lineHeight: 1.6 }}>{item.reason}</div>
-            </div>
-          ))}
-        </div>
-      </Card>
-
-      {/* ── BACKUP DOCUMENTATION VARIANCE ─────────────────────────────────── */}
-      <BackupVariance reqs={reqs} />
-    </div>
-  );
-}
-
-function BackupVariance({ reqs }) {
-  const [expRow, setExpRow] = useState(null);
-
-  // Build rows from BACKUP_VARIANCE + EXCEL_DATA
-  const rows = reqs.slice(0, 16).map((req, i) => {
-    const bv = BACKUP_VARIANCE[i + 1] || {};
-    const amountBilled = bv.amountBilled || 0;
-    const invoicesOnFile = bv.backupDocs || 0;
-    const rawVariance = invoicesOnFile - amountBilled;
-    const selfPerformed = bv.directLabor || 0;
-    const totalSupported = invoicesOnFile + selfPerformed;
-    const netVariance = totalSupported - amountBilled;
-    const items = bv.items || [];
-    // Arbitration-friendly status
-    let status = "pending";
-    if (i + 1 === 16 && invoicesOnFile === 0) status = "unsupported";
-    else if (Math.abs(netVariance) < 1) status = "supported";
-    else if (netVariance > 0) status = "supported";
-    else if (selfPerformed > 0 && netVariance < 0) status = "partial";
-    else if (Math.abs(netVariance) < 200) status = "supported";
-    else status = "needs_docs";
-    return { req, i, amountBilled, invoicesOnFile, rawVariance, selfPerformed, totalSupported, netVariance, items, status };
-  });
-
-  const totalBilled = rows.reduce((s, r) => s + r.amountBilled, 0);
-  const totalInvoices = rows.reduce((s, r) => s + r.invoicesOnFile, 0);
-  const totalSelfPerformed = rows.reduce((s, r) => s + r.selfPerformed, 0);
-  const totalSupported = totalInvoices + totalSelfPerformed;
-  const totalNetVar = rows.reduce((s, r) => s + r.netVariance, 0);
-  const supportedCount = rows.filter(r => r.status === "supported").length;
-  const needsDocsCount = rows.filter(r => r.status === "needs_docs" || r.status === "unsupported").length;
-  const pctSupported = totalBilled > 0 ? Math.round((totalSupported / totalBilled) * 100) : 0;
-
-  const statusBadge = (st) => {
-    const m = {
-      supported:   { label: "FULLY SUPPORTED", color: T.green, bg: T.greenBg, border: T.greenBorder },
-      partial:     { label: "PARTIALLY EXPLAINED", color: T.amber, bg: T.amberBg, border: T.amberBorder },
-      needs_docs:  { label: "DOCUMENTATION NEEDED", color: T.red, bg: T.redBg, border: T.redBorder },
-      unsupported: { label: "DOCUMENTATION NEEDED", color: T.red, bg: T.redBg, border: T.redBorder },
-      pending:     { label: "PENDING", color: T.textMuted, bg: T.surfaceHover, border: T.border },
-    }[st] || { label: st, color: T.textMuted, bg: T.surfaceHover, border: T.border };
-    return <Badge label={m.label} style={{ color: m.color, bg: m.bg, border: m.border }} />;
-  };
-
-  // Sort: supported first, then partial, then needs docs
-  const sortOrder = { supported: 0, partial: 1, needs_docs: 2, unsupported: 3, pending: 4 };
-  const sorted = [...rows].sort((a, b) => (sortOrder[a.status] || 9) - (sortOrder[b.status] || 9));
-  const groups = [
-    { label: "Fully Supported", color: T.green, bg: T.greenBg, border: T.greenBorder, rows: sorted.filter(r => r.status === "supported") },
-    { label: "Partially Explained", color: T.amber, bg: T.amberBg, border: T.amberBorder, rows: sorted.filter(r => r.status === "partial") },
-    { label: "Documentation Needed", color: T.red, bg: T.redBg, border: T.redBorder, rows: sorted.filter(r => r.status === "needs_docs" || r.status === "unsupported") },
-  ].filter(g => g.rows.length > 0);
-
-  const Th = { padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg, whiteSpace: "nowrap" };
-  const Td = { padding: "10px 14px", fontSize: 13, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
-
-  const renderRow = (row) => {
-    const isExp = expRow === row.i;
-    const hasItems = row.items.length > 0;
-    const nvColor = Math.abs(row.netVariance) < 1 ? T.green : row.netVariance > 0 ? T.green : Math.abs(row.netVariance) < 200 ? T.amber : T.red;
-    return (
-      <React.Fragment key={row.i}>
-        <tr
-          style={{ background: isExp ? T.accentBg : "transparent", cursor: hasItems ? "pointer" : "default", transition: T.fast }}
-          onClick={() => hasItems && setExpRow(isExp ? null : row.i)}
-          onMouseEnter={e => { if (!isExp) e.currentTarget.style.background = T.surfaceHover; }}
-          onMouseLeave={e => { if (!isExp) e.currentTarget.style.background = "transparent"; }}>
-          <td style={{ ...Td, fontFamily: T.mono, fontWeight: 500, color: T.accent }}>
-            {row.req.reqNumber}
-            {hasItems && <span style={{ fontSize: 10, color: T.accent, marginLeft: 6 }}>{isExp ? "▲" : "▼"}</span>}
-          </td>
-          <td style={{ ...Td, textAlign: "right" }}><Money amount={row.amountBilled} color={T.textMid} size="sm" /></td>
-          <td style={{ ...Td, textAlign: "right" }}>
-            {row.invoicesOnFile > 0 ? <Money amount={row.invoicesOnFile} color={T.text} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>None</span>}
-          </td>
-          <td style={{ ...Td, textAlign: "right" }}>
-            {row.selfPerformed > 0 ? <Money amount={row.selfPerformed} color={T.amber} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
-          </td>
-          <td style={{ ...Td, textAlign: "right" }}><Money amount={row.totalSupported} color={T.text} size="sm" /></td>
-          <td style={{ ...Td, textAlign: "right" }}>
-            <Money amount={Math.abs(row.netVariance)} color={nvColor} size="sm" neg={row.netVariance < 0} />
-          </td>
-          <td style={{ ...Td, textAlign: "center" }}>{statusBadge(row.status)}</td>
-        </tr>
-        {isExp && (
-          <tr>
-            <td colSpan={7} style={{ padding: 0, borderBottom: `1px solid ${T.border}` }}>
-              <div style={{ background: T.bg, padding: "14px 24px 14px 60px" }}>
-                <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.6, color: T.textMuted, marginBottom: 10, fontFamily: T.font }}>
-                  SELF-PERFORMED WORK — {row.req.reqNumber}
-                </div>
-                {row.items.map((item, j) => (
-                  <div key={j} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "7px 0", borderBottom: `1px solid ${T.border}` }}>
-                    <div>
-                      <span style={{ fontSize: 12, fontWeight: 500, color: T.text, fontFamily: T.font }}>{item.desc}</span>
-                      <span style={{ fontSize: 11, color: T.textMuted, fontFamily: T.font, marginLeft: 10 }}>{item.trade} · {item.vendor}</span>
-                    </div>
-                    <Money amount={item.amount} color={T.amber} size="sm" />
-                  </div>
-                ))}
-                <div style={{ display: "flex", justifyContent: "space-between", paddingTop: 8, marginTop: 4 }}>
-                  <span style={{ fontSize: 12, fontWeight: 600, color: T.textMid, fontFamily: T.font }}>Total Self-Performed Work</span>
-                  <Money amount={row.selfPerformed} color={T.amber} size="sm" />
-                </div>
-              </div>
-            </td>
-          </tr>
-        )}
-      </React.Fragment>
-    );
-  };
-
-  return (
-    <div style={{ marginTop: 28 }}>
-      <SectionTitle
-        title="Invoice Documentation Analysis"
-        subtitle="Reconciliation of amounts billed (pre-fee) against invoices on file and self-performed work records"
-      />
-
-      {/* Narrative Summary */}
-      <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: 20, marginBottom: 20, lineHeight: 1.8 }}>
-        <div style={{ fontSize: 14, color: T.text, fontFamily: T.font }}>
-          Of <strong>${(totalBilled).toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> in cost-of-work billing across 16 payment applications,{" "}
-          <strong>${(totalInvoices).toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> is supported by third-party invoices on file.{" "}
-          An additional <strong>${(totalSelfPerformed).toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> represents{" "}
-          self-performed work by Montana Contracting crews, documented in the CM Tracker but without third-party invoices (as expected for in-house labor).{" "}
-          The remaining <strong>${(Math.abs(totalNetVar)).toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> in unreconciled variance is under review.{" "}
-          <strong>{supportedCount} of 16</strong> requisitions are fully supported; <strong>{needsDocsCount}</strong> require additional documentation.
-        </div>
-      </div>
-
-      {/* KPIs */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
-        <KPI label="Documentation Coverage" value={`${pctSupported}%`} sub={`${totalSupported.toLocaleString("en-US", { style: "currency", currency: "USD" })} of ${totalBilled.toLocaleString("en-US", { style: "currency", currency: "USD" })}`} accent color={pctSupported >= 85 ? T.green : pctSupported >= 70 ? T.amber : T.red} />
-        <KPI label="Invoices on File" isMoney rawAmount={totalInvoices} sub="Third-party vendor invoices" color={T.text} />
-        <KPI label="Self-Performed Work" isMoney rawAmount={totalSelfPerformed} sub="Montana Contracting in-house labor" color={T.amber} />
-        <KPI label="Unreconciled Variance" isMoney rawAmount={Math.abs(totalNetVar)} sub={`${needsDocsCount} requisitions need documentation`} color={totalNetVar < -1000 ? T.red : T.green} />
-      </div>
-
-      {/* Grouped Table */}
-      {groups.map(group => (
-        <Card key={group.label} padding={0} style={{ marginBottom: 16 }}>
-          {/* Group header */}
-          <div style={{ padding: "10px 14px", background: group.bg, borderBottom: `1px solid ${group.border}`, display: "flex", alignItems: "center", gap: 10 }}>
-            <Ic name={group.color === T.green ? "check" : group.color === T.amber ? "alert" : "flag"} size={14} color={group.color} />
-            <span style={{ fontSize: 12, fontWeight: 600, color: group.color, fontFamily: T.font, letterSpacing: 0.3 }}>
-              {group.label}
-            </span>
-            <span style={{ fontSize: 11, color: T.textMuted, fontFamily: T.font }}>
-              — {group.rows.length} requisition{group.rows.length !== 1 ? "s" : ""}
-            </span>
-          </div>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <th style={Th}>REQ</th>
-                <th style={{ ...Th, textAlign: "right" }}>AMOUNT BILLED</th>
-                <th style={{ ...Th, textAlign: "right" }}>INVOICES ON FILE</th>
-                <th style={{ ...Th, textAlign: "right" }}>SELF-PERFORMED</th>
-                <th style={{ ...Th, textAlign: "right" }}>TOTAL SUPPORTED</th>
-                <th style={{ ...Th, textAlign: "right" }}>NET VARIANCE</th>
-                <th style={{ ...Th, textAlign: "center" }}>STATUS</th>
-              </tr>
-            </thead>
-            <tbody>
-              {group.rows.map(renderRow)}
-            </tbody>
-          </table>
-        </Card>
-      ))}
-
-      {/* Grand Totals */}
-      <Card padding={0}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <tbody>
-            <tr style={{ background: T.bg }}>
-              <td style={{ ...Td, fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "none", letterSpacing: 0.5, width: "15%" }}>GRAND TOTALS</td>
-              <td style={{ ...Td, textAlign: "right", borderBottom: "none", width: "14%" }}><Money amount={totalBilled} color={T.blue} size="sm" /></td>
-              <td style={{ ...Td, textAlign: "right", borderBottom: "none", width: "14%" }}><Money amount={totalInvoices} color={T.text} size="sm" /></td>
-              <td style={{ ...Td, textAlign: "right", borderBottom: "none", width: "14%" }}><Money amount={totalSelfPerformed} color={T.amber} size="sm" /></td>
-              <td style={{ ...Td, textAlign: "right", borderBottom: "none", width: "14%" }}><Money amount={totalSupported} color={T.text} size="sm" /></td>
-              <td style={{ ...Td, textAlign: "right", borderBottom: "none", width: "14%" }}>
-                <Money amount={Math.abs(totalNetVar)} color={totalNetVar < -1000 ? T.red : T.green} size="sm" neg={totalNetVar < 0} />
-              </td>
-              <td style={{ ...Td, textAlign: "center", borderBottom: "none", width: "15%" }}>
-                <span style={{ fontSize: 11, fontFamily: T.mono, color: T.textMuted }}>{supportedCount} of {rows.length} supported</span>
-              </td>
-            </tr>
-          </tbody>
-        </table>
-      </Card>
-    </div>
-  );
-}
+// [Reconciliation + BackupVariance deleted — merged into Requisitions tab]
 
 // ── ARBITRATION SIMULATOR (BALANCED) ─────────────────────────────────────────
 
@@ -4183,7 +3849,7 @@ const AI_TOOLS = [
     name: "navigate_tab",
     description: "Switch the app to a specific tab/view.",
     parameters: { type: "object", properties: {
-      tab: { type: "string", enum: ["dashboard","requisitions","reconciliation","audit","claims","documents","simulator","strategy"], description: "Tab to navigate to" }
+      tab: { type: "string", enum: ["dashboard","requisitions","audit","claims","documents","simulator","strategy"], description: "Tab to navigate to" }
     }, required: ["tab"] }
   }},
   { type: "function", function: {
@@ -4826,7 +4492,6 @@ function App() {
   const TABS = [
     { id: "dashboard", label: "Dashboard" },
     { id: "requisitions", label: "Requisitions" },
-    { id: "reconciliation", label: "Reconciliation" },
     { id: "audit", label: "Audit Risk" },
     { id: "claims", label: "Owner Claims" },
     { id: "documents", label: "Documents" },
@@ -4868,7 +4533,6 @@ function App() {
       <div style={{ padding: "32px 32px", maxWidth: 1400, margin: "0 auto" }}>
         {tab === "dashboard" && <Dashboard reqs={reqs} claims={claims} />}
         {tab === "requisitions" && <Requisitions reqs={reqs} updateReq={updateReq} docs={docs} updateDoc={updateDoc} addDoc={addDoc} />}
-        {tab === "reconciliation" && <Reconciliation reqs={reqs} />}
         {tab === "audit" && <AuditRisk reqs={reqs} />}
         {tab === "claims" && <Claims claims={claims} updateClaim={updateClaim} />}
         {tab === "documents" && <Documents docs={docs} updateDoc={updateDoc} addDoc={addDoc} removeDoc={removeDoc} />}
