@@ -339,15 +339,7 @@ const EXCEL_DATA = [
 const REQS_INITIAL = Array.from({ length: 16 }, (_, i) => {
   const base = REQ_DEFAULTS(i);
   const [excelTotal, excelSubtotal, excelFee, month, pdfReqNum] = EXCEL_DATA[i];
-  return { ...base, date: month, excelTotal, excelSubtotal, excelFee, pdfReqNum,
-    // Auto-flag REQ-13 (negative req) and REQ-08 (largest)
-    flags: i === 12 ? ["duplicate", "co_missing"] : [],
-    notes: i === 12
-      ? "⚠ NEGATIVE REQUISITION (-$90,489.90). REQ-13R1 represents a large credit/reconciliation req. Need to understand what was reversed and why. 19 trade lines show credits including Electric -$41,823.63, Tile -$12,100.00, Masonry -$9,902.87, Wood Flooring -$7,325.22, HVAC -$8,545.13, Drywall -$7,992.49. Possible causes: over-billing correction, disputed work removal, or scope reduction. CRITICAL: Obtain AIA G702 for this req and reconcile each reversal with a specific justification."
-      : i === 7
-      ? "REQ-08 is the largest single requisition at $192,165. 13 active trade lines including Tile $34,925, Wood Flooring $27,000, Electric $20,695, Composite Roof $21,394, Siding $12,776, Drywall $15,000. High priority for PDF backup review."
-      : "",
-  };
+  return { ...base, date: month, excelTotal, excelSubtotal, excelFee, pdfReqNum };
 });
 
 // Override REQ-01 with PDF-derived data (already reviewed)
@@ -4761,7 +4753,11 @@ function App() {
       const r = await storageGet("tharp-reqs-v3");
       const c = await storageGet("tharp-claims-v3");
       const d = await storageGet("tharp-docs-v1");
-      if (r) setReqs(r);
+      // REQS_INITIAL is always authoritative — merge stored user-edits underneath
+      if (r) setReqs(REQS_INITIAL.map(init => {
+        const stored = r.find(s => s.id === init.id);
+        return stored ? { ...stored, ...init } : init;
+      }));
       if (c) setClaims(c);
       if (d) setDocs(d);
       setLoaded(true);
