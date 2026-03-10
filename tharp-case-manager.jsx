@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+import { useState, useEffect, useCallback, useMemo, useRef } from "react";
 
 // ── Google Fonts ──────────────────────────────────────────────────────────────
 const fontLink = document.createElement("link");
@@ -89,6 +89,7 @@ function Ic({ name, size = 16, color = "currentColor", sw = 1.75, style = {} }) 
     "cpu":          "M6 2h12a4 4 0 014 4v12a4 4 0 01-4 4H6a4 4 0 01-4-4V6a4 4 0 014-4z|M9 9h6v6H9z|M9 1v2|M15 1v2|M9 21v2|M15 21v2|M1 9h2|M1 15h2|M21 9h2|M21 15h2",
     "target":       "M12 22a10 10 0 100-20 10 10 0 000 20z|M12 18a6 6 0 100-12 6 6 0 000 12z|M12 14a2 2 0 100-4 2 2 0 000 4z",
     "play":         "M5 3l14 9-14 9V3z",
+    "clock":        "M12 22a10 10 0 100-20 10 10 0 000 20z|M12 6v6l4 2",
   };
   const d = P[name];
   if (!d) return null;
@@ -225,6 +226,108 @@ const BACKUP_VARIANCE = {
     { trade: "CO#128 Owner-Supplied Items", desc: "25% markup on owner-provided materials (Contract §3.3) — owner refused to furnish receipts when requested 1/8/2024", vendor: "Various (owner-furnished)", amount: 45586.06 },
   ]},
 };
+
+// ── TIMECARD DATA (from pdftotext extraction of Legal/Timecards PDFs) ────────
+// REQs 1-3 are cumulative exports; REQs 4-15 are incremental per billing period
+// Grand total: 3,726.25 hours · 17 unique employees · $60/hr billed rate
+const TIMECARD_DATA = [
+  { req: 1,  dateRange: "01/25/21 – 09/20/23", hours: 3726.25, empCount: 17, sentDate: "2022.01.27", type: "cumulative",
+    employees: ["Sadequl Ameen","John Torres","Chris Lange","Thomas Ficucello","Vidal Sandoval","John Yuvienco","Jesse Grosso","Pedro Avelino","Anthony Falsetti","Jose Palacios","Michael Laubauskas","Dean Slavin","Michael Montana","Rodney Sheppard","Joseph M Montana","Duglas Berrios Martinez","Ryan O'Donohue"] },
+  { req: 2,  dateRange: "01/28/22 – 09/20/23", hours: 3229.25, empCount: 16, sentDate: "2022.03.02", type: "cumulative",
+    employees: ["Thomas Ficucello","Anthony Falsetti","John Yuvienco","John Torres","Pedro Avelino","Vidal Sandoval","Chris Lange","Jose Palacios","Michael Laubauskas","Dean Slavin","Michael Montana","Rodney Sheppard","Jesse Grosso","Joseph M Montana","Duglas Berrios Martinez","Ryan O'Donohue"] },
+  { req: 3,  dateRange: "03/03/22 – 09/20/23", hours: 3121.25, empCount: 16, sentDate: "2022.03.31", type: "cumulative",
+    employees: ["Chris Lange","Thomas Ficucello","Anthony Falsetti","John Yuvienco","Jose Palacios","John Torres","Pedro Avelino","Vidal Sandoval","Michael Laubauskas","Dean Slavin","Michael Montana","Rodney Sheppard","Jesse Grosso","Joseph M Montana","Duglas Berrios Martinez","Ryan O'Donohue"] },
+  { req: 4,  dateRange: "04/01/22 – 05/03/22", hours: 167.25, empCount: 5, sentDate: "2022.05.03", type: "incremental",
+    employees: ["Chris Lange","Thomas Ficucello","Anthony Falsetti","John Yuvienco","John Torres"] },
+  { req: 5,  dateRange: "05/04/22 – 06/07/22", hours: 298.00, empCount: 7, sentDate: "2022.06.07", type: "incremental",
+    employees: ["Thomas Ficucello","Anthony Falsetti","Jose Palacios","John Yuvienco","Vidal Sandoval","Chris Lange","Michael Laubauskas"] },
+  { req: 6,  dateRange: "06/08/22 – 07/20/22", hours: 351.50, empCount: 8, sentDate: "2022.07.20", type: "incremental",
+    employees: ["Vidal Sandoval","Thomas Ficucello","Michael Laubauskas","Chris Lange","Dean Slavin","Jose Palacios","Michael Montana","Anthony Falsetti"] },
+  { req: 7,  dateRange: "07/21/22 – 07/28/22", hours: 150.00, empCount: 4, sentDate: "2022.08.21", type: "incremental",
+    employees: ["Thomas Ficucello","Michael Laubauskas","Vidal Sandoval","John Yuvienco"] },
+  { req: 8,  dateRange: "08/02/22 – 09/09/22", hours: 205.50, empCount: 6, sentDate: "2022.09.15", type: "incremental",
+    employees: ["John Torres","Thomas Ficucello","Anthony Falsetti","Michael Laubauskas","Vidal Sandoval","Jose Palacios"] },
+  { req: 9,  dateRange: "09/16/22 – 10/06/22", hours: 156.00, empCount: 5, sentDate: "2022.10.06", type: "incremental",
+    employees: ["Thomas Ficucello","Michael Laubauskas","Vidal Sandoval","Chris Lange","Jose Palacios"] },
+  { req: 10, dateRange: "10/07/22 – 11/02/22", hours: 221.00, empCount: 8, sentDate: "2022.11.02", type: "incremental",
+    employees: ["Thomas Ficucello","Jose Palacios","Michael Laubauskas","Vidal Sandoval","Rodney Sheppard","Anthony Falsetti","Jesse Grosso","Chris Lange"] },
+  { req: 11, dateRange: "11/03/22 – 12/01/22", hours: 239.00, empCount: 7, sentDate: "2022.12.01", type: "incremental",
+    employees: ["Anthony Falsetti","Thomas Ficucello","Michael Laubauskas","Vidal Sandoval","Jose Palacios","Rodney Sheppard","Jesse Grosso"] },
+  { req: 12, dateRange: "12/02/22 – 01/05/23", hours: 157.50, empCount: 8, sentDate: "2023.01.05", type: "incremental",
+    employees: ["Chris Lange","Thomas Ficucello","Vidal Sandoval","Joseph M Montana","Jose Palacios","Duglas Berrios Martinez","Anthony Falsetti","Jesse Grosso"] },
+  { req: 13, dateRange: "01/06/23 – 03/24/23", hours: 665.00, empCount: 9, sentDate: "2023.03.27", type: "incremental",
+    employees: ["Thomas Ficucello","Anthony Falsetti","Vidal Sandoval","Jose Palacios","Jesse Grosso","Michael Laubauskas","Rodney Sheppard","Chris Lange","Duglas Berrios Martinez"] },
+  { req: 14, dateRange: "03/28/23 – 05/31/23", hours: 351.50, empCount: 8, sentDate: "2023.05.31", type: "incremental",
+    employees: ["Thomas Ficucello","Anthony Falsetti","Vidal Sandoval","Rodney Sheppard","Jose Palacios","Jesse Grosso","Ryan O'Donohue","Chris Lange"] },
+  { req: 15, dateRange: "06/01/23 – 09/20/23", hours: 12.00, empCount: 3, sentDate: "NOT SENT", type: "incremental",
+    employees: ["Thomas Ficucello","Chris Lange","Anthony Falsetti"] },
+];
+
+// ── TIMELINE EVENTS ──────────────────────────────────────────────────────────
+const TIMELINE_EVENTS = [
+  { date: "2021-06-15", category: "contract",     desc: "AIA A110-2021 Contract Executed — Cost-Plus with 25% Fee" },
+  { date: "2021-11-15", category: "field",         desc: "Construction commenced — 240-day substantial completion clock starts" },
+  { date: "2022-01-01", category: "billing",       desc: "REQ-01 submitted — $60,373.25 (incl. Kitchen Radiant CO #3)" },
+  { date: "2022-02-01", category: "billing",       desc: "REQ-02 submitted — $105,487.24 (DeLeonardis Electric mobilization, H&J #1316)" },
+  { date: "2022-03-04", category: "billing",       desc: "REQ-03 submitted — $102,311.39 (H&J #1316 DUPLICATE detected, 2 COs)" },
+  { date: "2022-04-04", category: "billing",       desc: "REQ-04 submitted — $129,156.71 (5 COs billed, framing 146% of budget)" },
+  { date: "2022-05-05", category: "billing",       desc: "REQ-05 submitted — $95,486.18" },
+  { date: "2022-06-05", category: "billing",       desc: "REQ-06 submitted — $76,455.82 (6 COs, CO#20 framing changes)" },
+  { date: "2022-07-06", category: "billing",       desc: "REQ-07 submitted — $90,146.26 (4 new subs, drywall & masonry)" },
+  { date: "2022-07-13", category: "dispute",       desc: "240-day substantial completion deadline reached — project incomplete" },
+  { date: "2022-08-06", category: "billing",       desc: "REQ-08 submitted — $192,165.00 (LARGEST REQ, tile 135% over budget)" },
+  { date: "2022-09-06", category: "billing",       desc: "REQ-09 submitted — $50,381.66 (painting begins)" },
+  { date: "2022-10-07", category: "billing",       desc: "REQ-10 submitted — $90,418.49 (self-performed $16,230)" },
+  { date: "2022-11-07", category: "billing",       desc: "REQ-11 submitted — $92,651.29 (interior trim, painting $18K)" },
+  { date: "2022-12-08", category: "billing",       desc: "REQ-12 submitted — $71,831.85 (estimates used as invoices)" },
+  { date: "2023-01-08", category: "billing",       desc: "REQ-13R1 submitted — $184,238.97 (REVISED, negative Excel)" },
+  { date: "2023-04-23", category: "billing",       desc: "REQ-14 submitted — $256,313.93 (HVAC $72K dispute, casework)" },
+  { date: "2023-05-24", category: "billing",       desc: "REQ-15 submitted — $6,451.64 (FINAL regular req)" },
+  { date: "2023-05-24", category: "dispute",       desc: "Final requisition submitted — 7-month gap follows" },
+  { date: "2022-04-15", category: "change_order",  desc: "PCO#020/021 Framing Changes — $28,225 (largest single CO)" },
+  { date: "2022-06-20", category: "change_order",  desc: "6 Change Orders billed in REQ-06 totaling $30,854" },
+  { date: "2022-08-31", category: "change_order",  desc: "Net COs reach $252,403 (+$79,508 in one period)" },
+  { date: "2023-12-30", category: "change_order",  desc: "$135K in unapplied credit COs at 0% — never credited to owner" },
+  { date: "2024-01-30", category: "billing",       desc: "REQ-16 submitted — $235,461.28 (closeout req, base-to-CO conversion)" },
+  { date: "2023-12-01", category: "dispute",       desc: "Owner submits 24-item deficiency/punch list" },
+  { date: "2024-01-15", category: "dispute",       desc: "AAA Demand for Arbitration filed (Case No. 01-24-0004-6683)" },
+  { date: "2024-03-01", category: "dispute",       desc: "Robin S. Abramowitz appointed as Arbitrator" },
+  { date: "2022-05-15", category: "field",         desc: "Tile installation begins — immediately 135% over-budget" },
+  { date: "2022-09-15", category: "field",         desc: "Painting begins (Korth & Shannahan) — will reach 182% of contract" },
+  { date: "2021-12-15", category: "field",         desc: "Demolition & site preparation complete — first requisition period opens" },
+];
+
+// ── CHANGE ORDERS (documented from requisition audits) ───────────────────────
+// 27 of ~125 total COs are individually documented with amounts in REQ backup
+const CHANGE_ORDERS = [
+  { co: 3,   desc: "Kitchen Radiant Heat",                          amount: 15000.00,   req: 1,  status: "Approved" },
+  { co: 4,   desc: "Bed #2 Bath",                                   amount: 6312.50,    req: 4,  status: "Approved" },
+  { co: 6,   desc: "Gas Main Supply/Install",                       amount: 4869.00,    req: 3,  status: "Approved" },
+  { co: 8,   desc: "Underground Plumbing",                          amount: 10750.00,   req: 3,  status: "Approved" },
+  { co: 15,  desc: "Concrete Winter Conditions",                    amount: 2627.50,    req: 4,  status: "Approved" },
+  { co: 17,  desc: "Demolition Credit",                             amount: -8024.00,   req: 4,  status: "Approved" },
+  { co: 20,  desc: "Framing Changes (Cow Barn, Suite, Gym — 14 items)", amount: 28225.38, req: 4, status: "Approved" },
+  { co: 21,  desc: "Additional Framing Changes",                    amount: 0,          req: 4,  status: "Approved" },
+  { co: 22,  desc: "Brick Finish Removal",                          amount: 8171.88,    req: 6,  status: "Approved" },
+  { co: 23,  desc: "Framing Changes Apr-May 2022",                  amount: 17796.51,   req: 6,  status: "Approved" },
+  { co: 24,  desc: "Additional Stone Veneer — Living Room Exterior", amount: 5625.00,   req: 6,  status: "Approved" },
+  { co: 29,  desc: "Additional Drywall Material",                   amount: 1490.76,    req: 7,  status: "Approved" },
+  { co: 30,  desc: "Additional Insulation",                         amount: 2217.50,    req: 6,  status: "Approved" },
+  { co: 31,  desc: "Generator Pad",                                 amount: 759.41,     req: 6,  status: "Approved" },
+  { co: 32,  desc: "Exhaust Fans Upgrade",                          amount: 2122.14,    req: 6,  status: "Approved" },
+  { co: 33,  desc: "Interior Doors",                                amount: 1658.16,    req: 7,  status: "Approved" },
+  { co: 34,  desc: "Drywall Scope Changes",                         amount: 9025.00,    req: 7,  status: "Approved" },
+  { co: 35,  desc: "TRX Bracket (Pauli D's Welding)",               amount: 312.50,     req: 7,  status: "Approved" },
+  { co: 47,  desc: "Additional Framing Sub Labor Jun-Aug 2022",     amount: 3225.00,    req: 8,  status: "Approved" },
+  { co: 49,  desc: "Living Room Fireplace Demolition",              amount: 1340.30,    req: 9,  status: "Approved" },
+  { co: 52,  desc: "Wet Area Balcony Railings",                     amount: 3496.29,    req: 9,  status: "Approved" },
+  { co: 64,  desc: "Framing Reallocation (from REQ-10)",            amount: 3525.00,    req: 10, status: "Approved" },
+  { co: 65,  desc: "Drywall Install Reallocation (from REQ-10)",    amount: 2550.00,    req: 10, status: "Approved" },
+  { co: 66,  desc: "Siding Reallocation (from REQ-10)",             amount: 9180.00,    req: 10, status: "Approved" },
+  { co: 126, desc: "Allowance Reconciliation (credits returned)",   amount: -19398.59,  req: 16, status: "Approved" },
+  { co: 127, desc: "GC/Owner Variance Split (50/50 per §3.3.2)",   amount: -53111.51,  req: 16, status: "Disputed" },
+  { co: 128, desc: "Owner-Supplied Items 25% Markup (§3.3)",        amount: 45586.06,   req: 16, status: "Disputed" },
+];
 
 const REQ_DEFAULTS = (i) => ({
   id: i + 1,
@@ -1976,7 +2079,7 @@ function PrimaryButton({ label, onClick, icon, loading, size = "md", variant = "
 }
 
 // ── DASHBOARD ─────────────────────────────────────────────────────────────────
-function Dashboard({ reqs, claims }) {
+function Dashboard({ reqs, claims, mode }) {
   const totalBilled = reqs.reduce((s, r) => s + (r.totalBilled || 0), 0);
   const totalPaid = reqs.reduce((s, r) => s + (r.paidAmount || 0), 0);
   const highRisk = reqs.filter(r => computeRisk(r) === "HIGH").length;
@@ -1991,7 +2094,7 @@ function Dashboard({ reqs, claims }) {
 
   return (
     <div>
-      <SectionTitle title="Case Dashboard" subtitle="Tharp/Bumgardner · 515 N. Midland Ave, Upper Nyack NY · AIA A110-2021 Cost-Plus · AAA Arbitration" />
+      <SectionTitle title={mode === "presentation" ? "Case Overview" : "Case Dashboard"} subtitle="Tharp/Bumgardner · 515 N. Midland Ave, Upper Nyack NY · AIA A110-2021 Cost-Plus · AAA Arbitration" />
 
       <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 12 }}>
         <KPI label="Total Billed" isMoney rawAmount={totalBilled} sub="16 payment applications" accent color={T.accent} />
@@ -2044,8 +2147,8 @@ function Dashboard({ reqs, claims }) {
         </Card>
       </div>
 
-      {/* Priority Items */}
-      <Card>
+      {/* Priority Items — prep mode only */}
+      {mode !== "presentation" && <Card>
         <CardLabel label="Priority Audit Items — Mitigate Before Arbitration" />
         <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
           {[
@@ -2062,7 +2165,7 @@ function Dashboard({ reqs, claims }) {
             </div>
           ))}
         </div>
-      </Card>
+      </Card>}
     </div>
   );
 }
@@ -2719,6 +2822,355 @@ function Strategy({ claims }) {
 }
 
 // [Reconciliation + BackupVariance deleted — merged into Requisitions tab]
+
+// ── FINANCIAL RECONCILIATION ─────────────────────────────────────────────────
+function FinancialReconciliation({ reqs }) {
+  const [view, setView] = useState("waterfall");
+  const originalContract = 1183411;
+  const totalBilled = reqs.reduce((s, r) => s + (r.totalBilled || 0), 0);
+  const totalPaid = reqs.reduce((s, r) => s + (r.paidAmount || 0), 0);
+  const outstanding = totalBilled - totalPaid;
+  const totalSubInvoices = Object.values(BACKUP_VARIANCE).reduce((s, bv) => s + (bv.backupDocs || 0), 0);
+  const totalSelfPerformed = Object.values(BACKUP_VARIANCE).reduce((s, bv) => s + (bv.directLabor || 0), 0);
+  const totalCostBasis = Object.values(BACKUP_VARIANCE).reduce((s, bv) => s + (bv.amountBilled || 0), 0);
+  const totalDocumented = totalSubInvoices + totalSelfPerformed;
+  const docCoverage = totalCostBasis > 0 ? Math.round((totalDocumented / totalCostBasis) * 100) : 0;
+  const netCOs = CHANGE_ORDERS.reduce((s, c) => s + c.amount, 0);
+  const tradeAgg = {};
+  Object.entries(EXCEL_TRADES).forEach(([, trades]) => {
+    Object.entries(trades).forEach(([trade, amount]) => { tradeAgg[trade] = (tradeAgg[trade] || 0) + amount; });
+  });
+  const tradeSorted = Object.entries(tradeAgg).sort((a, b) => Math.abs(b[1]) - Math.abs(a[1]));
+  const tradeTotal = tradeSorted.reduce((s, [, v]) => s + v, 0);
+
+  const ThS = { padding: "10px 14px", fontSize: 11, fontWeight: 600, color: T.textMuted, textAlign: "left", borderBottom: `2px solid ${T.border}`, fontFamily: T.font, letterSpacing: 0.3, textTransform: "uppercase" };
+  const TdS = { padding: "10px 14px", fontSize: 13, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, verticalAlign: "top" };
+
+  const viewBtns = ["waterfall", "per-req", "per-trade"];
+  const viewLabels = { waterfall: "Waterfall", "per-req": "Per Requisition", "per-trade": "Per Trade" };
+
+  return (
+    <div>
+      <SectionTitle title="Financial Reconciliation" subtitle="Master ledger — contract execution through final requisition (16 payment applications)" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 16 }}>
+        <KPI label="Original Contract" isMoney rawAmount={originalContract} sub="AIA A110-2021" accent color={T.accent} />
+        <KPI label="Total Billed" isMoney rawAmount={totalBilled} sub="16 requisitions" color={T.text} />
+        <KPI label="Total Paid" isMoney rawAmount={totalPaid} sub="Payments received" color={T.green} />
+        <KPI label="Outstanding" isMoney rawAmount={outstanding} sub="Unpaid balance" color={T.red} />
+        <KPI label="Documentation" value={`${docCoverage}%`} sub="Cost basis covered" color={docCoverage >= 85 ? T.green : T.amber} />
+      </div>
+      <div style={{ display: "flex", gap: 4, background: T.bg, borderRadius: 8, padding: 3, marginBottom: 16, width: "fit-content" }}>
+        {viewBtns.map(v => (
+          <button key={v} onClick={() => setView(v)} style={{
+            padding: "6px 14px", borderRadius: 6, border: view === v ? `1px solid ${T.accentBorder}` : "1px solid transparent",
+            background: view === v ? T.accentBg : "transparent", color: view === v ? T.accent : T.textMuted,
+            fontSize: 12, fontWeight: view === v ? 600 : 400, cursor: "pointer", fontFamily: T.font, transition: T.fast,
+          }}>{viewLabels[v]}</button>
+        ))}
+      </div>
+      {view === "waterfall" && <Card>
+        <CardLabel label="Financial Waterfall" />
+        {[
+          { label: "Original Contract Value", val: originalContract, color: T.text, indent: 0 },
+          { label: "+ Net Change Orders (27 documented)", val: netCOs, color: T.amber, indent: 1 },
+          { label: "= Adjusted Contract Scope", val: originalContract + netCOs, color: T.accent, indent: 0, bold: true },
+          { label: "Total Billed (16 REQs)", val: totalBilled, color: T.blue, indent: 1 },
+          { label: "\u2003Sub Invoices on File", val: totalSubInvoices, color: T.textMid, indent: 2 },
+          { label: "\u2003Self-Performed Labor", val: totalSelfPerformed, color: T.textMid, indent: 2 },
+          { label: "Total Paid by Owner", val: -totalPaid, color: T.green, indent: 1 },
+          { label: "= Outstanding Balance", val: outstanding, color: T.red, indent: 0, bold: true },
+        ].map((row, i) => (
+          <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "12px 0", paddingLeft: row.indent * 24, borderBottom: i < 7 ? `1px solid ${T.border}` : "none" }}>
+            <span style={{ fontSize: 13, fontWeight: row.bold ? 700 : 400, color: T.text, fontFamily: T.font }}>{row.label}</span>
+            <Money amount={row.val} color={row.color} size={row.bold ? "lg" : "md"} />
+          </div>
+        ))}
+      </Card>}
+      {view === "per-req" && <Card padding={0}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr>
+              {["REQ", "BILLED", "PAID", "SUB INVOICES", "SELF-PERFORMED", "GAP", "STATUS"].map(h => <th key={h} style={{ ...ThS, textAlign: h === "REQ" ? "left" : "right" }}>{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {reqs.map(r => {
+                const bv = BACKUP_VARIANCE[r.id] || {};
+                const gap = (bv.amountBilled || 0) - (bv.backupDocs || 0) - (bv.directLabor || 0);
+                const st = gap <= 0 ? { color: T.green, label: "COVERED" } : gap < 5000 ? { color: T.amber, label: "PARTIAL" } : { color: T.red, label: "GAP" };
+                return (
+                  <tr key={r.id}>
+                    <td style={TdS}><span style={{ fontFamily: T.mono, fontWeight: 600, fontSize: 12 }}>{r.reqNumber}</span></td>
+                    <td style={{ ...TdS, textAlign: "right" }}><Money amount={r.totalBilled} /></td>
+                    <td style={{ ...TdS, textAlign: "right" }}><Money amount={r.paidAmount} color={T.green} /></td>
+                    <td style={{ ...TdS, textAlign: "right" }}><Money amount={bv.backupDocs || 0} /></td>
+                    <td style={{ ...TdS, textAlign: "right" }}><Money amount={bv.directLabor || 0} color={bv.directLabor > 0 ? T.amber : T.textMuted} /></td>
+                    <td style={{ ...TdS, textAlign: "right" }}><Money amount={gap} color={st.color} /></td>
+                    <td style={{ ...TdS, textAlign: "right" }}><Badge label={st.label} style={{ color: st.color, bg: st.color + "12", border: st.color + "30" }} /></td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      </Card>}
+      {view === "per-trade" && <Card padding={0}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr>
+              {["TRADE", "TOTAL BILLED", "% OF COST", "NET"].map(h => <th key={h} style={{ ...ThS, textAlign: h === "TRADE" ? "left" : "right" }}>{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {tradeSorted.map(([trade, total]) => (
+                <tr key={trade}>
+                  <td style={TdS}><span style={{ fontSize: 13 }}>{trade}</span></td>
+                  <td style={{ ...TdS, textAlign: "right" }}><Money amount={total} color={total < 0 ? T.red : T.text} /></td>
+                  <td style={{ ...TdS, textAlign: "right" }}><span style={{ fontFamily: T.mono, fontSize: 12, color: T.textMid }}>{tradeTotal > 0 ? (Math.abs(total) / tradeTotal * 100).toFixed(1) : 0}%</span></td>
+                  <td style={{ ...TdS, textAlign: "right" }}><span style={{ fontSize: 11, color: total >= 0 ? T.green : T.red, fontFamily: T.mono }}>{total >= 0 ? "cost" : "credit"}</span></td>
+                </tr>
+              ))}
+              <tr style={{ background: T.bg }}>
+                <td style={{ ...TdS, fontWeight: 700 }}>TOTAL</td>
+                <td style={{ ...TdS, textAlign: "right" }}><Money amount={tradeTotal} color={T.accent} size="md" /></td>
+                <td style={{ ...TdS, textAlign: "right" }}><span style={{ fontFamily: T.mono, fontSize: 12, fontWeight: 600 }}>100%</span></td>
+                <td style={TdS}></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>}
+    </div>
+  );
+}
+
+// ── TIMECARDS ────────────────────────────────────────────────────────────────
+function Timecards({ reqs }) {
+  const [showCumulative, setShowCumulative] = useState(false);
+  const rate = 60;
+  const grandTotalHours = 3726.25;
+  const allEmployees = [...new Set(TIMECARD_DATA.flatMap(t => t.employees))];
+  const totalTimecardValue = grandTotalHours * rate;
+  const totalLaborBilled = reqs.reduce((s, r) => s + (r.laborCost || 0), 0);
+
+  const rows = TIMECARD_DATA
+    .filter(tc => showCumulative ? tc.type === "cumulative" : tc.type === "incremental")
+    .map(tc => {
+      const bv = BACKUP_VARIANCE[tc.req] || {};
+      const timecardValue = tc.hours * rate;
+      return { ...tc, timecardValue, directLabor: bv.directLabor || 0 };
+    });
+
+  const incrTotal = TIMECARD_DATA.filter(t => t.type === "incremental").reduce((s, t) => s + t.hours, 0);
+
+  const ThS = { padding: "10px 14px", fontSize: 11, fontWeight: 600, color: T.textMuted, textAlign: "left", borderBottom: `2px solid ${T.border}`, fontFamily: T.font, letterSpacing: 0.3, textTransform: "uppercase" };
+  const TdS = { padding: "10px 14px", fontSize: 13, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, verticalAlign: "top" };
+
+  // Count appearances per employee across incremental REQs
+  const empAppearances = {};
+  TIMECARD_DATA.filter(t => t.type === "incremental").forEach(tc => {
+    tc.employees.forEach(e => { empAppearances[e] = (empAppearances[e] || 0) + 1; });
+  });
+  const empSorted = Object.entries(empAppearances).sort((a, b) => b[1] - a[1]);
+
+  return (
+    <div>
+      <SectionTitle title="Timecards / Labor Documentation" subtitle={`${grandTotalHours.toLocaleString()} total hours · ${allEmployees.length} unique employees · $60/hr billed rate · 15 timecard PDFs`} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
+        <KPI label="Total Hours Documented" value={grandTotalHours.toLocaleString()} sub="From 15 timecard PDFs" accent color={T.accent} />
+        <KPI label="Timecard Value @ $60/hr" isMoney rawAmount={totalTimecardValue} sub="Hours × standard rate" color={T.text} />
+        <KPI label="Total Labor Billed" isMoney rawAmount={totalLaborBilled} sub="G703 labor line items" color={T.amber} />
+        <KPI label="Unique Employees" value={String(allEmployees.length)} sub="Across all periods" color={T.blue} />
+      </div>
+      <div style={{ display: "flex", gap: 4, background: T.bg, borderRadius: 8, padding: 3, marginBottom: 16, width: "fit-content" }}>
+        {[false, true].map(cum => (
+          <button key={String(cum)} onClick={() => setShowCumulative(cum)} style={{
+            padding: "6px 14px", borderRadius: 6, border: showCumulative === cum ? `1px solid ${T.accentBorder}` : "1px solid transparent",
+            background: showCumulative === cum ? T.accentBg : "transparent", color: showCumulative === cum ? T.accent : T.textMuted,
+            fontSize: 12, fontWeight: showCumulative === cum ? 600 : 400, cursor: "pointer", fontFamily: T.font, transition: T.fast,
+          }}>{cum ? "Cumulative (REQs 1-3)" : "Incremental (REQs 4-15)"}</button>
+        ))}
+      </div>
+      <Card padding={0} style={{ marginBottom: 16 }}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr>
+              {["REQ", "DATE RANGE", "HOURS", "EMPLOYEES", "TIMECARD VALUE", "LABOR BILLED (BV)", "SENT"].map(h =>
+                <th key={h} style={{ ...ThS, textAlign: ["REQ","DATE RANGE","EMPLOYEES","SENT"].includes(h) ? "left" : "right" }}>{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {rows.map(r => (
+                <tr key={r.req}>
+                  <td style={TdS}><span style={{ fontFamily: T.mono, fontWeight: 600, fontSize: 12 }}>REQ-{String(r.req).padStart(2,"0")}</span></td>
+                  <td style={TdS}><span style={{ fontFamily: T.mono, fontSize: 12 }}>{r.dateRange}</span></td>
+                  <td style={{ ...TdS, textAlign: "right" }}><span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 600, color: r.hours > 0 ? T.text : T.textMuted }}>{r.hours.toFixed(2)}</span></td>
+                  <td style={TdS}><span style={{ fontSize: 12, color: T.textMid }}>{r.empCount} workers</span></td>
+                  <td style={{ ...TdS, textAlign: "right" }}><Money amount={r.timecardValue} /></td>
+                  <td style={{ ...TdS, textAlign: "right" }}><Money amount={r.directLabor} color={r.directLabor > 0 ? T.amber : T.textMuted} /></td>
+                  <td style={TdS}><span style={{ fontSize: 11, color: r.sentDate === "NOT SENT" ? T.red : T.textMid, fontFamily: T.mono }}>{r.sentDate}</span></td>
+                </tr>
+              ))}
+              {!showCumulative && <tr style={{ background: T.bg }}>
+                <td style={{ ...TdS, fontWeight: 700 }}>TOTAL</td>
+                <td style={TdS}></td>
+                <td style={{ ...TdS, textAlign: "right" }}><span style={{ fontFamily: T.mono, fontWeight: 700, fontSize: 13 }}>{incrTotal.toFixed(2)}</span></td>
+                <td style={TdS}></td>
+                <td style={{ ...TdS, textAlign: "right" }}><Money amount={incrTotal * rate} color={T.accent} /></td>
+                <td style={TdS}></td>
+                <td style={TdS}></td>
+              </tr>}
+            </tbody>
+          </table>
+        </div>
+      </Card>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16 }}>
+        <Card>
+          <CardLabel label="Employee Roster" />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(2, 1fr)", gap: 2 }}>
+            {empSorted.map(([name, count]) => (
+              <div key={name} style={{ display: "flex", justifyContent: "space-between", padding: "7px 8px", borderBottom: `1px solid ${T.border}` }}>
+                <span style={{ fontSize: 12, color: T.text, fontFamily: T.font }}>{name}</span>
+                <span style={{ fontSize: 11, color: T.textMuted, fontFamily: T.mono }}>{count} REQs</span>
+              </div>
+            ))}
+          </div>
+        </Card>
+        <Card>
+          <CardLabel label="Reconciliation Notes" />
+          <div style={{ fontSize: 12, color: T.textMid, lineHeight: 1.7, fontFamily: T.font }}>
+            <p style={{ marginBottom: 10 }}><strong>Cumulative vs Incremental:</strong> REQs 1-3 are cumulative timecard exports from the payroll system — each contains all hours from its start date through 09/20/23. REQs 4-15 contain only incremental hours for each billing period.</p>
+            <p style={{ marginBottom: 10 }}><strong>Derived Period Hours:</strong> REQ-01 period ~497 hrs (3,726-3,229) · REQ-02 period ~108 hrs (3,229-3,121) · REQ-03 period ~147 hrs (3,121-2,974).</p>
+            <p style={{ marginBottom: 10 }}><strong>Rate:</strong> All labor billed at uniform $60/hr across all trades (demolition, framing, siding, drywall). Flagged as "blended_rate" — not actual payroll cost.</p>
+            <p><strong>Source:</strong> 15 PDFs from <code style={{ fontFamily: T.mono, fontSize: 11, background: T.bg, padding: "1px 4px", borderRadius: 3 }}>Legal/Timecards/Req N sent YYYY.MM.DD.pdf</code></p>
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
+// ── CHANGE ORDERS ────────────────────────────────────────────────────────────
+function ChangeOrdersTab({ reqs }) {
+  const [sortBy, setSortBy] = useState("co");
+  const orders = [...CHANGE_ORDERS].sort((a, b) => sortBy === "co" ? a.co - b.co : a.req - b.req);
+  const totalCOs = CHANGE_ORDERS.length;
+  const netValue = CHANGE_ORDERS.reduce((s, c) => s + c.amount, 0);
+  const approved = CHANGE_ORDERS.filter(c => c.status === "Approved");
+  const disputed = CHANGE_ORDERS.filter(c => c.status === "Disputed");
+
+  const ThS = { padding: "10px 14px", fontSize: 11, fontWeight: 600, color: T.textMuted, textAlign: "left", borderBottom: `2px solid ${T.border}`, fontFamily: T.font, letterSpacing: 0.3, textTransform: "uppercase" };
+  const TdS = { padding: "10px 14px", fontSize: 13, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, verticalAlign: "top" };
+
+  return (
+    <div>
+      <SectionTitle title="Change Orders" subtitle="Owner-directed scope changes drove project beyond original contract — 125 total COs" />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
+        <KPI label="COs Documented" value={`${totalCOs} of 125`} sub="Extracted from requisitions" accent color={T.accent} />
+        <KPI label="Net CO Value" isMoney rawAmount={netValue} sub="Additions minus credits" color={T.text} />
+        <KPI label="Approved" value={`${approved.length}`} sub={`${Math.round(approved.length / totalCOs * 100)}% of documented`} color={T.green} />
+        <KPI label="Disputed" value={String(disputed.length)} sub="Pending resolution" color={T.red} />
+      </div>
+      <Card style={{ marginBottom: 16 }}>
+        <div style={{ fontSize: 13, color: T.text, lineHeight: 1.8, fontFamily: T.font }}>
+          The Tharp residence underwent <strong>125 change orders</strong> during construction, fundamentally expanding scope beyond the original AIA A110-2021 contract. These COs encompassed framing modifications, bathroom redesigns, siding changes, HVAC upgrades, and interior finish revisions — all owner-directed. The 240-day substantial completion deadline was exceeded by 419 days, with every day beyond the deadline attributable to CO-driven scope expansion. The owner cannot simultaneously demand 125+ changes and claim delay damages.
+        </div>
+      </Card>
+      <div style={{ display: "flex", gap: 4, background: T.bg, borderRadius: 8, padding: 3, marginBottom: 16, width: "fit-content" }}>
+        {["co", "req"].map(s => (
+          <button key={s} onClick={() => setSortBy(s)} style={{
+            padding: "6px 14px", borderRadius: 6, border: sortBy === s ? `1px solid ${T.accentBorder}` : "1px solid transparent",
+            background: sortBy === s ? T.accentBg : "transparent", color: sortBy === s ? T.accent : T.textMuted,
+            fontSize: 12, fontWeight: sortBy === s ? 600 : 400, cursor: "pointer", fontFamily: T.font, transition: T.fast,
+          }}>{s === "co" ? "Sort by CO #" : "Sort by REQ #"}</button>
+        ))}
+      </div>
+      <Card padding={0}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr>
+              {["CO #", "DESCRIPTION", "AMOUNT", "REQ", "STATUS"].map(h =>
+                <th key={h} style={{ ...ThS, textAlign: h === "AMOUNT" ? "right" : "left" }}>{h}</th>)}
+            </tr></thead>
+            <tbody>
+              {orders.map(co => {
+                const stColor = co.status === "Approved" ? T.green : T.red;
+                return (
+                  <tr key={co.co}>
+                    <td style={TdS}><span style={{ fontFamily: T.mono, fontWeight: 600, fontSize: 12 }}>CO #{co.co}</span></td>
+                    <td style={TdS}><span style={{ fontSize: 13 }}>{co.desc}</span></td>
+                    <td style={{ ...TdS, textAlign: "right" }}><Money amount={co.amount} color={co.amount < 0 ? T.red : T.text} /></td>
+                    <td style={TdS}><span style={{ fontFamily: T.mono, fontSize: 12 }}>REQ-{String(co.req).padStart(2, "0")}</span></td>
+                    <td style={TdS}><Badge label={co.status} style={{ color: stColor, bg: stColor + "12", border: stColor + "30" }} /></td>
+                  </tr>
+                );
+              })}
+              <tr style={{ background: T.bg }}>
+                <td style={{ ...TdS, fontWeight: 700 }}>NET</td>
+                <td style={{ ...TdS, fontWeight: 600, color: T.textMid }}>{totalCOs} change orders</td>
+                <td style={{ ...TdS, textAlign: "right" }}><Money amount={netValue} color={T.accent} size="md" /></td>
+                <td style={TdS}></td>
+                <td style={TdS}></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
+    </div>
+  );
+}
+
+// ── TIMELINE ─────────────────────────────────────────────────────────────────
+const CATEGORY_STYLES = {
+  contract:     { color: T.accent, bg: T.accentBg, border: T.accentBorder, label: "Contract" },
+  billing:      { color: T.blue,   bg: T.blueBg,   border: T.blueBorder,   label: "Billing" },
+  change_order: { color: T.amber,  bg: T.amberBg,  border: T.amberBorder,  label: "Change Order" },
+  dispute:      { color: T.red,    bg: T.redBg,    border: T.redBorder,    label: "Dispute" },
+  field:        { color: T.green,  bg: T.greenBg,  border: T.greenBorder,  label: "Field Work" },
+};
+
+function TimelineTab({ reqs, claims }) {
+  const [filter, setFilter] = useState("all");
+  const events = TIMELINE_EVENTS
+    .filter(e => filter === "all" || e.category === filter)
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  return (
+    <div>
+      <SectionTitle title="Project Chronology" subtitle="Key events from contract execution through arbitration filing" />
+      <div style={{ display: "flex", gap: 4, background: T.bg, borderRadius: 8, padding: 3, marginBottom: 20, width: "fit-content", flexWrap: "wrap" }}>
+        {["all", "contract", "billing", "change_order", "dispute", "field"].map(cat => {
+          const active = filter === cat;
+          const cs = cat === "all" ? { color: T.text, bg: T.surface, border: T.border } : CATEGORY_STYLES[cat];
+          return (
+            <button key={cat} onClick={() => setFilter(cat)} style={{
+              padding: "6px 14px", borderRadius: 6, border: active ? `1px solid ${cs.border}` : "1px solid transparent",
+              background: active ? cs.bg : "transparent", color: active ? cs.color : T.textMuted,
+              fontSize: 12, fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: T.font, transition: T.fast,
+            }}>{cat === "all" ? `All (${TIMELINE_EVENTS.length})` : `${cs.label} (${TIMELINE_EVENTS.filter(e => e.category === cat).length})`}</button>
+          );
+        })}
+      </div>
+      <div style={{ position: "relative", paddingLeft: 40 }}>
+        <div style={{ position: "absolute", left: 16, top: 0, bottom: 0, width: 2, background: T.border }} />
+        {events.map((event, i) => {
+          const cs = CATEGORY_STYLES[event.category];
+          return (
+            <div key={i} style={{ position: "relative", marginBottom: 12 }}>
+              <div style={{ position: "absolute", left: -32, top: 10, width: 12, height: 12, borderRadius: "50%", background: cs.color, border: `3px solid ${T.surface}`, boxShadow: `0 0 0 2px ${cs.border}` }} />
+              <Card style={{ borderLeft: `3px solid ${cs.color}`, marginLeft: 0 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+                  <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                    <span style={{ fontFamily: T.mono, fontSize: 12, color: T.textMuted, fontWeight: 500 }}>{event.date}</span>
+                    <Badge label={cs.label} style={{ color: cs.color, bg: cs.bg, border: cs.border }} />
+                  </div>
+                </div>
+                <div style={{ fontSize: 13, color: T.text, fontFamily: T.font, lineHeight: 1.5 }}>{event.desc}</div>
+              </Card>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
+}
 
 // ── ARBITRATION SIMULATOR (BALANCED) ─────────────────────────────────────────
 
@@ -4293,7 +4745,7 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
   const [apiKey, setApiKey] = useState(window._openaiKey || "");
   const [keyInput, setKeyInput] = useState("");
   const [showSettings, setShowSettings] = useState(false);
-  const messagesEndRef = React.useRef(null);
+  const messagesEndRef = useRef(null);
 
   useEffect(() => { messagesEndRef.current?.scrollIntoView({ behavior: "smooth" }); }, [messages]);
 
@@ -4502,6 +4954,7 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
 // ── ROOT ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [tab, setTab] = useState("dashboard");
+  const [mode, setMode] = useState("prep"); // "prep" or "presentation"
   const [reqs, setReqs] = useState(REQS_INITIAL);
   const [claims, setClaims] = useState(OWNER_CLAIMS_INITIAL);
   const [docs, setDocs] = useState(DOCS_INITIAL);
@@ -4577,21 +5030,34 @@ export default function App() {
     });
   }, [saveDocs]);
 
+  // When mode switches, fall back to dashboard if current tab is hidden
+  useEffect(() => {
+    const prepOnly = ["audit", "simulator", "strategy"];
+    if (mode === "presentation" && prepOnly.includes(tab)) setTab("dashboard");
+  }, [mode, tab]);
+
   if (!loaded) return (
     <div style={{ background: T.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: T.font }}>
       <div style={{ fontSize: 14, color: T.textMuted, letterSpacing: 0.5 }}>Loading…</div>
     </div>
   );
 
-  const TABS = [
-    { id: "dashboard", label: "Dashboard", icon: "grid" },
+  const PRESENTATION_TABS = [
+    { id: "dashboard",    label: mode === "presentation" ? "Overview" : "Dashboard", icon: "grid" },
+    { id: "financial",    label: "Financial Reconciliation", icon: "dollar" },
     { id: "requisitions", label: "Requisitions", icon: "file-text" },
-    { id: "audit", label: "Audit Risk", icon: "alert" },
-    { id: "claims", label: "Owner Claims", icon: "flag" },
-    { id: "documents", label: "Documents", icon: "folder" },
-    { id: "simulator", label: "Simulator", icon: "cpu" },
-    { id: "strategy", label: "Strategy", icon: "target" },
+    { id: "timecards",    label: "Timecards", icon: "users" },
+    { id: "changeorders", label: "Change Orders", icon: "edit" },
+    { id: "claims",       label: mode === "presentation" ? "Claims & Defenses" : "Owner Claims", icon: "flag" },
+    { id: "timeline",     label: "Timeline", icon: "clock" },
+    { id: "documents",    label: "Documents", icon: "folder" },
   ];
+  const PREP_TABS = [
+    { id: "audit",     label: "Audit Risk", icon: "alert" },
+    { id: "simulator", label: "Simulator",  icon: "cpu" },
+    { id: "strategy",  label: "Strategy",   icon: "target" },
+  ];
+  const TABS = mode === "presentation" ? PRESENTATION_TABS : [...PRESENTATION_TABS, ...PREP_TABS];
 
   return (
     <div style={{ background: T.bg, minHeight: "100vh", fontFamily: T.font }}>
@@ -4605,6 +5071,17 @@ export default function App() {
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
           {saved && <span style={{ fontSize: 11, color: T.green, fontFamily: T.font, display: "flex", alignItems: "center", gap: 4 }}><Ic name="check" size={12} color={T.green} />{"Saved" + (window._storageMode === "cloud" ? " to cloud" : "")}</span>}
+          <button onClick={() => setMode(m => m === "prep" ? "presentation" : "prep")} style={{
+            background: mode === "presentation" ? T.accent + "25" : "rgba(255,255,255,0.06)",
+            border: `1px solid ${mode === "presentation" ? T.accent : "#333028"}`,
+            borderRadius: 8, padding: "4px 12px", cursor: "pointer",
+            display: "inline-flex", alignItems: "center", gap: 6, transition: T.fast,
+          }}>
+            <Ic name={mode === "presentation" ? "play" : "settings"} size={12} color={mode === "presentation" ? T.accent : "#999"} />
+            <span style={{ fontSize: 11, fontWeight: 500, fontFamily: T.font, color: mode === "presentation" ? T.accent : "#999", letterSpacing: 0.2 }}>
+              {mode === "presentation" ? "Presentation" : "Prep Mode"}
+            </span>
+          </button>
           <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 10, background: window._storageMode === "cloud" ? "#16A34A15" : "#D9770615", color: window._storageMode === "cloud" ? T.green : T.amber, fontFamily: T.font, display: "inline-flex", alignItems: "center", gap: 5 }}><Ic name="cloud" size={12} color={window._storageMode === "cloud" ? T.green : T.amber} />{window._storageMode === "cloud" ? "Cloud" : "Local"}</span>
           <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(255,255,255,0.06)", color: T.navText, fontFamily: T.mono }}>v1.0</span>
         </div>
@@ -4632,11 +5109,15 @@ export default function App() {
 
       {/* Content */}
       <div style={{ padding: "32px 32px", maxWidth: 1400, margin: "0 auto" }}>
-        {tab === "dashboard" && <Dashboard reqs={reqs} claims={claims} />}
+        {tab === "dashboard" && <Dashboard reqs={reqs} claims={claims} mode={mode} />}
+        {tab === "financial" && <FinancialReconciliation reqs={reqs} />}
         {tab === "requisitions" && <Requisitions reqs={reqs} updateReq={updateReq} docs={docs} updateDoc={updateDoc} addDoc={addDoc} />}
-        {tab === "audit" && <AuditRisk reqs={reqs} />}
+        {tab === "timecards" && <Timecards reqs={reqs} />}
+        {tab === "changeorders" && <ChangeOrdersTab reqs={reqs} />}
         {tab === "claims" && <Claims claims={claims} updateClaim={updateClaim} />}
+        {tab === "timeline" && <TimelineTab reqs={reqs} claims={claims} />}
         {tab === "documents" && <Documents docs={docs} updateDoc={updateDoc} addDoc={addDoc} removeDoc={removeDoc} />}
+        {tab === "audit" && <AuditRisk reqs={reqs} />}
         {tab === "simulator" && <ArbitrationSimulator reqs={reqs} claims={claims} />}
         {tab === "strategy" && <Strategy claims={claims} reqs={reqs} />}
       </div>
