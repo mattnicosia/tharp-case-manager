@@ -178,10 +178,10 @@ const BACKUP_VARIANCE = {
     { trade: "6400-S Framing Labor", desc: "Self-Performed Framing", vendor: "Montana Contracting", amount: 720.00 },
   ]},
   3:  { amountBilled: 81849.11,  backupDocs: 85453.91,  directLabor: 0, items: [] },
-  4:  { amountBilled: 103325.37, backupDocs: 71981.16,  directLabor: 0, items: [] },
-  // NOTE: Demolition $12,838.39 is NOT self-performed — it is a contractual line item closeout.
+  4:  { amountBilled: 103325.37, backupDocs: 84819.55,  directLabor: 0, items: [] },
+  // NOTE: backupDocs includes $12,838.39 Demolition line item closeout (NOT self-performed work).
   // Montana billed demolition to 100% of budget per AIA A110 §3.3.2 savings-split provision.
-  // PCO#017 credits the owner half of the savings ($8,024). Backup = contract terms, not invoices.
+  // PCO#017 credits the owner half of the savings ($8,024). Backup = contract terms, not sub invoices.
   5:  { amountBilled: 76388.94,  backupDocs: 111522.67, directLabor: 0, items: [] },
   6:  { amountBilled: 61164.66,  backupDocs: 55312.79,  directLabor: 11850.00, items: [
     { trade: "CO#20 Framing Changes", desc: "Ceiling Padding — Living Room", vendor: "Montana Contracting", amount: 2700.00 },
