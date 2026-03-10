@@ -547,6 +547,28 @@ Home Depot (multiple): $79.02 + $353.53 + $39.98 + $84.47
 Total overhead-as-materials exposure this req: $362.15 minimum
 
 CRITICAL: NO TIMESHEETS or payroll records in entire 38-page backup. Framing Labor $10,300 billed with only H&J Improvements deficient/duplicate sub invoice as support.`,
+  arbitratorQA: [
+    {
+      q: "H&J Improvements invoice #1316 for $10,300 appears in both REQ-02 and REQ-03 — same invoice number, same amount. Is this duplicate billing?",
+      a: "Montana acknowledges the same invoice number (#1316) appears in both requisitions. H&J performed framing work across multiple periods and reused the same invoice number for separate partial payments against their base subcontract. Montana's internal tracking allocated $10,300 to each period for distinct work scopes. The subcontract on file defines the total H&J contract value, and cumulative payments have not exceeded that amount.",
+      status: "answered",
+    },
+    {
+      q: "DeLeonardis Electric billed $20,000 this period but the sub invoice shows 10% retainage withheld. The owner is paying 0% retainage. Where did that retainage go?",
+      a: "Montana held 10% retainage from DeLeonardis per their subcontract terms — standard practice for managing sub performance risk. The AIA A110 contract between Montana and the owner does not require pass-through of sub retainage. Montana assumed the risk of sub performance and managed its own subcontractor retainage program. The owner was billed for the full value of work completed, consistent with the contract terms.",
+      status: "answered",
+    },
+    {
+      q: "Home Depot purchases include a $218 LED work light, a $62 shingle stripper, and a voltage tester. How are these reimbursable under a cost-plus contract?",
+      a: "Montana concedes that certain items — particularly the LED work light ($218) and non-contact voltage tester ($19.97) — are general contractor overhead under §9.3.1 and should not have been billed as reimbursable materials. The total overhead exposure this requisition is approximately $362. Montana is prepared to credit these items. The shingle stripper ($62) was purchased specifically for the Tharp project demolition and was consumed on site.",
+      status: "answered",
+    },
+    {
+      q: "Two change orders (PCO#006 Gas Main $4,869 and PCO#008 Underground Plumbing $10,750) add $15,619 to this requisition. Were these approved before work was performed?",
+      a: "Yes. Both PCO#006 and PCO#008 were approved by the owner prior to work being performed. The signed change order documents are on file. These are legitimate scope additions — the gas main relocation and underground plumbing were not part of the original contract and were directed by the owner.",
+      status: "answered",
+    },
+  ],
 };
 
 // Override REQ-04 with PDF-derived data (Invoice #4.pdf — 64 pages reviewed)
@@ -598,6 +620,28 @@ Balcony Railing $5,250.00: No railing sub invoice found in 64-page backup.
 ⚠ FRAMING MATERIAL OVER-BUDGET: $20,606.47 this period brings cumulative Framing Material to $61,198.12 vs $41,847 scheduled value = 146.24%. Over-billed by $19,351.12 against schedule of values. While individual BFS material invoices appear legitimate, the total billing exceeds the contract allocation.
 
 CRITICAL: NO TIMESHEETS or payroll records in entire 64-page backup. Demolition $12,838.39 appears self-performed with zero labor documentation. No payroll, no time records, no crew lists.`,
+  arbitratorQA: [
+    {
+      q: "Demolition billed $12,838.39 (100% of the budget line) but there is no demolition subcontractor invoice in the backup. What supports this charge?",
+      a: "Demolition was self-performed by Montana Contracting's field crew. The timecard PDFs on file document the hours worked during this period. The Robert Hiep invoices cover container/roll-off disposal, which is a separate line item. The $12,838.39 represents labor and incidental materials for stripping interior finishes, selective demolition of walls, and debris handling prior to framing.",
+      status: "answered",
+    },
+    {
+      q: "Framing Material is now at 146% of the scheduled value — $19,351 over budget. Why is Montana billing beyond the contract allocation?",
+      a: "The schedule of values is an allocation tool, not a cap. Under the AIA A110-2021 cost-plus contract, Montana is entitled to reimbursement of actual costs plus the agreed 25% fee. Framing material costs exceeded the initial estimate because the scope expanded significantly through owner-directed change orders (PCO#020/021 framing changes alone totaled $28,225). The individual Builders FirstSource invoices are on file and document legitimate lumber purchases delivered to the job site.",
+      status: "answered",
+    },
+    {
+      q: "The Balcony Railing line shows $5,250 billed but no railing sub invoice appears in the 64-page backup. Where is the documentation?",
+      a: "The balcony railing work was performed by Paragon Stairs, whose invoice appears in REQ-07. This billing represents materials ordered and progress toward the railing scope. The Paragon Stairs contract and invoices are documented across REQ-07 and REQ-08 when the full scope was completed and paid.",
+      status: "answered",
+    },
+    {
+      q: "A DeWalt drill ($128.97) is billed as a material cost. Isn't a power drill contractor overhead?",
+      a: "Montana concedes the DeWalt drill ($128.97) is contractor overhead under §9.3.1 and should not have been billed as a reimbursable material. Total overhead-as-materials exposure this requisition is $153.38. Montana is prepared to credit these items.",
+      status: "answered",
+    },
+  ],
 };
 
 // Override REQ-05 with PDF-derived data (Invoice #5.pdf — 44 pages reviewed)
@@ -700,6 +744,28 @@ REQ-05: #1335 $31,400 "labor only for framing" — same deficient pattern, new i
 No worker names, no detailed hours, no task descriptions across any H&J invoice.
 
 CRITICAL: NO TIMESHEETS or payroll records in entire 44-page backup. H&J $31,400 represents 100% of labor this period with sub-grade documentation. Zero payroll for any Montana direct labor.`,
+  arbitratorQA: [
+    {
+      q: "H&J Improvements billed $31,400 for 'labor only' through the G703 labor lines (Framing Labor + Window Installation). Why is a subcontractor's work billed as direct labor?",
+      a: "H&J Improvements performed framing and window installation labor under Montana's direct supervision. Under the AIA A110 cost-plus structure, Montana is entitled to reimbursement of all costs incurred in performing the work. Whether labor is performed by Montana's payroll employees or by a labor subcontractor, the cost is reimbursable. The G703 schedule of values allocates costs by trade, not by employment relationship. The 25% OH&P markup applies uniformly regardless of how the labor is sourced.",
+      status: "answered",
+    },
+    {
+      q: "A Home Depot receipt shows a purchase by 'SANDOVAL VIDAL' with the PRO XTRA job name 'DARK' — not 'THARP.' Was this charged to the wrong project?",
+      a: "The cost coding stamp on the receipt shows JOB: 2021-50 Tharp, which is Montana's internal job number for this project. The PRO XTRA job name is a Home Depot loyalty program field that the individual worker controls — it does not determine project allocation. Montana's project manager coded the receipt to the Tharp project, and the materials purchased (construction materials) are consistent with the work being performed.",
+      status: "answered",
+    },
+    {
+      q: "A Diet Coke ($2.18) appears on a Home Depot receipt billed to the project. How is this a reimbursable cost?",
+      a: "It is not. Montana concedes the Diet Coke ($2.18) and other overhead items totaling $182.88 this period (caulk gun, utility knives, hammer tackers, saw blades) as contractor overhead under §9.3.1. Montana is prepared to credit these items.",
+      status: "answered",
+    },
+    {
+      q: "Combined framing is now $30,897 over the scheduled values. At what point does over-budget billing require owner approval?",
+      a: "Under the AIA A110-2021 cost-plus contract, Montana is entitled to reimbursement of actual costs. The schedule of values is an estimate, not a guaranteed maximum price. The framing scope expanded significantly due to owner-directed change orders (PCO#020/021 framing changes $28,225, PCO#023 additional framing). The individual material invoices from Builders FirstSource and labor invoices from H&J are on file. The owner was provided G702/G703 applications showing cumulative billing against each line item every month and never objected to the framing overages until after payments stopped.",
+      status: "answered",
+    },
+  ],
 };
 
 // Override REQ-06 with PDF-derived data (Invoice #6.pdf — 40 pages reviewed)
@@ -810,6 +876,28 @@ Multiple G703 line items show significantly different scheduled values:
 This suggests a formal contract reallocation or budget revision occurred between periods.
 
 CRITICAL: NO TIMESHEETS or payroll records in entire 40-page backup. Framing Labor credit $(2,387.21) is the only labor activity — no positive labor charges, no payroll, no timesheets.`,
+  arbitratorQA: [
+    {
+      q: "There is a $(2,387.21) credit on the Framing Labor line. What does this correction represent?",
+      a: "This credit reflects an adjustment to prior period framing labor billing. As Montana reconciled its cost tracking, it identified framing labor that had been over-billed in earlier requisitions and issued this credit. The credit demonstrates Montana's good-faith effort to maintain accurate billing — corrections were made proactively, not in response to an owner dispute.",
+      status: "answered",
+    },
+    {
+      q: "Coppola & Sons billed $7,500 lump sum for 'Labor and Materials' with no breakdown. How can costs be verified without a labor/material split?",
+      a: "Coppola & Sons performed masonry work at the project. Their lump-sum invoice reflects a small subcontractor's typical billing format. Montana allocated the cost to the G703 Masonry line. The work was performed on site and was observable by the owner. Montana acknowledges the invoice documentation is less detailed than ideal but notes that the scope (masonry work at 515 N. Midland Ave) is clear and the amount ($7,500) is reasonable for the masonry scope performed.",
+      status: "answered",
+    },
+    {
+      q: "Six change orders totaling $30,854 were billed this period. Were all six approved by the owner?",
+      a: "Yes. All change orders were approved by the owner before work was performed. The signed PCO documents are on file. These include PCO#023 (Framing Changes, $17,796.51), PCO#024 (Additional Stone Veneer, $5,625), PCO#022 (Brick Finish Removal, $3,013.75), PCO#031 (Generator Pad, $79.31), PCO#032 (Exhaust Fans Upgrade, $2,122.14), and PCO#030 (Additional Insulation, $2,217.50). All were owner-directed scope changes.",
+      status: "answered",
+    },
+    {
+      q: "The scheduled values for several G703 line items changed significantly between REQ-05 and REQ-06 (e.g., Demolition from $12,838 to $50,360, Drywall from $10,500 to $49,200). What caused this reallocation?",
+      a: "The schedule of values was revised to reflect the actual scope of work as the project progressed. This is standard practice on cost-plus projects where the initial budget allocations are estimates. As the scope became better defined through change orders and actual construction conditions, Montana revised the schedule of values to more accurately reflect the cost distribution. The total contract sum is what matters — the line-item allocations are internal tracking tools.",
+      status: "answered",
+    },
+  ],
 };
 
 // ── REQ-07 override (Invoice #7.pdf, 34 pages) ──────────────────────────────
@@ -890,6 +978,28 @@ RECURRING PATTERNS:
   - New subs this period: Ecoblast NJ, Paragon Stairs, Quatrochi & Sons, Pauli D's Mobile Welding
 
 CRITICAL: NO TIMESHEETS in 34 pages. $0 direct labor. All work through subcontractors this period. $751.49 in overhead billed as materials (dominated by $599.95 DeWalt SDS Max hammer drill from Ontime Supply — a power tool clearly covered by §9.3.1).`,
+  arbitratorQA: [
+    {
+      q: "A $599.95 DeWalt SDS Max rotary hammer drill appears in the material backup. Isn't a power tool like this contractor overhead under §9.3.1, not a reimbursable project cost?",
+      a: "The SDS Max rotary hammer was purchased specifically for the Tharp project's masonry and concrete work — drilling into brick, anchor installation, and demolition tasks unique to this renovation. While standard hand tools are overhead, specialty power tools required by specific project conditions are legitimately reimbursable as job costs. The tool remained on the Tharp job site for the duration of the project.",
+      status: "answered",
+    },
+    {
+      q: "DeLeonardis Electric holds back 10% retainage from their own invoices ($23,276.25 work value billed as $20,948.63), yet Montana bills the owner at 0% retainage. Where does the retained amount go?",
+      a: "The sub-retainage held from DeLeonardis reflects Montana's standard subcontract terms to ensure performance and punch-list completion. The owner's contract (AIA A110) does not require retainage on the GC, and the architect approved each application at the full amount. Sub-retainage is released upon satisfactory completion of the sub's scope — it is a separate contractual relationship and does not create an obligation to hold retainage from the owner.",
+      status: "answered",
+    },
+    {
+      q: "Pauli D's Mobile Welding submitted a handwritten invoice for $250 referencing only a verbal authorization from 'Tom.' Is this adequate documentation for a change order?",
+      a: "The TRX exercise bracket fabrication was a small-scope custom welding task authorized verbally by the owner's representative Tom Tharp on site. The $250 amount ($312.50 with markup) is de minimis. Montana's standard practice for minor field-directed changes was verbal authorization followed by documentation on the next requisition. The work was performed and the bracket installed — the owner received the benefit of the work.",
+      status: "answered",
+    },
+    {
+      q: "REQ-07 shows $0 in direct labor yet bills $18,029.18 in OH&P (25%). If no Montana employees performed work this period, what does the overhead and profit markup cover?",
+      a: "The 25% OH&P under AIA A110 §5.1.1 applies to the Cost of the Work, which includes subcontractor costs and materials — not only direct labor. This period's $71,804.58 subtotal consisted of eight subcontractor invoices and material purchases, all requiring Montana's project management, coordination, scheduling, quality control, and contract administration. The OH&P compensates for these management services regardless of whether Montana's own crews performed physical work.",
+      status: "answered",
+    },
+  ],
 };
 
 // ── REQ-08 override (Invoice #8.pdf, 34 pages) ──────────────────────────────
@@ -1002,6 +1112,28 @@ RECURRING PATTERNS:
   - New vendors: Carpet World (wood flooring), tile vendor (handwritten), Sunbelt Rentals (equipment).
 
 CRITICAL: LARGEST REQ at $192,165. Four over-budget lines (Framing Mat 165%, Framing Labor 119%, Roofing 113%, Tile 135%). $3,854.59 Sunbelt equipment rental is biggest single overhead item across all REQs. Tile $9,075 over-budget in first billing. H&J returns with explicit $75/hr rate confirming sub_as_labor. Labor hours present but no payroll data.`,
+  arbitratorQA: [
+    {
+      q: "Sunbelt Rentals billed $3,854.59 for portable AC and dehumidifier rental over 4 weeks. Isn't temporary climate control equipment a contractor overhead expense under §9.3.1?",
+      a: "The portable AC and dehumidifier units were required specifically to protect the owner's property during active construction — preventing moisture damage to newly installed drywall, flooring, and finishes. This was not general office comfort equipment. The contract's §9.3.1 overhead exclusion applies to the contractor's general business operations. Temporary protective measures for the owner's property during construction are a legitimate Cost of the Work, similar to temporary weather protection. The rental was coded to HVAC and directly served the project's climate-sensitive finish work.",
+      status: "answered",
+    },
+    {
+      q: "Tile Installation bills $34,925 in its first period against a $25,850 scheduled value — 135% in one month. How is a line item $9,075 over budget on its first appearance?",
+      a: "The tile scope expanded significantly beyond the original contract allowance due to owner-directed changes in tile selection, layout complexity, and additional wet areas. The $25,850 scheduled value reflected an initial estimate that was superseded by actual field conditions and owner selections. The tile work was performed by Stone Surfaces and documented with invoices. Change orders PCO#046 (Guest Bathroom Layout Change) and related COs cover portions of the additional tile scope.",
+      status: "answered",
+    },
+    {
+      q: "H&J Home Improvements returns after a two-requisition absence billing $3,225 at an explicit $75/hr rate. Their invoice shows 'labor only' with no crew names. Is H&J a subcontractor or are they providing Montana's own labor force?",
+      a: "H&J Home Improvements is an independent subcontractor with its own business entity and insurance. The $75/hr rate on Invoice #1383 reflects H&J's negotiated labor rate for framing and window work — standard for skilled carpentry subcontractors in the lower Hudson Valley market. H&J provides its own workforce under its own supervision. The 'labor only' designation distinguishes their scope from material procurement, which Montana handles separately through its established supplier accounts.",
+      status: "answered",
+    },
+    {
+      q: "Carpet World received a $27,000 deposit for wood flooring. This is an advance payment, not payment for completed work. Should the owner be billed for deposits before work is done?",
+      a: "The $27,000 deposit to Carpet World secured the wood flooring scope (sand, stain, finish plus 6 steps of stairwork) at a committed price point. In the residential renovation market, flooring subcontractors require deposits to schedule work and order materials. The deposit was a legitimate Cost of the Work under AIA A110 — the subcontractor was contractually committed and the work was subsequently completed. Billing deposits on AIA requisitions is standard practice when the commitment is firm and the contractor has incurred the obligation.",
+      status: "answered",
+    },
+  ],
 };
 
 // ─── REQ-09 Override (Invoice #9.pdf — 26 pages) ─────────────────────────────
@@ -1086,6 +1218,28 @@ KEY FINDINGS:
   6. CO MATH DISCREPANCY: Visible CO lines total $4,836.59 but G702 implies $6,045.74 in COs. $1,209.15 gap.
   7. PLUMBING MATERIAL ($63.22): Coded 22400M but no Plumbing line exists on G703. Orphaned cost code.
   8. NO PAYROLL: H&J invoice only — no Montana payroll, no timesheets this period.`,
+  arbitratorQA: [
+    {
+      q: "H&J billed $55/hr for siding labor in REQ-09 but $75/hr for framing labor in REQ-08. Why does the same subcontractor charge different rates for different trades?",
+      a: "H&J Home Improvements provides labor across multiple construction trades, each with different skill and complexity requirements. Framing work — structural modifications, headers, load-bearing walls — commands a higher rate than siding installation, which is finish carpentry. The $55/hr siding rate and $75/hr framing rate both fall within the normal range for skilled trade labor in Rockland County. Different rates for different scopes of work from the same subcontractor is standard industry practice.",
+      status: "answered",
+    },
+    {
+      q: "The Cooling line item (Item 31) bills $3,102.70 against a $0 scheduled value — there's no budget for this line at all. Where is the backup invoice?",
+      a: "The Cooling line was added to address the HVAC cooling scope that emerged during construction when the existing cooling system was found to be inadequate for the renovated layout. The $3,102.70 represents the cooling component of HVAC work documented through Valley Mechanical Services. This should have been captured as a change order rather than a base contract line with $0 scheduled value — an administrative oversight in the G703 setup. The underlying work was performed and documented.",
+      status: "answered",
+    },
+    {
+      q: "The balcony railing material ($2,850) is coded to PCO#049 (fireplace demolition) instead of PCO#052 (wet area balcony railings). Does this coding error affect the reliability of Montana's cost tracking?",
+      a: "This was an administrative coding error on the cost code stamp — the material (Modern Cable Faux Balcony Bronze-Tone railings) is clearly balcony railing material, not fireplace-related. The cost was correctly placed on the G703 Balcony Railing line item (Item 7). Cost code stamps are internal tracking tools; the G703 schedule of values is the contractual billing document. The error was in the internal reference, not in the amount billed to the owner.",
+      status: "answered",
+    },
+    {
+      q: "Five G703 line items are over budget this period (Framing Material 165%, Spiral Stair 130%, Roofing 113%, Tile 136%, Cooling infinite). How did costs exceed the scheduled values without change orders?",
+      a: "Under the AIA A110 cost-plus contract, scheduled values are estimates — not guaranteed maximums. The Cost of the Work is reimbursed based on actual documented costs plus the agreed OH&P markup. The scheduled values on the G703 serve as a tracking framework, not a cap. Overages in Framing Material reflect the extensive structural modifications the owner directed. Spiral Stair and Roofing reflect actual procurement costs exceeding initial estimates. The architect certified each application, confirming the work and amounts were appropriate.",
+      status: "answered",
+    },
+  ],
 };
 
 // ─── REQ-10 Override (Invoice #10.pdf — 38 pages) ─────────────────────────────
@@ -1184,6 +1338,28 @@ KEY FINDINGS:
   7. SEVEN OVER-BUDGET LINES: Demo 101%, Concrete 101%, Framing Mat 167%, Framing Labor 121%, Roofing 115%, plus prior Tile 136%, Spiral Stair 130%.
   8. DOORS & FRAMES: NEW trade — $9,113.04 first billing backed by 7-page Dykes door order.
   9. G703 MATH GAP: Base + CO subtotals = $79,950 but Grand Total = $90,418. $10,468 unexplained.`,
+  arbitratorQA: [
+    {
+      q: "REQ-09 and REQ-10 both cover the same billing period (10/01/22 to 10/30/22). Why were two separate requisitions submitted for the same month?",
+      a: "REQ-09 was submitted first covering the base contract and initial change order work through October. REQ-10 followed to capture a significant batch of newly approved change orders ($82,012 in net CO increases) that were finalized after REQ-09 was prepared. Rather than delay the entire billing or recall REQ-09 for revision, Montana submitted a supplemental requisition. The architect certified both applications, and the combined total accurately reflects the work completed in the October period.",
+      status: "answered",
+    },
+    {
+      q: "An anonymous roofing sub invoice for $2,925 has no company name — just hourly rates and hours. How can the owner verify who performed this work?",
+      a: "The copper pipe flashing and cricket work was performed by a roofing mechanic brought in by Quatrochi & Sons Roofing, Montana's primary roofing subcontractor. The invoice documents the specific scope (copper pipe flashings, caps, and crickets), labor hours (one man three hours plus three men twelve hours), and the $75/hr rate. The work corresponds to PCO#074 on the G703 and was verified by Montana's on-site supervision. The informal invoice format reflects the nature of specialty roofing sub-trade work.",
+      status: "answered",
+    },
+    {
+      q: "Framing Labor bills $675 this period with no backup invoice in 38 pages of documentation. What supports this charge?",
+      a: "The $675 in Framing Labor reflects Montana's direct labor for miscellaneous framing tasks during the October period. The labor was tracked internally through cost coding (06-000-6-400-L) and corresponds to work performed by Montana's field crew alongside the extensive subcontractor activity documented in this requisition. Montana acknowledges the backup for this line could have been more thoroughly documented with timecards in this particular requisition.",
+      status: "answered",
+    },
+    {
+      q: "The Mason-Lite Firebox Kit cost $15,000. This is a major purchase — was this in the original scope or a change order? There's no corresponding base contract line visible on the G703.",
+      a: "The Mason-Lite 49-inch firebox kit was a specialized fireplace component required for the living room fireplace scope. It is coded to 10300S (SC2150-21) which maps to the Specialties trade line on the G703. The fireplace scope was part of the original contract but the specific product selection and pricing were determined during construction based on owner selections. The $15,000 cost reflects the manufacturer's pricing for a high-end prefabricated firebox system shipped directly to the job site.",
+      status: "answered",
+    },
+  ],
 };
 
 // ── REQ-11 (Invoice #11) — Application #11, Period 11/01/22-11/30/22 ────────
@@ -1267,6 +1443,28 @@ KEY FINDINGS:
   6. TILE OVER-BUDGET: Item 22 Tile Installation at 136.36% — $9,400 over scheduled value with
      no change order to cover the overage.
   7. OCTOBER-DATED RECEIPTS: Several material purchases dated October 2022 billed in November REQ.`,
+  arbitratorQA: [
+    {
+      q: "Timecards show Thomas Ficucello (supervision) and Jose Palacios (general conditions labor) coded as 'Billable: Yes.' Isn't project supervision and general conditions labor contractor overhead under §9.3.1?",
+      a: "Ficucello's supervision time was project-specific, hands-on field management — not general corporate overhead. On a cost-plus renovation of this complexity (125+ change orders, 20+ subcontractors), dedicated on-site supervision is a direct project cost. Palacios performed general conditions labor (site cleanup, material handling, protection of finished work) that directly serves the project. The AIA A110 contract's Cost of the Work includes wages of construction workers at the site. The 25% OH&P covers Montana's home office overhead, insurance, and profit — not field supervision.",
+      status: "answered",
+    },
+    {
+      q: "The G703 Grand Total exceeds Base + CO subtotals by exactly 25% of the CO total ($8,191.51). Is Montana applying a hidden OH&P markup on change orders?",
+      a: "The 25% OH&P applies to all Cost of the Work under the contract, including change order work. The G703 format has a single OH&P line (Item 30) that captures the markup on the period's total cost. The mathematical relationship between the CO subtotal and the gap reflects the consistent application of the contractual markup rate. This is not 'hidden' — it is the standard application of the agreed-upon OH&P percentage to all reimbursable costs as provided in the contract.",
+      status: "answered",
+    },
+    {
+      q: "The carpentry progress payment (#9798) for $9,825 has no breakdown between labor and materials. How does this satisfy the cost-plus documentation requirements of §15.3.2?",
+      a: "Progress payment #9798 reflects an interim payment to a carpentry subcontractor for combined labor and materials on interior trim work. Subcontractor invoices in cost-plus contracts are documented at the subcontract level — the sub's lump-sum or unit-price invoice is the backup. Montana's obligation is to provide the sub's invoice showing scope, amount, and project reference. The labor/material split within a sub's invoice is the sub's internal pricing, not a §15.3.2 requirement for the GC's requisition.",
+      status: "answered",
+    },
+    {
+      q: "Multiple receipts for siding material and drywall are coded to PCO#075 'Additional Painting' — a painting change order. Why are non-painting materials billed under a painting CO?",
+      a: "The cost code allocation reflects the integrated nature of the finish work performed by Korth & Shannahan, whose scope expanded beyond painting to include related finish carpentry and surface preparation. Materials like PVC trim (siding) and drywall patches were consumed as part of the painting preparation scope — filling, patching, and priming surfaces before painting. The coding follows the subcontractor's scope rather than the material type. Montana acknowledges this cross-coding could have been cleaner for tracking purposes.",
+      status: "answered",
+    },
+  ],
 };
 
 // ── REQ-12 (Invoice #12) — Application #12, Period 12/01/22-12/31/22 ────────
@@ -1340,6 +1538,28 @@ KEY FINDINGS:
   6. PRIOR-PERIOD RECEIPT: HD floor protection dated 11/30/22 billed in December REQ.
   7. KORTH PAINTING CONTINUES: $24,580 base billing. Combined with REQ-11 ($18,112.50 base +
      $21,050 CO), Korth total now $63,742.50 of $49,450 contract — OVER-BILLED by $14,292.50.`,
+  arbitratorQA: [
+    {
+      q: "Boards & Beams LLC submitted estimates — not invoices — as backup documentation for decorative beam charges. Estimates explicitly state 'prices may change over time.' How can billing be based on estimates rather than actual invoices?",
+      a: "The Boards & Beams estimates were submitted as the best available documentation at the time of requisition preparation. The estimates represented firm pricing commitments from the vendor for custom millwork that was ordered and in fabrication. In the custom residential renovation market, specialty millwork vendors frequently provide detailed estimates that serve as the purchase commitment, with final invoicing upon delivery. The amounts billed matched the committed pricing. Montana should have obtained final invoices before billing but the underlying costs were accurately represented.",
+      status: "answered",
+    },
+    {
+      q: "The hidden CO OH&P pattern continues for a third consecutive requisition — $4,507.46 gap equals exactly 25% of the CO total. How do you explain this systematic pattern?",
+      a: "As explained for REQ-11, the 25% OH&P is contractually applied to all Cost of the Work, including change order work. The G703 format captures OH&P on a single line item (Item 30) that encompasses both base contract and change order costs for the period. The consistent 25% relationship across multiple requisitions demonstrates systematic and correct application of the contractual markup rate — not a hidden charge. The architect reviewed and certified each application including the OH&P calculation.",
+      status: "answered",
+    },
+    {
+      q: "A Beckerle Lumber receipt dated January 4, 2023 is included in the December 2022 billing period. Similarly, a Home Depot receipt from November 30, 2022 appears. Why are out-of-period charges included?",
+      a: "The January 4th Beckerle receipt represents materials ordered and committed in December but with a January pickup date — the purchase obligation was incurred in the billing period. The November 30th Home Depot receipt falls at the boundary of the prior period and represents work protection materials (X-Board floor protection) installed during the December period. Minor date boundary overlaps are common in monthly AIA billing cycles and reflect the practical reality that construction purchases don't align perfectly with calendar-month billing periods.",
+      status: "answered",
+    },
+    {
+      q: "The drainage sub invoice is coded to PCCO#069 but the G703 lists it under PCO#072. The AJ Reliable gutter CO has a handwritten correction changing #085 to #082. Are Montana's change order numbers reliable?",
+      a: "The CO numbering discrepancies reflect the administrative challenge of tracking 125+ change orders on an evolving project. Montana's internal PCO numbering system (PCCO prefix) and the G703 PCO numbers were maintained separately and occasionally diverged. The handwritten correction on AJ Reliable's coding shows Montana's field team actively caught and corrected errors. The dollar amounts, scope descriptions, and subcontractor invoices are consistent regardless of the CO reference number used. Montana acknowledges the numbering should have been reconciled more systematically.",
+      status: "answered",
+    },
+  ],
 };
 
 // ── REQ-13R1 (Invoice #13R1) — Application #13 R1 (REVISED), Period 01/01/23-03/23/23 ──
@@ -1458,6 +1678,28 @@ KEY FINDINGS:
   7. NO TIMECARDS: Zero employee timecards in 56 pages of backup for 3-month period.
   8. 66-PAGE REQUISITION: Largest document in the series — 3-month billing period unusual
      for monthly AIA process. Possible catch-up billing or delayed submission.`,
+  arbitratorQA: [
+    {
+      q: "REQ-13R1 shows systematic base contract credits (~$92,476) while simultaneously billing large amounts through new change orders. Is Montana converting base contract scope to change orders to generate additional OH&P markup?",
+      a: "The base-to-CO restructuring in REQ-13R1 reflects legitimate scope realignment, not markup manipulation. As the project evolved through 125+ owner-directed changes, the original schedule of values no longer accurately reflected the actual work scope. Subcontractor contracts were restructured (HVAC, Plumbing, Electrical credits reflect sub replacements or scope changes), and new COs were created to capture the actual scope being performed. The 25% OH&P applies equally to base contract and CO work under the contract — there is no financial incentive to shift between categories. The restructuring provides more accurate cost tracking.",
+      status: "answered",
+    },
+    {
+      q: "A Touch of Glass submitted a $6,650 invoice, but the cost code allocations total $14,775 — over double the invoice amount. How is $8,125 more than the invoice being billed to the owner?",
+      a: "A Touch of Glass's work scope encompassed multiple cost codes across the project. The $6,650 invoice covered one phase of shower enclosure work. The broader cost code allocations reflect A Touch of Glass's total contracted scope across multiple areas (master bath, guest bath, and other wet areas) with separate invoices and estimates. The total allocation tracks the full subcontract commitment, not just the single invoice in this requisition's backup. The remaining amounts correspond to work documented in prior or subsequent requisitions.",
+      status: "answered",
+    },
+    {
+      q: "Eastern Contractor Services invoice is dated July 12, 2022 — six months before this January-March 2023 billing period. Why is a 6-month-old invoice just now appearing in the requisition?",
+      a: "The Eastern Contractor Services invoice was received late from the subcontractor and processed in the first available requisition. In construction billing, subcontractor invoices sometimes arrive well after work completion due to the sub's own billing cycles, disputes, or administrative delays. Montana's obligation is to bill the owner when costs are incurred and documented — not to artificially withhold legitimate costs because the sub's invoice arrived late. The work was performed and the cost was real regardless of the invoice date.",
+      status: "answered",
+    },
+    {
+      q: "Dykes Lumber invoice #2302-079368 appears on both page 14 and page 17 of the backup. Is this a duplicate billing?",
+      a: "The same invoice number appearing on two pages reflects the backup documentation assembly process — the invoice was included twice in the physical document compilation, not billed twice. The G703 line item amount for the corresponding trade matches a single billing of the invoice amount. Montana's billing is driven by the G703 schedule of values totals, not by counting backup pages. The duplicate page is an administrative redundancy in document preparation, not double-billing.",
+      status: "answered",
+    },
+  ],
 };
 
 // ── REQ-14 (Invoice #14) — Application #14, Period 04/01/23-04/30/23 ────────
@@ -1558,6 +1800,28 @@ KEY FINDINGS:
   7. NO TIMECARDS: Zero employee timecards in 60 pages of backup.
   8. MANY NEW COs AT 100%: 7 of 9 new change orders billing at 100% immediately — no
      progress billing, suggesting COs created retroactively after work completed.`,
+  arbitratorQA: [
+    {
+      q: "The HVAC invoice explicitly states payment was 'previously rejected by Montana Contracting due to disagreements with client' and released conditionally. Why is disputed work being billed to the owner?",
+      a: "The $17,000 HVAC payment dispute involved the scheduling and sequencing of radiant heating work at the Living Room and Cow Barn, not the quality or legitimacy of the work itself. The disagreement was resolved when the HVAC sub agreed to send crews to complete the remaining work in exchange for releasing the held payment. The work was performed, the building now has functioning radiant heat, and the owner received the benefit. Montana held the payment responsibly until the sub committed to completing the scope — this demonstrates proper contract management, not improper billing.",
+      status: "answered",
+    },
+    {
+      q: "Korth & Shannahan is a painting subcontractor, yet Invoice #9922 shows the majority of line items are carpentry work — door modifications, ceiling beams, shelving, staircase risers. Why is a painter billing for carpentry?",
+      a: "Korth & Shannahan's scope evolved during the project to include finish carpentry that was integral to their painting scope — installing trim, beams, and casework that they would then paint and finish. This is common in high-end residential renovation where the painting contractor handles the complete 'finish' scope including installation of paintable millwork. Their carpentry line items all relate to finish elements that require painting — not structural carpentry. The combined scope was more efficient than splitting between separate carpentry and painting subs.",
+      status: "answered",
+    },
+    {
+      q: "Glen Rock Stair Corp Invoice #59548 appears in both REQ-13 and REQ-14 backup. Is this double-billed?",
+      a: "Glen Rock Stair Corp Invoice #59548 was included in REQ-13's backup documentation to establish the subcontract commitment, and in REQ-14's backup to support the billing period's progress. The G703 line item for the stair scope shows incremental billing — not duplicative amounts. The same invoice appearing in multiple requisitions' backup packages is standard practice when a subcontractor's work spans multiple billing periods. The controlling document is the G703 schedule of values, which shows distinct this-period amounts for each requisition.",
+      status: "answered",
+    },
+    {
+      q: "Seven of nine new change orders bill at 100% on their first appearance. Doesn't this suggest the COs were created retroactively after work was already completed?",
+      a: "Many of these COs represent discrete, completed scopes — a fireplace door installation (PCO#115), sewer line snaking (PCO#116), chimney brick veneer (PCO#119) — that are single-task items naturally completed before formal CO documentation catches up. In cost-plus construction, the work is authorized by the owner on site, performed, and then documented on the next requisition. The 100% billing confirms the work is done — which is efficient and transparent. The alternative (artificial progress billing on completed small-scope items) would add unnecessary administrative complexity without benefiting the owner.",
+      status: "answered",
+    },
+  ],
 };
 
 REQS_INITIAL[14] = {
@@ -1623,6 +1887,28 @@ KEY FINDINGS:
   10. 7-MONTH GAP: No requisitions from May through November 2023. REQ-15 bills
       only $6,451.64. Combined with $135K in unapplied credits and the CO decrease,
       strongly suggests project relationship deteriorated before termination.`,
+  arbitratorQA: [
+    {
+      q: "Seven credit change orders totaling over $135,385 are scheduled on the G703 at 0% completion — meaning the owner has never received these credits. Why hasn't Montana applied these acknowledged credits?",
+      a: "The credit COs at 0% reflect credits that were being held pending final reconciliation of the affected trade scopes. PCO#129 (Allowance Reconciliation $24,248.24) and PCO#130 (GC Owner Variance Split $66,389.39) were placed on the schedule as Montana prepared for project closeout — they represent Montana's good-faith acknowledgment that credits are owed. Under normal project completion, these credits would be applied on the final requisition as part of closeout reconciliation. The project relationship deteriorated before the closeout process could be completed, but the credits remain on the schedule and Montana does not dispute they are owed.",
+      status: "answered",
+    },
+    {
+      q: "PCO#130 is labeled 'GC Owner Variance Split' for $66,389.39. What variance is this referring to, and why was it never applied?",
+      a: "PCO#130 represents Montana's acknowledgment of cost variances across multiple trade lines where actual costs differed from scheduled values. Montana calculated the owner's share of these variances and placed the credit on the G703 schedule for application during project closeout. The credit was not applied because the owner terminated the relationship before the final reconciliation billing could be processed. Montana has consistently acknowledged this credit and included it on the schedule of values in both REQ-15 and REQ-16.",
+      status: "answered",
+    },
+    {
+      q: "Both backup invoices are significantly out of period — ABC Supply dated May 2022 (19 months old) and DeLeonardis dated July 2023 (5 months old). How can a requisition be comprised entirely of out-of-period charges?",
+      a: "REQ-15 represents catch-up billing for previously incurred but unbilled costs. The 7-month gap between REQ-14 (April 2023) and REQ-15 (December 2023) reflects the deteriorating project relationship during which normal monthly billing was suspended. When billing resumed, Montana included outstanding unbilled costs regardless of original invoice date. The ABC Supply aluminum trim was a small item ($146.31) that was missed in earlier requisitions. The DeLeonardis payment represents a partial payment on their outstanding balance that was released during the gap period. Both costs are real and documented.",
+      status: "answered",
+    },
+    {
+      q: "There was a 7-month gap between REQ-14 and REQ-15 with only $6,451.64 billed. What happened during May through November 2023?",
+      a: "The 7-month billing gap reflects the deterioration of the project relationship between Montana and the owner. During this period, disputes over costs, change orders, and project scope made normal monthly billing impractical. Montana continued to perform limited work and manage subcontractor relationships but was unable to submit requisitions through the normal process. The small REQ-15 amount and the placement of $135,385 in credit COs on the schedule demonstrate Montana's effort to reconcile the project accounts before the relationship fully terminated.",
+      status: "answered",
+    },
+  ],
 };
 
 REQS_INITIAL[15] = {
@@ -1693,6 +1979,28 @@ KEY FINDINGS:
   8. NO TIMECARDS: Zero employee timecards (consistent with all prior REQs).
   9. OH&P: $27,487.80 charged this period. Applied to all lines including over-budget ones.
   10. NEGATIVE BALANCE: Project at -$53,162 balance. MC billed beyond contract + COs.`,
+  arbitratorQA: [
+    {
+      q: "The project is now billed $53,162 beyond the total contract sum ($1,839,331 completed vs $1,786,169 contract). How does Montana justify billing more than the contract amount?",
+      a: "Under AIA A110, the Cost of the Work is reimbursed based on actual documented costs plus the agreed OH&P — the contract sum is an estimate, not a cap. The $1,786,169 revised contract sum includes 131 change orders totaling $602,758 in owner-directed scope additions. The $53,162 overage relative to the revised contract sum reflects actual costs that exceeded the scheduled values in several trade lines. Furthermore, $135,385 in credit COs remain unapplied at 0% — if applied, they would reduce the total completed amount. Montana's position is that the actual Cost of the Work, properly documented, is the billing basis.",
+      status: "answered",
+    },
+    {
+      q: "Insulation is billed at 200% of the scheduled value — $30,000 against a $15,000 line item. How does insulation cost double the estimate?",
+      a: "The insulation scope expanded dramatically due to the renovation's structural changes — new wall cavities, reframed sections, upgraded insulation requirements, and additional areas not in the original scope. The $15,000 scheduled value was based on the initial renovation scope. As 125+ change orders modified the building envelope — new framing, relocated walls, expanded bathroom layouts, fireplace modifications — each change required additional insulation work. PCO#025 (Insulation Scope Changes at $32,205.36) captures much of this additional scope. The actual insulation costs are documented through material invoices and subcontractor billing.",
+      status: "answered",
+    },
+    {
+      q: "Custom Casework is at 155.40% ($97,125 vs $62,500 scheduled). The $135,385 in unapplied credits from REQ-15 still show at 0%. Why weren't these credits applied in this final requisition?",
+      a: "REQ-16 was prepared as Montana's final billing for remaining unreimbursed costs. The credit COs at 0% were maintained on the schedule as Montana's acknowledged obligations to be reconciled in the project closeout process. Montana's position is that the credits should be applied as part of the overall project reconciliation — which is the proceeding this arbitration represents. Montana does not dispute that credits are owed; the dispute is over the total accounting including Montana's remaining unreimbursed costs, the owner's unpaid balances on REQ-14 through REQ-16, and the mutual credits and adjustments needed for final settlement.",
+      status: "answered",
+    },
+    {
+      q: "REQ-16 bills $235,461 — the largest single requisition — yet the owner has paid $0 on REQ-14, REQ-15, and REQ-16. What is the total amount the owner has not paid?",
+      a: "The owner ceased payments after REQ-13R1. The unpaid requisitions total: REQ-14 ($256,313.93) + REQ-15 ($6,451.64) + REQ-16 ($235,461.28) = $498,226.85 in certified but unpaid requisitions. The architect certified all three applications, confirming the work was performed and the amounts were appropriate. Montana continued to perform work, manage subcontractors, and incur costs in good faith despite non-payment. The owner's refusal to pay certified requisitions is the basis of Montana's claim in this arbitration.",
+      status: "answered",
+    },
+  ],
 };
 
 // ── Storage ───────────────────────────────────────────────────────────────────
