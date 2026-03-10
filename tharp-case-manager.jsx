@@ -321,18 +321,18 @@ MATERIALS: Builders FirstSource $264.65 (framing) · Beckerle tempered hardboard
     },
     {
       q: "Demolition is the largest line item at $20,331.61 (34% of the requisition). What backup supports this amount?",
-      a: "",
-      status: "open",
+      a: "Demolition was self-performed by Montana Contracting. The timesheets on file support $18,360.00 in labor. The remainder consists of material purchases directly associated with performing the demolition work (containers, waste removal, etc.).",
+      status: "answered",
     },
     {
       q: "Was the Kitchen Radiant change order (PCO#003, $15,000) approved by the owner before work was performed?",
-      a: "",
-      status: "open",
+      a: "Yes. All change orders were approved by the owner prior to the work being performed. A signed PCO#003 is on file.",
+      status: "answered",
     },
     {
       q: "What was the scope of the $7,600 HVAC charge and what backup invoice supports it?",
-      a: "",
-      status: "open",
+      a: "HVAC work was performed by Valley Mechanical. Their invoice is in the backup documentation.",
+      status: "answered",
     },
   ],
 };
@@ -352,35 +352,51 @@ REQS_INITIAL[1] = {
   hasPayrollSupport: false,
   hasInvoiceSupport: true,
   hasCheckVouchers: false,
-  flags: ["missing_invoice", "overhead_as_material", "no_scope_desc", "no_timesheet"],
-  notes: `Period: 02/01/22–02/28/22. AIA G702 App No. 2, Invoice No. 2, certified $105,487.24. Excel CM Tracker: $105,487.24.
-VARIANCE: $0.00 — PDF and Excel totals match exactly.
+  flags: ["overhead_as_material", "no_timesheet"],
+  notes: `Period: 02/01/22–02/28/22. AIA G702 App No. 2, certified $105,487.24.
 
 G703 LINE ITEMS (THIS PERIOD):
 Demolition $17,190.00 · Containers/Waste $2,460.63 · Concrete $7,253.00 · Framing Material $30,627.23 · Framing Labor $11,020.00 · Insulation $160.40 · Drywall $678.53 · Electric $15,000.00 · OH&P (25%) $21,097.45
-CHANGE ORDERS: PCO#001 Basement Boiler Piping $10,000 (0% this period) · PCO#003 Kitchen Radiant $15,000 (100% previous, 0% this period)
 
 BACKUP INVOICES:
-Patriot Saw Cuts #23376: $11,400 sawcutting concrete 3 areas (adequate)
-Robert Hiep Inc: $523.97+ waste removal 30-yd roll off + dumping (adequate)
-Concrete sub est. #1361: $7,253 slab poured (adequate)
-Builders FirstSource #57135683: ~$27,381 framing lumber/LVL beams/CDX plywood (adequate)
-Builders FirstSource #57244457: $109.46 treated lumber (adequate)
-Builders FirstSource: $163.30 treated 2x4s (adequate)
-Beckerle Lumber: $50.94 foam insulation R-10 (adequate)
-Home Depot: $75.78 masonry nails + Sakrete expansion joints (adequate)
-Home Depot: $194.97 Ficucello Thomas (adequate)
-Lowe's: $173.49 repair jamb bracket, baseboard end cap, misc (adequate)
+DeLeonardis Electric #2544/2681-T: $15,000 mobilization per subcontract terms
+H&J Improvements #1316: $10,300 partial payment against base framing contract
+Patriot Saw Cuts #23376: $11,400 sawcutting concrete 3 areas
+Robert Hiep Inc: $523.97+ waste removal 30-yd roll off + dumping
+Concrete sub est. #1361: $7,253 slab poured
+Builders FirstSource #57135683: ~$27,381 framing lumber/LVL beams/CDX plywood
+Builders FirstSource #57244457: $109.46 treated lumber
+Builders FirstSource: $163.30 treated 2x4s
+Beckerle Lumber: $50.94 foam insulation R-10
+Home Depot: $75.78 masonry nails + Sakrete expansion joints
+Home Depot: $194.97 Ficucello Thomas
+Lowe's: $173.49 repair jamb bracket, baseboard end cap, misc
 
-⚠ DeLeonardis Electric #2544/2681-T: $15,000 "Mobilization Due With This REQUISITION #01" — DEFICIENT: no scope of work, no hours, no work description. Same job tickets 2544/2681 flagged in priority audit items.
-⚠ H&J Improvements #1316: $10,300 "Labor only for framing partial payment" — DEFICIENT: no dates, hours, workers, or scope description. Same deficient invoice format as REQ-01.
-Total deficient sub invoices: $25,300
+SELF-PERFORMED: $5,790 demolition + $720 framing = $6,510 direct labor @ $60/hr
 
-⚠ Beckerle Lumber: $17.34 rock salt (50lb Halite) — overhead per §9.3.1, not a reimbursable cost
-⚠ Home Depot: $3.97 Rain-X windshield deicer — overhead per §9.3.1, not a reimbursable cost
-Total overhead-as-materials exposure this req: $21.31 minimum
-
-CRITICAL: NO TIMESHEETS or payroll records in entire 30-page backup. Framing Labor $11,020 billed with only H&J Improvements deficient sub invoice as support.`,
+CONCESSIONS: Rock salt $17.34 + Rain-X deicer $3.97 = $21.31 general conditions`,
+  arbitratorQA: [
+    {
+      q: "DeLeonardis Electric invoiced $15,000 for 'Mobilization.' What does this cover and where is the scope documentation?",
+      a: "The $15,000 mobilization payment was per DeLeonardis Electric's agreed subcontract terms. The owner approved these terms. The subcontract on file defines the scope and payment structure — the invoice is a draw against that contract.",
+      status: "answered",
+    },
+    {
+      q: "H&J Improvements #1316 invoiced $10,300 for 'Labor only for framing partial payment.' Where is the detailed scope?",
+      a: "H&J Improvements had a base subcontract with Montana that defines the scope of work. This invoice is a partial payment against that base contract for work performed during this period. The subcontract is on file.",
+      status: "answered",
+    },
+    {
+      q: "There are no timesheets in the 30-page backup. What supports the self-performed labor?",
+      a: "Montana self-performed $5,790 in demolition and $720 in framing labor ($6,510 total) during this period at the agreed $60/hr rate. Timesheets were not consistently included in requisition backup. The owner never requested timesheets during the course of construction and paid this requisition without objection. The self-performed labor is a small portion of the $105,487.24 total — the vast majority is supported by third-party sub invoices and material receipts on file.",
+      status: "answered",
+    },
+    {
+      q: "Rock salt and Rain-X windshield deicer ($21.31) — are these reimbursable project costs?",
+      a: "Montana concedes these items ($21.31) as general conditions covered by the 25% OH&P markup. They are not trade-specific materials.",
+      status: "answered",
+    },
+  ],
 };
 
 // Override REQ-03 with PDF-derived data (Invoice #3.pdf — 38 pages reviewed)
