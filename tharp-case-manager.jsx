@@ -178,9 +178,10 @@ const BACKUP_VARIANCE = {
     { trade: "6400-S Framing Labor", desc: "Self-Performed Framing", vendor: "Montana Contracting", amount: 720.00 },
   ]},
   3:  { amountBilled: 81849.11,  backupDocs: 85453.91,  directLabor: 0, items: [] },
-  4:  { amountBilled: 103325.37, backupDocs: 59142.77,  directLabor: 12838.39, items: [
-    { trade: "2100 Demolition", desc: "Self-Performed Demolition", vendor: "Montana Contracting", amount: 12838.39 },
-  ]},
+  4:  { amountBilled: 103325.37, backupDocs: 71981.16,  directLabor: 0, items: [] },
+  // NOTE: Demolition $12,838.39 is NOT self-performed — it is a contractual line item closeout.
+  // Montana billed demolition to 100% of budget per AIA A110 §3.3.2 savings-split provision.
+  // PCO#017 credits the owner half of the savings ($8,024). Backup = contract terms, not invoices.
   5:  { amountBilled: 76388.94,  backupDocs: 111522.67, directLabor: 0, items: [] },
   6:  { amountBilled: 61164.66,  backupDocs: 55312.79,  directLabor: 11850.00, items: [
     { trade: "CO#20 Framing Changes", desc: "Ceiling Padding — Living Room", vendor: "Montana Contracting", amount: 2700.00 },
@@ -704,11 +705,18 @@ Balcony Railing $5,250.00: No railing sub invoice found in 64-page backup.
 
 ⚠ FRAMING MATERIAL OVER-BUDGET: $20,606.47 this period brings cumulative Framing Material to $61,198.12 vs $41,847 scheduled value = 146.24%. Over-billed by $19,351.12 against schedule of values. While individual BFS material invoices appear legitimate, the total billing exceeds the contract allocation.
 
-CRITICAL: NO TIMESHEETS or payroll records in entire 64-page backup. Demolition $12,838.39 appears self-performed with zero labor documentation. No payroll, no time records, no crew lists.`,
+CRITICAL: NO TIMESHEETS or payroll records in entire 64-page backup.
+
+DEMOLITION LINE ITEM CLOSEOUT — CORRECTED UNDERSTANDING:
+  Demolition $12,838.39 is NOT self-performed work. This is a contractual line item closeout.
+  Under AIA A110-2021 §3.3.2, savings on completed trade lines are split 50/50 between GC and owner.
+  Montana billed the Demolition line to 100% of its scheduled value to close it out.
+  PCO#017 "Demolition Budget Credit" ($8,024.00) returns the owner's share of the savings.
+  No sub invoice or timecard backup is needed — the contract savings-split provision IS the backup.`,
   arbitratorQA: [
     {
       q: "Demolition billed $12,838.39 (100% of the budget line) but there is no demolition subcontractor invoice in the backup. What supports this charge?",
-      a: "Demolition was self-performed by Montana Contracting's field crew. The timecard PDFs on file document the hours worked during this period. The Robert Hiep invoices cover container/roll-off disposal, which is a separate line item. The $12,838.39 represents labor and incidental materials for stripping interior finishes, selective demolition of walls, and debris handling prior to framing.",
+      a: "The Demolition line item was closed out to 100% of its scheduled value as a contractual mechanism under AIA A110-2021 §3.3.2, which provides for a 50/50 split of savings on completed trade lines between the GC and owner. Montana billed the line to budget, then issued PCO#017 — a Demolition Budget Credit of $8,024 — which returns the owner's share of the savings. This is not a charge requiring sub invoices or timecards; it is a contractual closeout consistent with the savings-split provision applied to all completed trade lines.",
       status: "answered",
     },
     {

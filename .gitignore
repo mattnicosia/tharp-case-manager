@@ -12,3 +12,5 @@ dist/
 Thumbs.db
 desktop.ini
 *.lnk
+
+.vercel
