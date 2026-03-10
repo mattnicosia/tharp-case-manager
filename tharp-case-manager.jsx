@@ -170,13 +170,17 @@ const EXCEL_TRADES = {
 // backupDocs   = Sum of third-party invoices on file (Column E)
 // directLabor  = Self-performed work by Montana Contracting (no third-party invoice)
 const BACKUP_VARIANCE = {
-  1:  { amountBilled: 48298.60,  backupDocs: 48195.09,  directLabor: 0, items: [] },
+  1:  { amountBilled: 48298.60,  backupDocs: 29835.09,  directLabor: 18360.00, items: [
+    { trade: "2100 Demolition", desc: "Self-Performed Demolition", vendor: "Montana Contracting", amount: 18360.00 },
+  ]},
   2:  { amountBilled: 84389.79,  backupDocs: 77879.79,  directLabor: 6510.00, items: [
     { trade: "2100 Demolition", desc: "Self-Performed Demolition", vendor: "Montana Contracting", amount: 5790.00 },
     { trade: "6400-S Framing Labor", desc: "Self-Performed Framing", vendor: "Montana Contracting", amount: 720.00 },
   ]},
   3:  { amountBilled: 81849.11,  backupDocs: 85453.91,  directLabor: 0, items: [] },
-  4:  { amountBilled: 103325.37, backupDocs: 71981.16,  directLabor: 0, items: [] },
+  4:  { amountBilled: 103325.37, backupDocs: 59142.77,  directLabor: 12838.39, items: [
+    { trade: "2100 Demolition", desc: "Self-Performed Demolition", vendor: "Montana Contracting", amount: 12838.39 },
+  ]},
   5:  { amountBilled: 76388.94,  backupDocs: 111522.67, directLabor: 0, items: [] },
   6:  { amountBilled: 61164.66,  backupDocs: 55312.79,  directLabor: 11850.00, items: [
     { trade: "CO#20 Framing Changes", desc: "Ceiling Padding — Living Room", vendor: "Montana Contracting", amount: 2700.00 },
@@ -207,7 +211,9 @@ const BACKUP_VARIANCE = {
     { trade: "7460 Siding", desc: "Self-Performed Siding (24 hrs partial realloc → PCCO#66)", vendor: "Montana Contracting", amount: 9180.00 },
     { trade: "9200 Drywall & Carpentry", desc: "Self-Performed Drywall/Install (10 hrs realloc → PCCO#65)", vendor: "Montana Contracting", amount: 2550.00 },
   ]},
-  11: { amountBilled: 74121.03,  backupDocs: 62449.13,  directLabor: 0, items: [] },
+  11: { amountBilled: 74121.03,  backupDocs: 59017.20,  directLabor: 3431.93, items: [
+    { trade: "7460 Siding", desc: "Self-Performed Siding (Sandoval, Laubauskas timecards)", vendor: "Montana Contracting", amount: 3431.93 },
+  ]},
   12: { amountBilled: 57465.48,  backupDocs: 55871.07,  directLabor: 0, items: [] },
   13: { amountBilled: 147391.18, backupDocs: 147271.75, directLabor: 0, items: [] },
   14: { amountBilled: 205051.14, backupDocs: 192733.58, directLabor: 15862.50, items: [
@@ -262,6 +268,85 @@ const TIMECARD_DATA = [
   { req: 15, dateRange: "06/01/23 – 09/20/23", hours: 12.00, empCount: 3, sentDate: "NOT SENT", type: "incremental",
     employees: ["Thomas Ficucello","Chris Lange","Anthony Falsetti"] },
 ];
+
+// ── LABOR COST CODE ANALYSIS (from QB timecard CSV export) ──────────────────
+// Cost codes categorized: supervision/PM codes = non-billable (absorbed by 25% O&P)
+// Trade codes = billable direct labor at $60/hr
+const LABOR_ANALYSIS = {
+  supervisionCodes: [
+    "01-000-1-200-L", // Project Supervision
+    "01-000-1-210-L", // General Supervision
+    "01-000-1-225-L", // Asst Project Supervision
+    "01-000-1-275-L", // Asst Project Management
+    "01-000-1-285-L", // Office Administration
+    "01-000-1-910-O", // Estimating
+  ],
+  employees: [
+    { name: "Thomas Ficucello", role: "Job Superintendent", supHours: 1397.0, tradeHours: 157.0, totalHours: 1554.0, dateRange: "2021-12-06 to 2023-08-28",
+      codes: { "01-000-1-200-L Project Supervision": 1387.0, "01-000-1-210-L General Supervision": 10.0, "01-000-1-100-L General Conditions": 54.5, "02-000-2-100-L Demolition": 37.0, "06-000-6-400-L Framing": 27.0, "09-000-9-200-L Drywall & Carpentry": 20.0, "07-000-7-400-L Siding": 8.0, "08-000-8-100-L Doors & Frames": 3.0, "03-000-3-100-L Concrete": 2.0 } },
+    { name: "Vidal Sandoval", role: "Tradesman", supHours: 0, tradeHours: 692.0, totalHours: 692.0, dateRange: "2021-12-16 to 2023-05-09",
+      codes: { "07-000-7-400-L Siding": 247.0, "09-000-9-200-L Drywall & Carpentry": 132.0, "06-000-6-400-L Framing": 117.0, "06-000-6-325-L Millwork": 115.0, "02-000-2-100-L Demolition": 45.0, "06-000-6-800-L Interior Trim": 32.0, "06-000-6-600-M Decks": 4.0 } },
+    { name: "Michael Laubauskas", role: "Tradesman", supHours: 0, tradeHours: 435.0, totalHours: 435.0, dateRange: "2022-06-03 to 2023-03-16",
+      codes: { "07-000-7-400-L Siding": 227.0, "09-000-9-200-L Drywall & Carpentry": 89.5, "06-000-6-400-L Framing": 85.5, "06-000-6-800-L Interior Trim": 19.0, "06-000-6-325-L Millwork": 13.0, "01-000-1-100-L General Conditions": 1.0 } },
+    { name: "Jose Palacios", role: "Tradesman", supHours: 0, tradeHours: 336.5, totalHours: 336.5, dateRange: "2022-03-23 to 2023-05-09",
+      codes: { "01-000-1-100-L General Conditions": 247.5, "02-000-2-100-L Demolition": 38.0, "09-000-9-200-L Drywall & Carpentry": 32.0, "03-000-3-100-L Concrete": 9.0, "07-000-7-400-L Siding": 6.0, "06-000-6-600-M Decks": 4.0 } },
+    { name: "John Yuvienco", role: "Tradesman", supHours: 0, tradeHours: 184.25, totalHours: 184.25, dateRange: "2021-12-17 to 2022-07-29",
+      codes: { "02-000-2-100-L Demolition": 85.0, "01-000-1-100-L General Conditions": 83.25, "07-000-7-400-L Siding": 16.0 } },
+    { name: "Jesse Grosso", role: "Tradesman", supHours: 25.0, tradeHours: 95.25, totalHours: 120.25, dateRange: "2021-12-17 to 2023-04-04",
+      codes: { "02-000-2-100-L Demolition": 49.0, "01-000-1-100-L General Conditions": 38.25, "01-000-1-225-L Asst Project Supervision": 25.0, "02-000-2-100-S Demolition (Sub)": 8.0 } },
+    { name: "Anthony Falsetti", role: "Tradesman", supHours: 0, tradeHours: 114.5, totalHours: 114.5, dateRange: "2022-01-07 to 2023-09-20",
+      codes: { "01-000-1-100-L General Conditions": 81.0, "02-000-2-100-L Demolition": 16.0, "09-000-9-900-L Painting": 9.5, "03-000-3-100-L Concrete": 3.0, "09-000-9-300-S Tile": 2.0, "04-000-4-100-L Masonry": 1.0, "06-000-6-400-L Framing": 1.0, "07-000-7-400-L Siding": 1.0 } },
+    { name: "Pedro Avelino", role: "Tradesman", supHours: 0, tradeHours: 110.0, totalHours: 110.0, dateRange: "2021-12-17 to 2022-03-30",
+      codes: { "02-000-2-100-L Demolition": 90.0, "01-000-1-100-L General Conditions": 20.0 } },
+    { name: "Chris Lange", role: "Supervisor", supHours: 108.0, tradeHours: 0, totalHours: 108.0, dateRange: "2021-10-20 to 2023-09-19",
+      codes: { "01-000-1-210-L General Supervision": 93.0, "01-000-1-200-L Project Supervision": 15.0 } },
+    { name: "Rodney Sheppard", role: "Tradesman", supHours: 0, tradeHours: 40.5, totalHours: 40.5, dateRange: "2022-10-19 to 2023-04-26",
+      codes: { "01-000-1-100-L General Conditions": 40.5 } },
+    { name: "John Torres", role: "Asst Project Manager", supHours: 35.5, tradeHours: 2.5, totalHours: 38.0, dateRange: "2021-10-12 to 2022-09-13",
+      codes: { "01-000-1-275-L Asst Project Management": 34.5, "01-000-1-100-L General Conditions": 2.5, "01-000-1-225-L Asst Project Supervision": 0.5, "01-000-1-910-O Estimating": 0.5 } },
+    { name: "Duglas Berrios Martinez", role: "Tradesman", supHours: 0, tradeHours: 29.0, totalHours: 29.0, dateRange: "2022-12-30 to 2023-03-22",
+      codes: { "03-000-3-100-L Concrete": 15.0, "01-000-1-100-L General Conditions": 8.0, "09-000-9-200-L Drywall & Carpentry": 6.0 } },
+    { name: "Ryan O'Donohue", role: "Tradesman", supHours: 6.0, tradeHours: 18.5, totalHours: 24.5, dateRange: "2023-04-19 to 2023-04-26",
+      codes: { "09-000-9-200-L Drywall & Carpentry": 18.5, "01-000-1-210-L General Supervision": 6.0 } },
+    { name: "Michael Montana", role: "Tradesman", supHours: 0, tradeHours: 24.0, totalHours: 24.0, dateRange: "2022-07-13 to 2022-07-15",
+      codes: { "07-000-7-400-L Siding": 16.0, "06-000-6-400-L Framing": 8.0 } },
+    { name: "Dean Slavin", role: "Tradesman", supHours: 0, tradeHours: 17.0, totalHours: 17.0, dateRange: "2022-06-22 to 2022-07-27",
+      codes: { "02-000-2-100-L Demolition": 11.0, "01-000-1-100-L General Conditions": 6.0 } },
+    { name: "Joseph M Montana", role: "Tradesman", supHours: 0, tradeHours: 9.0, totalHours: 9.0, dateRange: "2022-12-30 to 2022-12-30",
+      codes: {} },
+    { name: "Sadequl Ameen", role: "Office Admin", supHours: 2.0, tradeHours: 0, totalHours: 2.0, dateRange: "2021-09-20 to 2021-11-10",
+      codes: { "01-000-1-285-L Office Administration": 2.0 } },
+  ],
+  totals: { supHours: 1573.5, tradeHours: 2265.0, totalHours: 3838.5 },
+};
+
+// ── PARSED INVOICE TOTALS (from Matt's invoice labeling spreadsheet) ────────
+// These are BASE CONTRACT cost-of-work totals per req (pre-markup)
+// Source: extracted_invoice_spreadsheet_tabs.txt BASE CONTRACT TOTALS row
+const PARSED_INVOICE_TOTALS = {
+  1:  36298.60,
+  2:  72989.79,
+  3:  69353.91,
+  4:  79637.26,
+  5:  76388.94,
+  6:  36481.29,
+  7:  71804.58,
+  8:  153732.00,
+  9:  35452.44,
+  10: 30460.96,
+  11: 41354.98,
+  12: 39435.67,
+  13: -72392.71,  // REQ-13R1 credit/reversal
+  14: 112069.77,
+  15: 5161.31,
+  16: 0,          // Closeout req — not in parsed spreadsheet
+};
+
+// ── PLAINTIFF CLAIMED AMOUNTS (per req — what Tharp says Montana invoiced) ──
+// TODO: populate with actual plaintiff figures when available
+const PLAINTIFF_CLAIMED = {
+  // 1: 0, 2: 0, ... etc — awaiting data from Matt
+};
 
 // ── TIMELINE EVENTS ──────────────────────────────────────────────────────────
 const TIMELINE_EVENTS = [
@@ -2211,8 +2296,8 @@ function computeBackupStatus(bv) {
   const gap = (bv.amountBilled || 0) - documented;
   let status = "pending";
   if (Math.abs(gap) < 1 || gap < 0) status = "supported";
-  else if (bv.directLabor > 0 && gap > 0) status = "partial";
   else if (Math.abs(gap) < 200) status = "supported";
+  else if (bv.directLabor > 0 && gap > 0) status = "partial";
   else status = "needs_docs";
   return { status, gap, documented };
 }
@@ -2527,11 +2612,13 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
     const flags = req.flags.includes(flagId) ? req.flags.filter(f => f !== flagId) : [...req.flags, flagId];
     updateReq(reqId, { flags });
   };
-  // Compute summary stats from BACKUP_VARIANCE
+  // Compute summary stats from BACKUP_VARIANCE + PARSED_INVOICE_TOTALS
   const bvRows = reqs.map(r => {
     const bv = BACKUP_VARIANCE[r.id];
     const bs = computeBackupStatus(bv);
-    return { ...bs, bv, req: r };
+    const parsed = PARSED_INVOICE_TOTALS[r.id] || 0;
+    const plaintiff = PLAINTIFF_CLAIMED[r.id] || null;
+    return { ...bs, bv, req: r, parsed, plaintiff };
   });
   const totBilled = reqs.reduce((s, r) => s + (r.totalBilled || 0), 0);
   const totPaid = reqs.reduce((s, r) => s + (r.paidAmount || 0), 0);
@@ -2539,6 +2626,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
   const totSelfPerformed = bvRows.reduce((s, r) => s + ((r.bv?.directLabor) || 0), 0);
   const totDocumented = totInvoices + totSelfPerformed;
   const totCostBasis = bvRows.reduce((s, r) => s + ((r.bv?.amountBilled) || 0), 0);
+  const totParsed = bvRows.reduce((s, r) => s + r.parsed, 0);
   const totGap = bvRows.reduce((s, r) => s + Math.max(0, r.gap), 0);
   const supportedCount = bvRows.filter(r => r.status === "supported").length;
   const needsDocsCount = bvRows.filter(r => r.status === "needs_docs").length;
@@ -2564,77 +2652,167 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
         </div>
 
         {/* KPIs */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
-          <KPI label="Documentation Coverage" value={`${pctSupported}%`} sub={`${supportedCount} of 16 fully supported`} accent color={pctSupported >= 85 ? T.green : pctSupported >= 70 ? T.amber : T.red} />
-          <KPI label="Total Billed (G702)" isMoney rawAmount={totBilled} sub={`Paid: $${totPaid.toLocaleString()}`} color={T.text} />
-          <KPI label="Self-Performed Work" isMoney rawAmount={totSelfPerformed} sub="Montana in-house labor" color={T.amber} />
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 16 }}>
+          <KPI label="Sub/Vendor Invoices" isMoney rawAmount={totInvoices} sub="Third-party backup on file" color={T.text} />
+          <KPI label="Self-Performed" isMoney rawAmount={totSelfPerformed} sub="Montana direct labor" color={T.amber} />
+          <KPI label="Cost of Work Billed" isMoney rawAmount={totCostBasis} sub={`G702 total: $${totBilled.toLocaleString()}`} color={T.text} />
+          <KPI label="Parsed Invoice Sum" isMoney rawAmount={totParsed} sub="Base contract from spreadsheet" color={T.blue} />
           <KPI label="Unreconciled Gap" isMoney rawAmount={totGap} sub={`${needsDocsCount} req${needsDocsCount !== 1 ? "s" : ""} need docs`} color={totGap < 1000 ? T.green : T.red} />
         </div>
 
-        {/* Main table */}
+        {/* Main table — cost-of-work comparison */}
         <Card padding={0}>
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", minWidth: 900 }}>
             <thead>
               <tr>
-                {["REQ #", "DATE", "BILLED", "PAID", "SUB INVOICES", "SELF-PERFORMED", "GAP", "STATUS", "FLAGS"].map(h => (
-                  <th key={h} style={{ ...ThStyle, textAlign: h === "REQ #" || h === "DATE" || h === "FLAGS" ? "left" : "right", ...(h === "STATUS" ? { textAlign: "center" } : {}) }}>{h}</th>
-                ))}
+                <th style={{ ...ThStyle, textAlign: "left" }}>REQ #</th>
+                <th style={{ ...ThStyle, textAlign: "right" }}>SUB/VENDOR</th>
+                <th style={{ ...ThStyle, textAlign: "right" }}>SELF-PERF</th>
+                <th style={{ ...ThStyle, textAlign: "right", borderLeft: `2px solid ${T.border}` }}>DOCUMENTED</th>
+                <th style={{ ...ThStyle, textAlign: "right" }}>BILLED (COW)</th>
+                <th style={{ ...ThStyle, textAlign: "right", color: T.blue }}>PARSED INV</th>
+                <th style={{ ...ThStyle, textAlign: "right" }}>GAP</th>
+                <th style={{ ...ThStyle, textAlign: "center" }}>STATUS</th>
               </tr>
             </thead>
             <tbody>
               {reqs.map((req, i) => {
                 const bv = BACKUP_VARIANCE[req.id];
                 const bs = computeBackupStatus(bv);
+                const parsed = PARSED_INVOICE_TOTALS[req.id] || 0;
                 const active = sel === req.id;
-                const isPaid = (req.paidAmount || 0) > 0;
+                const documented = (bv?.backupDocs || 0) + (bv?.directLabor || 0);
+                const billed = bv?.amountBilled || 0;
                 const stColor = bs.status === "supported" ? T.green : bs.status === "partial" ? T.amber : bs.status === "needs_docs" ? T.red : T.textMuted;
                 const stBg = bs.status === "supported" ? T.greenBg : bs.status === "partial" ? T.amberBg : bs.status === "needs_docs" ? T.redBg : T.surfaceHover;
                 const stBorder = bs.status === "supported" ? T.greenBorder : bs.status === "partial" ? T.amberBorder : bs.status === "needs_docs" ? T.redBorder : T.border;
                 const stLabel = bs.status === "supported" ? "SUPPORTED" : bs.status === "partial" ? "PARTIAL" : bs.status === "needs_docs" ? "NEEDS DOCS" : "PENDING";
+                // Parsed vs billed variance
+                const parsedDelta = parsed !== 0 ? (billed - parsed) : null;
                 return (
                   <tr key={req.id} onClick={() => setSel(active ? null : req.id)}
                     style={{ cursor: "pointer", background: active ? T.accentBg : "transparent", transition: "background 0.1s" }}
                     onMouseEnter={e => { if (!active) e.currentTarget.style.background = T.surfaceHover; }}
                     onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}>
-                    <td style={{ ...TdStyle, fontFamily: T.mono, fontWeight: 500, color: T.accent }}>{req.reqNumber}</td>
-                    <td style={{ ...TdStyle, color: T.textMuted, fontSize: 12 }}>{req.date || "—"}</td>
-                    <td style={{ ...TdStyle, textAlign: "right" }}>{req.totalBilled ? <Money amount={req.totalBilled} size="sm" /> : <span style={{ color: T.textMuted }}>—</span>}</td>
-                    <td style={{ ...TdStyle, textAlign: "right" }}>
-                      {isPaid ? <Money amount={req.paidAmount} color={T.green} size="sm" /> : <span style={{ fontFamily: T.mono, fontSize: 12, color: T.red }}>$0</span>}
+                    <td style={{ ...TdStyle, fontFamily: T.mono, fontWeight: 500, color: T.accent }}>
+                      {req.reqNumber}
+                      <div style={{ fontSize: 10, color: T.textMuted, fontWeight: 400 }}>{req.date || ""}</div>
                     </td>
                     <td style={{ ...TdStyle, textAlign: "right" }}>
-                      {(bv?.backupDocs || 0) > 0 ? <Money amount={bv.backupDocs} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                      {(bv?.backupDocs || 0) !== 0 ? <Money amount={bv.backupDocs} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
                     </td>
                     <td style={{ ...TdStyle, textAlign: "right" }}>
-                      {(bv?.directLabor || 0) > 0 ? <Money amount={bv.directLabor} color={T.amber} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                      {(bv?.directLabor || 0) !== 0 ? <Money amount={bv.directLabor} color={T.amber} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                    </td>
+                    <td style={{ ...TdStyle, textAlign: "right", borderLeft: `2px solid ${T.border}`, fontWeight: 600 }}>
+                      <Money amount={documented} size="sm" />
+                    </td>
+                    <td style={{ ...TdStyle, textAlign: "right" }}>
+                      <Money amount={billed} size="sm" />
+                    </td>
+                    <td style={{ ...TdStyle, textAlign: "right" }}>
+                      {parsed !== 0 ? <Money amount={parsed} color={T.blue} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                      {parsedDelta !== null && Math.abs(parsedDelta) > 1 && (
+                        <div style={{ fontSize: 10, fontFamily: T.mono, color: parsedDelta > 0 ? T.amber : T.green, marginTop: 1 }}>
+                          {parsedDelta > 0 ? "+" : ""}{parsedDelta.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
+                        </div>
+                      )}
                     </td>
                     <td style={{ ...TdStyle, textAlign: "right" }}>
                       {bs.gap > 1 ? <Money amount={bs.gap} color={T.red} size="sm" /> : bs.gap < -1 ? <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>surplus</span> : <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>—</span>}
                     </td>
                     <td style={{ ...TdStyle, textAlign: "center" }}><Badge label={stLabel} style={{ color: stColor, bg: stBg, border: stBorder }} /></td>
-                    <td style={{ ...TdStyle, color: req.flags.length > 0 ? T.red : T.textMuted, fontFamily: T.mono, fontSize: 12 }}>
-                      {req.flags.length > 0 ? `${req.flags.length}` : "—"}
-                    </td>
                   </tr>
                 );
               })}
             </tbody>
             <tfoot>
               <tr style={{ background: T.bg }}>
-                <td colSpan={2} style={{ ...TdStyle, fontSize: 11, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, borderBottom: "none" }}>TOTALS</td>
-                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totBilled} size="sm" /></td>
-                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totPaid} color={T.green} size="sm" /></td>
+                <td style={{ ...TdStyle, fontSize: 11, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, borderBottom: "none" }}>TOTALS</td>
                 <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totInvoices} size="sm" /></td>
                 <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totSelfPerformed} color={T.amber} size="sm" /></td>
+                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none", borderLeft: `2px solid ${T.border}`, fontWeight: 600 }}><Money amount={totDocumented} size="sm" /></td>
+                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totCostBasis} size="sm" /></td>
+                <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totParsed} color={T.blue} size="sm" /></td>
                 <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totGap} color={totGap > 1000 ? T.red : T.green} size="sm" /></td>
                 <td style={{ ...TdStyle, textAlign: "center", borderBottom: "none" }}>
                   <span style={{ fontSize: 11, fontFamily: T.mono, color: T.textMuted }}>{supportedCount}/16</span>
                 </td>
-                <td style={{ borderBottom: "none" }} />
               </tr>
             </tfoot>
           </table>
+          </div>
         </Card>
+
+        {/* Labor Analysis — Supervision vs Trade */}
+        <div style={{ marginTop: 20 }}>
+          <div style={{ fontSize: 13, fontWeight: 600, color: T.text, fontFamily: T.font, marginBottom: 8 }}>
+            Labor Cost Code Analysis
+            <span style={{ fontWeight: 400, color: T.textMuted, fontSize: 12, marginLeft: 8 }}>
+              {LABOR_ANALYSIS.totals.totalHours.toLocaleString()} total hours · {LABOR_ANALYSIS.totals.supHours.toLocaleString()} supervision (O&P) · {LABOR_ANALYSIS.totals.tradeHours.toLocaleString()} trade (billable)
+            </span>
+          </div>
+          <Card padding={0}>
+            <table style={{ width: "100%", borderCollapse: "collapse" }}>
+              <thead>
+                <tr>
+                  <th style={{ ...ThStyle, textAlign: "left" }}>EMPLOYEE</th>
+                  <th style={{ ...ThStyle, textAlign: "left" }}>ROLE</th>
+                  <th style={{ ...ThStyle, textAlign: "right" }}>SUPERVISION</th>
+                  <th style={{ ...ThStyle, textAlign: "right" }}>TRADE</th>
+                  <th style={{ ...ThStyle, textAlign: "right" }}>TOTAL</th>
+                  <th style={{ ...ThStyle, textAlign: "right" }}>% TRADE</th>
+                  <th style={{ ...ThStyle, textAlign: "left" }}>DATE RANGE</th>
+                </tr>
+              </thead>
+              <tbody>
+                {LABOR_ANALYSIS.employees.map((emp, i) => {
+                  const pctTrade = emp.totalHours > 0 ? Math.round((emp.tradeHours / emp.totalHours) * 100) : 0;
+                  const isSupOnly = pctTrade === 0;
+                  const isMixed = emp.supHours > 0 && emp.tradeHours > 0;
+                  return (
+                    <tr key={emp.name} style={{ background: isSupOnly ? T.surfaceHover : "transparent" }}>
+                      <td style={{ ...TdStyle, fontWeight: 500 }}>{emp.name}</td>
+                      <td style={{ ...TdStyle, fontSize: 11, color: T.textMuted }}>{emp.role}</td>
+                      <td style={{ ...TdStyle, textAlign: "right", fontFamily: T.mono, color: emp.supHours > 0 ? T.textMuted : T.textMuted }}>
+                        {emp.supHours > 0 ? emp.supHours.toLocaleString() : "—"}
+                      </td>
+                      <td style={{ ...TdStyle, textAlign: "right", fontFamily: T.mono, color: emp.tradeHours > 0 ? T.text : T.textMuted }}>
+                        {emp.tradeHours > 0 ? emp.tradeHours.toLocaleString() : "—"}
+                      </td>
+                      <td style={{ ...TdStyle, textAlign: "right", fontFamily: T.mono, fontWeight: 500 }}>{emp.totalHours.toLocaleString()}</td>
+                      <td style={{ ...TdStyle, textAlign: "right" }}>
+                        <span style={{
+                          fontFamily: T.mono, fontSize: 11, padding: "2px 6px", borderRadius: 4,
+                          background: isSupOnly ? T.surfaceHover : pctTrade === 100 ? T.greenBg : T.amberBg,
+                          color: isSupOnly ? T.textMuted : pctTrade === 100 ? T.green : T.amber,
+                        }}>
+                          {pctTrade}%
+                        </span>
+                      </td>
+                      <td style={{ ...TdStyle, fontSize: 11, color: T.textMuted, fontFamily: T.mono }}>{emp.dateRange}</td>
+                    </tr>
+                  );
+                })}
+              </tbody>
+              <tfoot>
+                <tr style={{ background: T.bg }}>
+                  <td colSpan={2} style={{ ...TdStyle, fontSize: 11, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, borderBottom: "none" }}>TOTALS</td>
+                  <td style={{ ...TdStyle, textAlign: "right", fontFamily: T.mono, borderBottom: "none", color: T.textMuted }}>{LABOR_ANALYSIS.totals.supHours.toLocaleString()}</td>
+                  <td style={{ ...TdStyle, textAlign: "right", fontFamily: T.mono, borderBottom: "none" }}>{LABOR_ANALYSIS.totals.tradeHours.toLocaleString()}</td>
+                  <td style={{ ...TdStyle, textAlign: "right", fontFamily: T.mono, fontWeight: 600, borderBottom: "none" }}>{LABOR_ANALYSIS.totals.totalHours.toLocaleString()}</td>
+                  <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}>
+                    <span style={{ fontFamily: T.mono, fontSize: 11, padding: "2px 6px", borderRadius: 4, background: T.amberBg, color: T.amber }}>
+                      {Math.round((LABOR_ANALYSIS.totals.tradeHours / LABOR_ANALYSIS.totals.totalHours) * 100)}%
+                    </span>
+                  </td>
+                  <td style={{ borderBottom: "none" }} />
+                </tr>
+              </tfoot>
+            </table>
+          </Card>
+        </div>
       </div>
 
       {editing && (
