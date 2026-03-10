@@ -2,6 +2,11 @@
 supabase-config.json
 CLAUDE/
 
+# Build artifacts
+node_modules/
+dist/
+*.timestamp-*
+
 # OS files
 .DS_Store
 Thumbs.db
