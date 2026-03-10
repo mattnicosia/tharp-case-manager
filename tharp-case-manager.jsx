@@ -248,6 +248,7 @@ const REQ_DEFAULTS = (i) => ({
   excelSubtotal: 0,      // Excel pre-fee subtotal
   excelFee: 0,           // Excel 25% OH&P fee
   pdfReqNum: "",         // AIA G702 application number
+  arbitratorQA: [],      // Array of { q, a, status } for anticipated arbitrator questions
 });
 
 // Excel data per req: [excelTotal, excelSubtotal, excelFee, month, reqNum]
@@ -292,20 +293,48 @@ REQS_INITIAL[0] = {
   hasInvoiceSupport: true,
   hasCheckVouchers: false,
   flags: ["blended_rate", "sub_as_labor", "overhead_as_material"],
-  notes: `Period: 12/15/21–01/15/22. AIA G702 App No. 1, certified $60,373.25. Excel CM Tracker: $45,373.25.
-VARIANCE: +$15,000.00 — Kitchen Radiant CO (PCO#003) billed on G702 but tracked separately in Excel.
+  notes: `Period: 12/15/21–01/15/22. AIA G702 App No. 1, certified $60,373.25.
 
 LINE ITEMS (G703): Demolition $20,331.61 · Containers $6,458.15 · Framing Material $1,908.84 · HVAC $7,600.00 · OH&P $9,074.65 · CO Kitchen Radiant $15,000.00
 
 LABOR ($18,360 @ $60/hr): Sandoval, Ficucello, Grosso, Yuvienco, Avelino, Falsetti
-⚠ DSL Landscaping 3-man crew (24hrs @ $60 = $1,440) — sub billed as direct labor
-⚠ DSL Landscaping 2-man crew (16hrs @ $60 = $960) — sub billed as direct labor
-⚠ DSL Landscaping multiple days 1/12–1/14 — same issue
+DSL Landscaping 3-man crew (24hrs @ $60 = $1,440)
+DSL Landscaping 2-man crew (16hrs @ $60 = $960)
+DSL Landscaping multiple days 1/12–1/14
 
-MATERIALS: Builders FirstSource $264.65 (framing — OK) · Beckerle tempered hardboard $52.02 (OK)
-⚠ Beckerle saw blades $28.11 — tools, §9.3.1 contractor's responsibility
-⚠ Beckerle 3M dust masks $22.77 — overhead, §9.3.1 contractor's responsibility
-Total overhead-as-materials exposure this req: $50.88 minimum`,
+MATERIALS: Builders FirstSource $264.65 (framing) · Beckerle tempered hardboard $52.02 · Beckerle saw blades $28.11 · Beckerle 3M dust masks $22.77`,
+  arbitratorQA: [
+    {
+      q: "DSL Landscaping appears on timesheets as direct labor but is a subcontractor. Why is a sub billed through the labor column?",
+      a: "DSL Landscaping is a per-diem labor subcontractor Montana uses for incidental labor needs. No formal subcontract was issued. $60/hr is DSL's billing rate — what Montana pays them. This arrangement was reviewed with the owner multiple times. The 25% OH&P markup applies uniformly to all cost categories (labor, materials, subs), so billing DSL through the labor column vs. the sub column has no financial impact to the owner.",
+      status: "answered",
+    },
+    {
+      q: "The timesheets show six different workers all billed at the same $60/hr rate. What are their actual payroll rates?",
+      a: "Montana disclosed to the owner that it would normalize its billing rate to $60/hr because it would be impossible to bill each employee using their independent costs, burden, and rates across each budgeted line item while maintaining accurate cost control. The $60/hr rate is an aggregated unit cost covering payroll, burden, travel, and consumables related to the trade-specific work being performed. This rate was presented on all change orders provided to the client throughout the entire course of construction. It was never contested, and all change orders were paid until the owner stopped releasing payments.",
+      status: "answered",
+    },
+    {
+      q: "Saw blades ($28.11) and dust masks ($22.77) are billed as materials. Are these reimbursable costs or contractor overhead?",
+      a: "When Montana self-performs trade work, it stands in the place of a subcontractor. A subcontractor would embed these costs — blades, PPE, consumables — in their invoice without itemization, and the owner would pay that invoice plus 25%. Montana's approach gives the owner at-cost transparency rather than a sub's marked-up lump sum. The saw blades were purchased to cut lumber for framing and are properly charged to the framing materials line item. The dust masks ($22.77) could arguably be considered general conditions — Montana is willing to concede items like this where appropriate, but the total exposure is minimal.",
+      status: "answered",
+    },
+    {
+      q: "Demolition is the largest line item at $20,331.61 (34% of the requisition). What backup supports this amount?",
+      a: "",
+      status: "open",
+    },
+    {
+      q: "Was the Kitchen Radiant change order (PCO#003, $15,000) approved by the owner before work was performed?",
+      a: "",
+      status: "open",
+    },
+    {
+      q: "What was the scope of the $7,600 HVAC charge and what backup invoice supports it?",
+      a: "",
+      status: "open",
+    },
+  ],
 };
 
 // Override REQ-02 with PDF-derived data (Invoice #2.pdf — 30 pages reviewed)
@@ -2235,6 +2264,41 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                 <textarea value={editing.notes} onChange={e => updateReq(editing.id, { notes: e.target.value })}
                   rows={3} style={{ width: "100%", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 6, padding: "8px 10px", color: T.text, fontSize: 13, outline: "none", resize: "vertical", boxSizing: "border-box", fontFamily: T.font, lineHeight: 1.6 }} />
               </div>
+
+              {/* ── ARBITRATOR Q&A ── */}
+              {editing.arbitratorQA && editing.arbitratorQA.length > 0 && (
+                <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 10, fontFamily: T.font }}>
+                    <Ic name="scale" size={14} color={T.accent} />
+                    ARBITRATOR Q&A ({editing.arbitratorQA.filter(qa => qa.status === "answered").length}/{editing.arbitratorQA.length} answered)
+                  </label>
+                  {editing.arbitratorQA.map((qa, idx) => {
+                    const isOpen = qa.status === "open";
+                    const borderColor = isOpen ? T.amberBorder : T.greenBorder;
+                    const bgColor = isOpen ? T.amberBg : T.greenBg;
+                    const iconColor = isOpen ? T.amber : T.green;
+                    return (
+                      <div key={idx} style={{ marginBottom: 10, borderRadius: 8, border: `1px solid ${borderColor}`, overflow: "hidden" }}>
+                        <div style={{ padding: "10px 12px", background: bgColor, display: "flex", gap: 8, alignItems: "flex-start" }}>
+                          <Ic name={isOpen ? "alert" : "check"} size={14} color={iconColor} style={{ marginTop: 1, flexShrink: 0 }} />
+                          <div style={{ fontSize: 12, fontWeight: 500, color: T.text, fontFamily: T.font, lineHeight: 1.5 }}>
+                            {qa.q}
+                          </div>
+                        </div>
+                        {qa.a ? (
+                          <div style={{ padding: "10px 12px 12px 34px", fontSize: 12, color: T.textMid, fontFamily: T.font, lineHeight: 1.65, background: T.surface }}>
+                            {qa.a}
+                          </div>
+                        ) : (
+                          <div style={{ padding: "8px 12px 10px 34px", fontSize: 11, fontStyle: "italic", color: T.amber, fontFamily: T.font, background: T.surface }}>
+                            Awaiting response
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
 
               {/* ── LINKED DOCUMENTS ── */}
               <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
