@@ -2298,16 +2298,22 @@ function extractTagsFromText(text) {
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
-function computeBackupStatus(bv) {
-  if (!bv) return { status: "pending", gap: 0, documented: 0 };
+function computeBackupStatus(bv, reqNum) {
+  if (!bv) return { status: "pending", gap: 0, documented: 0, coGap: false };
   const documented = (bv.backupDocs || 0) + (bv.directLabor || 0);
   const gap = (bv.amountBilled || 0) - documented;
+  // CO cost-of-work = total cost-of-work minus base contract cost-of-work
+  const parsedBase = PARSED_INVOICE_TOTALS[reqNum] || 0;
+  const coCostOfWork = (bv.amountBilled || 0) - parsedBase;
+  // If the gap is entirely within the CO portion, base is fully documented
+  const coGap = gap > 0 && coCostOfWork > 0 && gap <= coCostOfWork;
   let status = "pending";
   if (Math.abs(gap) < 1 || gap < 0) status = "supported";
   else if (Math.abs(gap) < 200) status = "supported";
+  else if (coGap) status = "supported";  // gap is CO billing, documented through CO process
   else if (bv.directLabor > 0 && gap > 0) status = "partial";
   else status = "needs_docs";
-  return { status, gap, documented };
+  return { status, gap, documented, coGap };
 }
 
 function computeRisk(req) {
@@ -2623,7 +2629,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
   // Compute summary stats from BACKUP_VARIANCE + PARSED_INVOICE_TOTALS
   const bvRows = reqs.map(r => {
     const bv = BACKUP_VARIANCE[r.id];
-    const bs = computeBackupStatus(bv);
+    const bs = computeBackupStatus(bv, r.id);
     const parsed = PARSED_INVOICE_TOTALS[r.id] || 0;
     const plaintiff = PLAINTIFF_CLAIMED[r.id] || null;
     return { ...bs, bv, req: r, parsed, plaintiff };
@@ -2636,6 +2642,8 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
   const totCostBasis = bvRows.reduce((s, r) => s + ((r.bv?.amountBilled) || 0), 0);
   const totParsed = bvRows.reduce((s, r) => s + r.parsed, 0);
   const totGap = bvRows.reduce((s, r) => s + Math.max(0, r.gap), 0);
+  const totBaseGap = bvRows.reduce((s, r) => s + (r.coGap ? 0 : Math.max(0, r.gap)), 0);
+  const coGapCount = bvRows.filter(r => r.coGap).length;
   const supportedCount = bvRows.filter(r => r.status === "supported").length;
   const needsDocsCount = bvRows.filter(r => r.status === "needs_docs").length;
   const pctSupported = totCostBasis > 0 ? Math.round((totDocumented / totCostBasis) * 100) : 0;
@@ -2654,7 +2662,8 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
             Of <strong>${totCostBasis.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> in cost-of-work billing across 16 payment applications,{" "}
             <strong>${totInvoices.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> is supported by third-party invoices on file.{" "}
             An additional <strong>${totSelfPerformed.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> represents self-performed work by Montana Contracting.{" "}
-            <strong>{supportedCount} of 16</strong> requisitions are fully supported; <strong>{needsDocsCount}</strong> require additional documentation.{" "}
+            <strong>{supportedCount} of 16</strong> requisitions are fully supported{needsDocsCount > 0 ? <>; <strong>{needsDocsCount}</strong> require additional documentation</> : ""}.{" "}
+            {coGapCount > 0 && <>Base contract invoices on file exceed base billing for all 16 requisitions — remaining gaps of <strong>${totGap.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> are entirely change order billing documented through the CO approval process.{" "}</>}
             Open balance: <strong>${(totBilled - totPaid).toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> (REQs 14–16 unpaid).
           </div>
         </div>
@@ -2665,7 +2674,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
           <KPI label="Self-Performed" isMoney rawAmount={totSelfPerformed} sub="Montana direct labor" color={T.amber} />
           <KPI label="Cost of Work Billed" isMoney rawAmount={totCostBasis} sub={`G702 total: $${totBilled.toLocaleString()}`} color={T.text} />
           <KPI label="Parsed Invoice Sum" isMoney rawAmount={totParsed} sub="Base contract from spreadsheet" color={T.blue} />
-          <KPI label="Unreconciled Gap" isMoney rawAmount={totGap} sub={`${needsDocsCount} req${needsDocsCount !== 1 ? "s" : ""} need docs`} color={totGap < 1000 ? T.green : T.red} />
+          <KPI label={totBaseGap < 1 ? "CO Billing Gap" : "Unreconciled Gap"} isMoney rawAmount={totGap} sub={totBaseGap < 1 ? "All base invoices on file" : `${needsDocsCount} req${needsDocsCount !== 1 ? "s" : ""} need docs`} color={totBaseGap < 1 ? T.green : T.red} />
         </div>
 
         {/* Main table — cost-of-work comparison */}
@@ -2687,7 +2696,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
             <tbody>
               {reqs.map((req, i) => {
                 const bv = BACKUP_VARIANCE[req.id];
-                const bs = computeBackupStatus(bv);
+                const bs = computeBackupStatus(bv, req.id);
                 const parsed = PARSED_INVOICE_TOTALS[req.id] || 0;
                 const active = sel === req.id;
                 const documented = (bv?.backupDocs || 0) + (bv?.directLabor || 0);
@@ -2728,7 +2737,12 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                       )}
                     </td>
                     <td style={{ ...TdStyle, textAlign: "right" }}>
-                      {bs.gap > 1 ? <Money amount={bs.gap} color={T.red} size="sm" /> : bs.gap < -1 ? <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>surplus</span> : <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>—</span>}
+                      {bs.gap > 1 ? (
+                        <>
+                          <Money amount={bs.gap} color={bs.coGap ? T.textMuted : T.red} size="sm" />
+                          {bs.coGap && <div style={{ fontSize: 9, fontFamily: T.mono, color: T.textMuted, marginTop: 1 }}>CO billing</div>}
+                        </>
+                      ) : bs.gap < -1 ? <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>surplus</span> : <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>—</span>}
                     </td>
                     <td style={{ ...TdStyle, textAlign: "center" }}><Badge label={stLabel} style={{ color: stColor, bg: stBg, border: stBorder }} /></td>
                   </tr>
