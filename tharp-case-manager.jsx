@@ -5918,6 +5918,476 @@ Only include fields you can confidently determine. Return valid JSON only.`;
   }
 }
 
+// ── ARBITRATOR Q&A CHAT ─────────────────────────────────────────────────────
+function buildQAChatPrompt(arbitratorId, reqs, claims) {
+  const profile = ARBITRATOR_PROFILES.find(p => p.id === arbitratorId) || ARBITRATOR_PROFILES[0];
+  const totalBilled = reqs.reduce((s, r) => s + (r.totalBilled || 0), 0);
+  const totalPaid = reqs.reduce((s, r) => s + (r.paidAmount || 0), 0);
+  const outstanding = totalBilled - totalPaid;
+  const activeCOs = CHANGE_ORDERS.filter(c => c.status !== "Void");
+  const netCO = activeCOs.reduce((s, c) => s + c.amount, 0);
+  const totalInvoices = INVOICE_CATALOGUE.reduce((s, i) => s + i.amount, 0);
+
+  // Serialize claims
+  const claimsText = claims.map(c =>
+    `#${c.id}: "${c.description}" — Owner claims $${c.ownerAmount.toLocaleString()}, MC agreed $${c.agreedAmount.toLocaleString()}, Status: ${c.status}, Defense: ${c.defense}, Strength: ${c.strength}`
+  ).join("\n");
+
+  // Serialize COs (compressed)
+  const cosText = activeCOs.map(c =>
+    `PCCO#${String(c.co).padStart(3,"0")}: $${c.amount.toLocaleString()} — ${c.desc} (REQ-${c.req ? String(c.req).padStart(2,"0") : "?"})`
+  ).join("\n");
+
+  // Serialize per-req summary
+  const reqsText = reqs.map(r => {
+    const bv = BACKUP_VARIANCE[r.id] || {};
+    return `REQ-${String(r.id).padStart(2,"0")}: Billed $${(r.totalBilled||0).toLocaleString()}, Paid $${(r.paidAmount||0).toLocaleString()}, Backup $${(bv.backupDocs||0).toLocaleString()}, Labor $${(bv.directLabor||0).toLocaleString()}, Flags: [${r.flags.join(", ")}], Backup: ${r.backupStatus}`;
+  }).join("\n");
+
+  // Serialize timecard summary
+  const tcText = TIMECARD_DATA.map(t =>
+    `REQ-${String(t.req).padStart(2,"0")}: ${t.hours} hrs, ${t.empCount} employees, ${t.type} (${t.dateRange})`
+  ).join("\n");
+
+  // Serialize invoice catalogue (compressed)
+  const invByReq = {};
+  INVOICE_CATALOGUE.forEach(inv => {
+    if (!invByReq[inv.req]) invByReq[inv.req] = [];
+    invByReq[inv.req].push(inv);
+  });
+  const invText = Object.entries(invByReq).map(([req, invs]) =>
+    `REQ-${String(req).padStart(2,"0")} (${invs.length} invoices, $${invs.reduce((s,i)=>s+i.amount,0).toLocaleString()}): ${invs.map(i => `${i.id}: ${i.vendor} $${i.amount.toLocaleString()}`).join("; ")}`
+  ).join("\n");
+
+  // Serialize pre-vetted Q&A pairs
+  const qaText = reqs.filter(r => r.arbitratorQA && r.arbitratorQA.length > 0).map(r =>
+    `--- REQ-${String(r.id).padStart(2,"0")} ---\n` + r.arbitratorQA.map(qa =>
+      `Q: ${qa.q}\nA: ${qa.a}`
+    ).join("\n\n")
+  ).join("\n\n");
+
+  return `You are Montana Contracting's lead counsel responding to questions from the arbitrator in AAA Case No. 01-24-0004-6683 (Montana Contracting Corp v. Tharp/Bumgardner).
+
+ROLE: You advocate for Montana Contracting (the GC/construction manager). Be professional, factual, and persuasive. Acknowledge weaknesses honestly when pressed but always frame them in the most favorable light supported by evidence.
+
+CASE OVERVIEW:
+- Project: Residential renovation at 515 N. Midland Ave, Upper Nyack NY
+- Contract: AIA A110-2021 (Cost of Work + 25% OH&P)
+- Arbitrator: Robin S. Abramowitz (AAA Construction Panel)
+- Total Billed: $${totalBilled.toLocaleString()} across 16 requisitions (AIA G702/G703 format)
+- Total Paid: $${totalPaid.toLocaleString()}
+- Outstanding Balance: $${outstanding.toLocaleString()}
+- Original Contract: $1,183,411.00
+- Net Change Orders: $${netCO.toLocaleString()} (${activeCOs.length} PCCOs — all verbally approved by owner before PCCO creation)
+- Adjusted Contract Scope: $${(1183411 + netCO).toLocaleString()}
+- Project exceeded 240-day substantial completion deadline by 419 days due to owner-directed scope expansion (${activeCOs.length} change orders)
+
+KEY CONTRACTUAL PROVISIONS:
+- AIA A110 §3.3: Cost of Work + 25% OH&P (overhead and profit)
+- AIA A110 §3.3.2: When a trade line completes under budget, Montana bills to 100% of scheduled value, then issues credit CO for owner's 50% share of savings
+- §21.11: Mutual waiver of consequential damages (bars delay/rental claims)
+- All PCOs (Potential Change Orders) were verbally approved by owner before formal PCCO creation
+- $60/hr blended labor rate: aggregated unit cost covering payroll, burden, travel, consumables — presented on all COs throughout construction, never contested by owner until dispute
+
+CURRENT ARBITRATOR PROFILE:
+Name: ${profile.name}
+Bio: ${profile.bio}
+Traits (0-1 scale):
+- Contract Adherence: ${profile.traits.contractWeight} (1.0 = strict textualist)
+- Documentation Rigor: ${profile.traits.docRequired} (1.0 = every dollar must be documented)
+- Owner Sympathy: ${profile.traits.ownerBias} (0.5 = neutral)
+- Analytical Depth: ${profile.traits.analyticalRigor} (1.0 = deep forensic audit)
+- Industry Deference: ${profile.traits.industryStandard} (1.0 = favors trade custom)
+- Pragmatism: ${profile.traits.pragmatism} (1.0 = split-the-difference)
+
+Calibrate your answers to this arbitrator's tendencies. A high-documentation arbitrator needs specific invoice IDs and page references. A pragmatic arbitrator wants bottom-line numbers and reasonable compromise positions.
+
+=== OWNER'S 24 CLAIMS ===
+${claimsText}
+
+=== 16 REQUISITIONS (SUMMARY) ===
+${reqsText}
+
+=== ${activeCOs.length} CHANGE ORDERS (PCCOs) ===
+${cosText}
+
+=== TIMECARD DATA ===
+${tcText}
+
+=== INVOICE CATALOGUE (${INVOICE_CATALOGUE.length} invoices, $${totalInvoices.toLocaleString()}) ===
+${invText}
+
+=== PRE-VETTED ARBITRATOR Q&A (use these answers when questions overlap) ===
+${qaText}
+
+RESPONSE RULES:
+1. ALWAYS cite specific evidence using these exact formats: [REQ-01], [CO#001], [INV R04-012], [CLAIM #4]. Use these markers whenever referencing data.
+2. Never fabricate evidence. If backup is missing, say so and explain what does exist.
+3. When a pre-vetted Q&A answer covers the topic, use that answer as your foundation but adapt it to the specific question asked.
+4. Keep responses focused and structured. Use short paragraphs. Lead with the strongest point.
+5. When discussing dollar amounts, always provide the specific figure from the data.
+6. If the question touches a known risk area (e.g., no W-2s on file, $60/hr rate documentation), acknowledge it proactively and present the best available defense.`;
+}
+
+function sendQAMessage(userMsg, history, systemPrompt) {
+  const apiKey = window._openaiKey;
+  if (!apiKey) return Promise.reject(new Error("OpenAI API key not configured. Click the settings gear to add your key."));
+  const trimmed = history.length > 20 ? history.slice(-20) : history;
+  return fetch("https://api.openai.com/v1/chat/completions", {
+    method: "POST",
+    headers: { "Content-Type": "application/json", Authorization: "Bearer " + apiKey },
+    body: JSON.stringify({
+      model: "gpt-4o",
+      messages: [{ role: "system", content: systemPrompt }, ...trimmed, { role: "user", content: userMsg }],
+      temperature: 0.4,
+      max_tokens: 2048,
+    }),
+  }).then(res => {
+    if (!res.ok) return res.json().catch(() => ({})).then(e => { throw new Error(e.error?.message || "API error " + res.status); });
+    return res.json();
+  }).then(data => data.choices[0].message.content);
+}
+
+function parseCitations(text) {
+  const parts = [];
+  const regex = /\[(REQ-\d{1,2}|CO#\d{1,3}|INV R\d{2}-\d{3}\w?|CLAIM #\d{1,2})\]/g;
+  let last = 0;
+  let match;
+  while ((match = regex.exec(text)) !== null) {
+    if (match.index > last) parts.push({ type: "text", value: text.slice(last, match.index) });
+    parts.push({ type: "citation", value: match[1] });
+    last = regex.lastIndex;
+  }
+  if (last < text.length) parts.push({ type: "text", value: text.slice(last) });
+  return parts;
+}
+
+function lookupCitation(tag) {
+  const reqMatch = tag.match(/^REQ-(\d{1,2})$/);
+  if (reqMatch) {
+    const id = parseInt(reqMatch[1]);
+    const bv = BACKUP_VARIANCE[id] || {};
+    return { type: "Requisition", id: `REQ-${String(id).padStart(2,"0")}`, fields: [
+      ["Billed", "$" + (bv.amountBilled || 0).toLocaleString()],
+      ["Backup Docs", "$" + (bv.backupDocs || 0).toLocaleString()],
+      ["Direct Labor", "$" + (bv.directLabor || 0).toLocaleString()],
+    ]};
+  }
+  const coMatch = tag.match(/^CO#(\d{1,3})$/);
+  if (coMatch) {
+    const co = CHANGE_ORDERS.find(c => c.co === parseInt(coMatch[1]));
+    if (co) return { type: "Change Order", id: `PCCO #${String(co.co).padStart(3,"0")}`, fields: [
+      ["Description", co.desc],
+      ["Amount", "$" + co.amount.toLocaleString()],
+      ["REQ", co.req ? `REQ-${String(co.req).padStart(2,"0")}` : "—"],
+      ["Status", co.status],
+    ]};
+  }
+  const invMatch = tag.match(/^INV (R\d{2}-\d{3}\w?)$/);
+  if (invMatch) {
+    const inv = INVOICE_CATALOGUE.find(i => i.id === invMatch[1]);
+    if (inv) return { type: "Invoice", id: inv.id, fields: [
+      ["Vendor", inv.vendor],
+      ["Description", inv.desc],
+      ["Amount", "$" + inv.amount.toLocaleString()],
+      ["REQ", `REQ-${String(inv.req).padStart(2,"0")}`],
+      ["Backup", inv.hasBackup ? "On file" : "Missing"],
+    ]};
+  }
+  const claimMatch = tag.match(/^CLAIM #(\d{1,2})$/);
+  if (claimMatch) {
+    const cl = OWNER_CLAIMS_INITIAL.find(c => c.id === parseInt(claimMatch[1]));
+    if (cl) return { type: "Owner Claim", id: `Claim #${cl.id}`, fields: [
+      ["Description", cl.description],
+      ["Owner Amount", "$" + cl.ownerAmount.toLocaleString()],
+      ["MC Agreed", "$" + cl.agreedAmount.toLocaleString()],
+      ["Status", cl.status],
+      ["Strength", cl.strength],
+    ]};
+  }
+  return null;
+}
+
+function getSuggestedQuestions(arbitratorId) {
+  const p = ARBITRATOR_PROFILES.find(a => a.id === arbitratorId) || ARBITRATOR_PROFILES[0];
+  const qs = [];
+  // Always include general questions
+  qs.push("Walk me through the outstanding balance. Why does Montana believe it is owed $497,438?");
+  qs.push("The project was 419 days late. Who is responsible for the delay?");
+  // Trait-driven questions
+  if (p.traits.docRequired > 0.7) {
+    qs.push("REQ-14 shows $15,862 in self-performed labor with no employee timecards. How do you document that?");
+    qs.push("Where are the W-2s or payroll registers supporting the $60/hr blended labor rate?");
+  }
+  if (p.traits.ownerBias > 0.6) {
+    qs.push("The owners paid $1.34 million and claim their home still has defects. How do you justify that?");
+    qs.push("The fireplace claim is $45,000. The owner says it's sloppy. What's your response?");
+  }
+  if (p.traits.contractWeight > 0.7) {
+    qs.push("Show me exactly where in AIA A110 the $60/hr blended rate is authorized.");
+    qs.push("Section 3.3.2 savings-split — explain how REQ-16's closeout credits work under this provision.");
+  }
+  if (p.traits.analyticalRigor > 0.7) {
+    qs.push("REQ-13 covers a 3.5-month billing gap. Break down the $147,391 billed during that period.");
+    qs.push("Cross-reference the HVAC line: the base contract shows $44K but REQ-14 bills $72,615. Explain the variance.");
+  }
+  if (p.traits.industryStandard > 0.7) {
+    qs.push("Is a $60/hr blended rate reasonable for residential renovation in the Hudson Valley?");
+    qs.push("How common is it for GCs to bill cost-plus with 25% OH&P on a project of this size?");
+  }
+  if (p.traits.pragmatism > 0.7) {
+    qs.push("If we set aside the disputed claims, what's the realistic settlement range?");
+    qs.push("Montana agreed to $22,569 in credits. Is there room for additional concessions to resolve this?");
+  }
+  return qs.slice(0, 8);
+}
+
+function ArbitratorQAChat({ reqs, claims, docs }) {
+  const [messages, setMessages] = useState(() => {
+    try { const s = localStorage.getItem("tharp-qa-current"); return s ? JSON.parse(s) : []; } catch { return []; }
+  });
+  const [input, setInput] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [arbId, setArbId] = useState("abramowitz");
+  const [sidebar, setSidebar] = useState(null);
+  const [showSuggested, setShowSuggested] = useState(false);
+  const chatRef = useRef(null);
+  const inputRef = useRef(null);
+
+  // Persist messages
+  useEffect(() => {
+    try { localStorage.setItem("tharp-qa-current", JSON.stringify(messages)); } catch {}
+  }, [messages]);
+
+  // Auto-scroll
+  useEffect(() => {
+    if (chatRef.current) chatRef.current.scrollTop = chatRef.current.scrollHeight;
+  }, [messages, loading]);
+
+  const send = async (text) => {
+    const msg = (text || input).trim();
+    if (!msg || loading) return;
+    setInput("");
+    setShowSuggested(false);
+    const newMsgs = [...messages, { role: "user", content: msg, ts: Date.now() }];
+    setMessages(newMsgs);
+    setLoading(true);
+    try {
+      const prompt = buildQAChatPrompt(arbId, reqs, claims);
+      const history = newMsgs.map(m => ({ role: m.role, content: m.content }));
+      const reply = await sendQAMessage(msg, history.slice(0, -1), prompt);
+      setMessages(prev => [...prev, { role: "assistant", content: reply, ts: Date.now() }]);
+    } catch (err) {
+      setMessages(prev => [...prev, { role: "assistant", content: "Error: " + err.message, ts: Date.now(), error: true }]);
+    }
+    setLoading(false);
+  };
+
+  const clearChat = () => { setMessages([]); setSidebar(null); };
+
+  const exportChat = () => {
+    const md = messages.map(m =>
+      m.role === "user" ? `**ARBITRATOR:** ${m.content}` : `**MONTANA COUNSEL:** ${m.content}`
+    ).join("\n\n---\n\n");
+    const header = `# Arbitrator Q&A Session\n**Arbitrator Profile:** ${ARBITRATOR_PROFILES.find(a=>a.id===arbId)?.name}\n**Date:** ${new Date().toLocaleDateString()}\n**Case:** Montana v. Tharp/Bumgardner (AAA 01-24-0004-6683)\n\n---\n\n`;
+    navigator.clipboard.writeText(header + md).then(() => alert("Session copied to clipboard as Markdown."));
+  };
+
+  const suggested = getSuggestedQuestions(arbId);
+  const profile = ARBITRATOR_PROFILES.find(a => a.id === arbId) || ARBITRATOR_PROFILES[0];
+
+  const CitationChip = ({ tag }) => {
+    const data = lookupCitation(tag);
+    return (
+      <span onClick={() => data && setSidebar(data)} style={{
+        display: "inline", background: T.accent + "18", color: T.accent, padding: "1px 6px",
+        borderRadius: 4, fontSize: 12, fontFamily: T.mono, cursor: data ? "pointer" : "default",
+        borderBottom: data ? `1px dashed ${T.accent}` : "none", whiteSpace: "nowrap",
+      }}>[{tag}]</span>
+    );
+  };
+
+  const renderContent = (text) => {
+    const parts = parseCitations(text);
+    return parts.map((p, i) => p.type === "citation"
+      ? <CitationChip key={i} tag={p.value} />
+      : <span key={i} style={{ whiteSpace: "pre-wrap" }}>{p.value}</span>
+    );
+  };
+
+  return (
+    <div style={{ display: "flex", gap: 0, minHeight: "calc(100vh - 200px)" }}>
+      {/* Main chat area */}
+      <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
+        {/* Header */}
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+          <div style={{ flex: 1 }}>
+            <h2 style={{ fontSize: 24, fontWeight: 700, color: T.text, margin: 0, fontFamily: T.font }}>
+              <span style={{ borderLeft: `4px solid ${T.accent}`, paddingLeft: 16 }}>Arbitrator Q&A</span>
+            </h2>
+            <p style={{ fontSize: 13, color: T.textMuted, margin: "4px 0 0 20px", fontFamily: T.font }}>
+              Practice fielding arbitrator questions — AI responds as Montana's counsel using case evidence
+            </p>
+          </div>
+          <select value={arbId} onChange={e => setArbId(e.target.value)} style={{
+            padding: "8px 12px", borderRadius: 8, border: `1px solid ${T.border}`,
+            background: T.surface, color: T.text, fontFamily: T.font, fontSize: 13, cursor: "pointer",
+          }}>
+            {ARBITRATOR_PROFILES.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
+          </select>
+          <button onClick={exportChat} disabled={messages.length === 0} style={{
+            padding: "8px 14px", borderRadius: 8, border: `1px solid ${T.border}`,
+            background: T.surface, color: messages.length ? T.text : T.textMuted, fontFamily: T.font,
+            fontSize: 12, cursor: messages.length ? "pointer" : "default", display: "flex", alignItems: "center", gap: 5,
+          }}><Ic name="copy" size={13} color={messages.length ? T.text : T.textMuted} />Export</button>
+          <button onClick={clearChat} disabled={messages.length === 0} style={{
+            padding: "8px 14px", borderRadius: 8, border: `1px solid ${T.border}`,
+            background: T.surface, color: messages.length ? T.red : T.textMuted, fontFamily: T.font,
+            fontSize: 12, cursor: messages.length ? "pointer" : "default", display: "flex", alignItems: "center", gap: 5,
+          }}><Ic name="trash" size={13} color={messages.length ? T.red : T.textMuted} />Clear</button>
+        </div>
+
+        {/* Arbitrator profile card */}
+        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: 16, marginBottom: 16, display: "flex", gap: 16, alignItems: "flex-start" }}>
+          <div style={{ width: 44, height: 44, borderRadius: "50%", background: profile.color + "20", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+            <Ic name="user" size={20} color={profile.color} />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 600, color: T.text, fontFamily: T.font }}>{profile.name}</div>
+            <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font, marginTop: 2 }}>{profile.subtitle}</div>
+            <div style={{ fontSize: 12, color: T.textMid, fontFamily: T.font, marginTop: 6, lineHeight: 1.5 }}>{profile.bio}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+              {Object.entries(profile.traits).map(([k, v]) => (
+                <span key={k} style={{ fontSize: 10, fontFamily: T.mono, padding: "2px 8px", borderRadius: 6, background: v > 0.7 ? T.accent + "15" : T.bg, color: v > 0.7 ? T.accent : T.textMuted }}>
+                  {TRAIT_LABELS[k]?.label || k}: {(v * 100).toFixed(0)}%
+                </span>
+              ))}
+            </div>
+          </div>
+        </div>
+
+        {/* Chat messages */}
+        <div ref={chatRef} style={{
+          flex: 1, overflowY: "auto", minHeight: 300, maxHeight: "calc(100vh - 520px)",
+          background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12, padding: 20,
+          display: "flex", flexDirection: "column", gap: 16,
+        }}>
+          {messages.length === 0 && !loading && (
+            <div style={{ textAlign: "center", padding: "60px 20px", color: T.textMuted }}>
+              <Ic name="message-circle" size={40} color={T.border} />
+              <p style={{ fontSize: 15, fontFamily: T.font, marginTop: 16 }}>Ask a question as the arbitrator</p>
+              <p style={{ fontSize: 12, fontFamily: T.font, marginTop: 4 }}>The AI will respond as Montana's counsel citing specific case evidence</p>
+            </div>
+          )}
+          {messages.map((m, i) => (
+            <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <div style={{
+                width: 32, height: 32, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                background: m.role === "user" ? profile.color + "20" : T.accent + "15",
+              }}>
+                <Ic name={m.role === "user" ? "user" : "scale"} size={15} color={m.role === "user" ? profile.color : T.accent} />
+              </div>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: 11, fontWeight: 600, color: m.role === "user" ? profile.color : T.accent, fontFamily: T.font, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                  {m.role === "user" ? "Arbitrator" : "Montana Counsel"}
+                </div>
+                <div style={{
+                  fontSize: 13, color: m.error ? T.red : T.text, fontFamily: T.font, lineHeight: 1.7,
+                  background: m.role === "user" ? T.surface : "transparent",
+                  padding: m.role === "user" ? "12px 16px" : "0",
+                  borderRadius: m.role === "user" ? 10 : 0,
+                  border: m.role === "user" ? `1px solid ${T.border}` : "none",
+                }}>
+                  {m.role === "assistant" ? renderContent(m.content) : m.content}
+                </div>
+              </div>
+            </div>
+          ))}
+          {loading && (
+            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+              <div style={{ width: 32, height: 32, borderRadius: "50%", background: T.accent + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Ic name="scale" size={15} color={T.accent} />
+              </div>
+              <div style={{ fontSize: 13, color: T.textMuted, fontFamily: T.font, padding: "8px 0" }}>
+                <span style={{ animation: "pulse 1.5s ease-in-out infinite" }}>Preparing response…</span>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Suggested questions */}
+        {showSuggested && (
+          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: 12, marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6 }}>
+            <div style={{ width: "100%", fontSize: 11, fontWeight: 600, color: T.textMuted, fontFamily: T.font, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
+              Suggested questions for {profile.name}
+            </div>
+            {suggested.map((q, i) => (
+              <button key={i} onClick={() => { send(q); setShowSuggested(false); }} style={{
+                background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: "8px 12px",
+                fontSize: 12, color: T.text, fontFamily: T.font, cursor: "pointer", textAlign: "left",
+                lineHeight: 1.4, transition: T.fast,
+              }}>{q}</button>
+            ))}
+          </div>
+        )}
+
+        {/* Input area */}
+        <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "flex-end" }}>
+          <button onClick={() => setShowSuggested(s => !s)} title="Suggested questions" style={{
+            padding: "10px 12px", borderRadius: 10, border: `1px solid ${T.border}`,
+            background: showSuggested ? T.accent + "15" : T.surface, cursor: "pointer", flexShrink: 0,
+          }}>
+            <Ic name="help-circle" size={16} color={showSuggested ? T.accent : T.textMuted} />
+          </button>
+          <textarea
+            ref={inputRef}
+            value={input}
+            onChange={e => setInput(e.target.value)}
+            onKeyDown={e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); send(); } }}
+            placeholder="Ask a question as the arbitrator…"
+            rows={2}
+            style={{
+              flex: 1, padding: "10px 14px", borderRadius: 10, border: `1px solid ${T.border}`,
+              background: T.surface, color: T.text, fontFamily: T.font, fontSize: 13,
+              resize: "vertical", minHeight: 44, lineHeight: 1.5, outline: "none",
+            }}
+          />
+          <button onClick={() => send()} disabled={!input.trim() || loading} style={{
+            padding: "10px 20px", borderRadius: 10, border: "none",
+            background: input.trim() && !loading ? T.accent : T.border,
+            color: input.trim() && !loading ? "#FFF" : T.textMuted,
+            fontFamily: T.font, fontSize: 13, fontWeight: 600, cursor: input.trim() && !loading ? "pointer" : "default",
+            flexShrink: 0, display: "flex", alignItems: "center", gap: 6,
+          }}>
+            <Ic name="send" size={14} color={input.trim() && !loading ? "#FFF" : T.textMuted} />Send
+          </button>
+        </div>
+      </div>
+
+      {/* Evidence sidebar */}
+      {sidebar && (
+        <div style={{ width: 320, marginLeft: 16, flexShrink: 0 }}>
+          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: 20, position: "sticky", top: 20 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
+              <span style={{ fontSize: 11, fontWeight: 600, color: T.accent, fontFamily: T.font, textTransform: "uppercase", letterSpacing: 0.5 }}>{sidebar.type}</span>
+              <button onClick={() => setSidebar(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}>
+                <Ic name="x" size={16} color={T.textMuted} />
+              </button>
+            </div>
+            <div style={{ fontSize: 17, fontWeight: 700, color: T.text, fontFamily: T.font, marginBottom: 16 }}>{sidebar.id}</div>
+            {sidebar.fields.map(([label, val], i) => (
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: `1px solid ${T.border}` }}>
+                <span style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font }}>{label}</span>
+                <span style={{ fontSize: 12, color: T.text, fontFamily: T.font, fontWeight: 500, textAlign: "right", maxWidth: "60%", wordBreak: "break-word" }}>{val}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 // ── AI Command Bar ───────────────────────────────────────────────────────────
 function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, updateDoc, addDoc, removeDoc }) {
   const [open, setOpen] = useState(false);
@@ -6234,6 +6704,7 @@ export default function App() {
     { id: "timeline",     label: "Timeline", icon: "clock" },
     { id: "documents",    label: "Documents", icon: "folder" },
     { id: "catalogue",   label: "Invoice Catalogue", icon: "book" },
+    { id: "qa",          label: "Q&A", icon: "message-circle" },
   ];
   const PREP_TABS = [
     { id: "audit",     label: "Audit Risk", icon: "alert" },
@@ -6301,6 +6772,7 @@ export default function App() {
         {tab === "timeline" && <TimelineTab reqs={reqs} claims={claims} />}
         {tab === "documents" && <Documents docs={docs} updateDoc={updateDoc} addDoc={addDoc} removeDoc={removeDoc} />}
         {tab === "catalogue" && <InvoiceCatalogue />}
+        {tab === "qa" && <ArbitratorQAChat reqs={reqs} claims={claims} docs={docs} />}
         {tab === "audit" && <AuditRisk reqs={reqs} />}
         {tab === "simulator" && <ArbitrationSimulator reqs={reqs} claims={claims} />}
         {tab === "strategy" && <Strategy claims={claims} reqs={reqs} />}
