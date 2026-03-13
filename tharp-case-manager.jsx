@@ -349,6 +349,268 @@ const PLAINTIFF_CLAIMED = {
   // 1: 0, 2: 0, ... etc — awaiting data from Matt
 };
 
+// ── INVOICE CATALOGUE ────────────────────────────────────────────────────────
+// Parsed from billing admin spreadsheet. Base contract invoices (REQs 1-15).
+// CO reallocation entries and REQ-16 closeout to be added in future update.
+const INVOICE_CATALOGUE = [
+  // ── REQ-01 ──
+  { id: "R01-001", req: 1, vendor: "Home Depot", desc: "Miscellaneous materials", amount: 99.52, hasBackup: true, type: "invoice" },
+  { id: "R01-002", req: 1, vendor: "Home Depot", desc: "Miscellaneous materials", amount: 210.66, hasBackup: true, type: "invoice" },
+  { id: "R01-005", req: 1, vendor: "Beckerle", desc: "Tempered Hardboard", amount: 52.02, hasBackup: true, type: "invoice" },
+  { id: "R01-006", req: 1, vendor: "Beckerle", desc: "Blades", amount: 28.11, hasBackup: true, type: "invoice" },
+  { id: "R01-007", req: 1, vendor: "Beckerle", desc: "Protection Material", amount: 414.29, hasBackup: true, type: "invoice" },
+  { id: "R01-008", req: 1, vendor: "BFS", desc: "Temporary Wall Materials", amount: 264.65, hasBackup: true, type: "invoice" },
+  { id: "R01-009", req: 1, vendor: "Home Depot", desc: "Misc. Materials", amount: 122.85, hasBackup: true, type: "invoice" },
+  { id: "R01-010", req: 1, vendor: "Home Depot", desc: "Misc. Materials", amount: 117.46, hasBackup: true, type: "invoice" },
+  { id: "R01-011", req: 1, vendor: "Home Depot", desc: "Misc. Materials", amount: 115.51, hasBackup: true, type: "invoice" },
+  { id: "R01-012", req: 1, vendor: "Home Depot", desc: "Misc. Materials", amount: 47.63, hasBackup: true, type: "invoice" },
+  { id: "R01-013", req: 1, vendor: "Home Depot", desc: "Misc. Materials", amount: 222.11, hasBackup: true, type: "invoice" },
+  { id: "R01-014", req: 1, vendor: "Montana Contracting", desc: "Demolition", amount: 18360, hasBackup: true, type: "self-performed" },
+  { id: "R01-015", req: 1, vendor: "Robert Hiep", desc: "Container", amount: 670.28, hasBackup: true, type: "invoice" },
+  { id: "R01-016", req: 1, vendor: "Robert Hiep", desc: "Container", amount: 753.21, hasBackup: true, type: "invoice" },
+  { id: "R01-017", req: 1, vendor: "Robert Hiep", desc: "Container", amount: 861.58, hasBackup: true, type: "invoice" },
+  { id: "R01-018", req: 1, vendor: "Robert Hiep", desc: "Container", amount: 1886.51, hasBackup: true, type: "invoice" },
+  { id: "R01-019", req: 1, vendor: "Robert Hiep", desc: "Container", amount: 765.86, hasBackup: true, type: "invoice" },
+  { id: "R01-020", req: 1, vendor: "Robert Hiep", desc: "Container", amount: 494.42, hasBackup: true, type: "invoice" },
+  { id: "R01-021", req: 1, vendor: "Robert Hiep", desc: "Container", amount: 574.89, hasBackup: true, type: "invoice" },
+  { id: "R01-022", req: 1, vendor: "Robert Hiep", desc: "Container", amount: 451.4, hasBackup: true, type: "invoice" },
+  { id: "R01-023", req: 1, vendor: "Beckerle Lumber", desc: "Window wrap", amount: 65.68, hasBackup: true, type: "invoice" },
+  { id: "R01-024", req: 1, vendor: "Valley Mechanical Services", desc: "Relocate Furnace", amount: 7600, hasBackup: true, type: "invoice" },
+  // ── REQ-02 ──
+  { id: "R02-001", req: 2, vendor: "Patriot Sawcutting", desc: "Sawcut & chop concrete slab", amount: 11400, hasBackup: true, type: "invoice" },
+  { id: "R02-003a", req: 2, vendor: "Robert Hiep", desc: "Dumpster", amount: 433.5, hasBackup: true, type: "invoice" },
+  { id: "R02-003b", req: 2, vendor: "Paul Bitts", desc: "Excavation", amount: 4400, hasBackup: true, type: "invoice" },
+  { id: "R02-003c", req: 2, vendor: "Rockland Masonry Depot", desc: "Masonry sand", amount: 285.95, hasBackup: true, type: "invoice" },
+  { id: "R02-003d", req: 2, vendor: "Rockland Masonry Depot", desc: "Blue stone", amount: 250.18, hasBackup: true, type: "invoice" },
+  { id: "R02-003e", req: 2, vendor: "Rockland Masonry Depot", desc: "Blue stone", amount: 671.38, hasBackup: true, type: "invoice" },
+  { id: "R02-003f", req: 2, vendor: "Home Depot", desc: "Foamular", amount: 84.47, hasBackup: true, type: "invoice" },
+  { id: "R02-003g", req: 2, vendor: "Builders First Source", desc: "Foamular", amount: 1520.46, hasBackup: true, type: "invoice" },
+  { id: "R02-003h", req: 2, vendor: "Beckerle", desc: "Foam", amount: 50.94, hasBackup: true, type: "invoice" },
+  { id: "R02-003i", req: 2, vendor: "Paul Bitts", desc: "Excavate & backfill", amount: 2670, hasBackup: true, type: "invoice" },
+  { id: "R02-004", req: 2, vendor: "Robert Hiep", desc: "Dumpster", amount: 921.84, hasBackup: true, type: "invoice" },
+  { id: "R02-005", req: 2, vendor: "Robert Hiep", desc: "Dumpster", amount: 581.32, hasBackup: true, type: "invoice" },
+  { id: "R02-006", req: 2, vendor: "Robert Hiep", desc: "Dumpster", amount: 523.97, hasBackup: true, type: "invoice" },
+  { id: "R02-007", req: 2, vendor: "Echo Stamp Concrete", desc: "Cow Barn Slab", amount: 7253, hasBackup: true, type: "invoice" },
+  { id: "R02-008", req: 2, vendor: "Beckerle Lumber", desc: "Douglas FIR", amount: 468.18, hasBackup: true, type: "invoice" },
+  { id: "R02-010", req: 2, vendor: "H&J Home Improvements", desc: "Labor for framing", amount: 10300, hasBackup: true, type: "invoice" },
+  { id: "R02-012", req: 2, vendor: "Builders First Source", desc: "Materials", amount: 109.46, hasBackup: true, type: "invoice" },
+  { id: "R02-013", req: 2, vendor: "Builders First Source", desc: "Materials", amount: 50.94, hasBackup: true, type: "invoice" },
+  { id: "R02-014", req: 2, vendor: "Lowe's", desc: "Materials", amount: 173.49, hasBackup: true, type: "invoice" },
+  { id: "R02-015", req: 2, vendor: "Home Depot", desc: "Materials", amount: 194.97, hasBackup: true, type: "invoice" },
+  { id: "R02-016", req: 2, vendor: "Home Depot", desc: "Materials", amount: 86.43, hasBackup: true, type: "invoice" },
+  { id: "R02-017", req: 2, vendor: "Home Depot", desc: "Materials", amount: 21.36, hasBackup: true, type: "invoice" },
+  { id: "R02-018", req: 2, vendor: "Beckerle Lumber", desc: "Halite/Rock salt", amount: 18.79, hasBackup: true, type: "invoice" },
+  { id: "R02-019", req: 2, vendor: "Beckerle Lumber", desc: "Tarp, Hammer Tacker", amount: 183.49, hasBackup: true, type: "invoice" },
+  { id: "R02-020", req: 2, vendor: "DeLeonardis Electric", desc: "Electrical", amount: 15000, hasBackup: true, type: "invoice" },
+  // ── REQ-03 ──
+  { id: "R03-001a", req: 3, vendor: "Echo Stamp Concrete", desc: "East Foundation Walls CCO#1 to Sub | Base Contract to Client", amount: 9950, hasBackup: true, type: "invoice" },
+  { id: "R03-001b", req: 3, vendor: "Echo Stamp Concrete", desc: "West Foundation Walls Per Base Contract", amount: 5899, hasBackup: true, type: "invoice" },
+  { id: "R03-002", req: 3, vendor: "Builders First Source", desc: "Misc. materials", amount: 90.16, hasBackup: true, type: "invoice" },
+  { id: "R03-003", req: 3, vendor: "Home Depot", desc: "Misc. materials", amount: 39.98, hasBackup: true, type: "invoice" },
+  { id: "R03-004", req: 3, vendor: "H&J Home Improvements", desc: "Labor for Framing", amount: 10300, hasBackup: true, type: "invoice" },
+  { id: "R03-005", req: 3, vendor: "Smith Cooling & Heating", desc: "Plumbing", amount: 7600, hasBackup: true, type: "invoice" },
+  { id: "R03-006", req: 3, vendor: "DeLeonardis Electric", desc: "Electrical", amount: 20000, hasBackup: true, type: "invoice" },
+  // ── REQ-04 ──
+  { id: "R04-001", req: 4, vendor: "Montana Contracting", desc: "Line Item Closeout", amount: 12838.39, hasBackup: true, type: "self-performed" },
+  { id: "R04-002", req: 4, vendor: "Robert Hiep", desc: "Containers & Waste Removal", amount: 335.14, hasBackup: true, type: "invoice" },
+  { id: "R04-003", req: 4, vendor: "Robert Hiep", desc: "Containers & Waste Removal", amount: 374.93, hasBackup: true, type: "invoice" },
+  { id: "R04-004", req: 4, vendor: "Robert Hiep", desc: "Containers & Waste Removal", amount: 387.81, hasBackup: true, type: "invoice" },
+  { id: "R04-005", req: 4, vendor: "Echo Stamp", desc: "Final Payment", amount: 6400, hasBackup: true, type: "invoice" },
+  { id: "R04-006", req: 4, vendor: "Echo Stamp", desc: "Credit for Winter Conditions. See Change Orders - MN", amount: -2102, hasBackup: true, type: "credit" },
+  { id: "R04-007", req: 4, vendor: "Echo Stamp", desc: "Credit for $400 Additional Pier - See Change Orders", amount: -400, hasBackup: true, type: "credit" },
+  { id: "R04-008", req: 4, vendor: "Pauli D's Mobile Welding", desc: "Steel Bracket SC#07", amount: 250, hasBackup: true, type: "invoice" },
+  { id: "R04-009", req: 4, vendor: "Pauli D's Mobile Welding", desc: "Structural Steel SC#02", amount: 5000, hasBackup: true, type: "invoice" },
+  { id: "R04-010", req: 4, vendor: "Beckerle Lumber", desc: "Urethane. Adhesive", amount: 61.5, hasBackup: true, type: "invoice" },
+  { id: "R04-011", req: 4, vendor: "Builders First Source", desc: "Misc. Materials", amount: 3597.29, hasBackup: true, type: "invoice" },
+  { id: "R04-012", req: 4, vendor: "Builders First Source", desc: "Misc. Materials", amount: 83.78, hasBackup: true, type: "invoice" },
+  { id: "R04-013", req: 4, vendor: "Builders First Source", desc: "Misc. Materials", amount: 837.85, hasBackup: true, type: "invoice" },
+  { id: "R04-014", req: 4, vendor: "Bauco Access Panel Solutions", desc: "Access Panels", amount: 321.72, hasBackup: true, type: "invoice" },
+  { id: "R04-015", req: 4, vendor: "Smith Cooling & Heating", desc: "Base Contract 50% Progress Payment", amount: 13950, hasBackup: true, type: "invoice" },
+  { id: "R04-016", req: 4, vendor: "Valley Mechanical", desc: "Relocate 2nd Floor Boiler & Piping SC#01", amount: 3465, hasBackup: true, type: "invoice" },
+  { id: "R04-017", req: 4, vendor: "Valley Mechanical", desc: "Radiant Heat Zone @ Living Room & Entry CCO#002", amount: 8500, hasBackup: true, type: "invoice" },
+  { id: "R04-018", req: 4, vendor: "Valley Mechanical", desc: "Radiant Heat Zone @ Bedrooms CCO#002", amount: 8500, hasBackup: true, type: "invoice" },
+  { id: "R04-019", req: 4, vendor: "Beckerle", desc: "Blade, gorilla tape, paint", amount: 52.43, hasBackup: true, type: "invoice" },
+  { id: "R04-020", req: 4, vendor: "Beckerle", desc: "Pipe insulation", amount: 1.72, hasBackup: true, type: "invoice" },
+  { id: "R04-021", req: 4, vendor: "Beckerle", desc: "Mason sand", amount: 141.3, hasBackup: true, type: "invoice" },
+  { id: "R04-022", req: 4, vendor: "Home Depot", desc: "Flex coupling, drain pipe", amount: 38.1, hasBackup: true, type: "invoice" },
+  { id: "R04-023", req: 4, vendor: "Rockland Masonry Depot", desc: "Bluestone", amount: 54.62, hasBackup: true, type: "invoice" },
+  // ── REQ-05 ──
+  { id: "R05-001", req: 5, vendor: "Masonry depot", desc: "Cutstock, stone rip cutting", amount: 700.64, hasBackup: true, type: "invoice" },
+  { id: "R05-002", req: 5, vendor: "Masonry depot", desc: "Eldorado Nantucket", amount: 1244.36, hasBackup: true, type: "invoice" },
+  { id: "R05-003", req: 5, vendor: "Home Depot", desc: "Deck screw, silicone", amount: 219.69, hasBackup: true, type: "invoice" },
+  { id: "R05-004", req: 5, vendor: "H&J Home Improvements", desc: "Base Contract Progress Payment", amount: 11300, hasBackup: true, type: "invoice" },
+  { id: "R05-006", req: 5, vendor: "H&J Home Improvements", desc: "Progress Payment", amount: 15862.5, hasBackup: true, type: "invoice" },
+  { id: "R05-007", req: 5, vendor: "Quatrochi & Sons Roofing", desc: "Ice & Water shield on roof", amount: 1912.5, hasBackup: true, type: "invoice" },
+  { id: "R05-008", req: 5, vendor: "National Building Supply", desc: "Roofing material", amount: 5243.18, hasBackup: true, type: "invoice" },
+  { id: "R05-009", req: 5, vendor: "Builders First Source", desc: "Henry Eaveguard", amount: 91.71, hasBackup: true, type: "invoice" },
+  { id: "R05-010", req: 5, vendor: "ABC Supply Co.", desc: "Copper Soft Roll", amount: 1842.38, hasBackup: true, type: "invoice" },
+  { id: "R05-011", req: 5, vendor: "Dykes", desc: "Azek trim boards", amount: 13462.03, hasBackup: true, type: "invoice" },
+  { id: "R05-012", req: 5, vendor: "H&J Home Improvements", desc: "Window Installation (Complete Contract Value)", amount: 8250, hasBackup: true, type: "invoice" },
+  { id: "R05-013", req: 5, vendor: "Bauco Acces Panel Solutions", desc: "Access Panels", amount: 270.92, hasBackup: true, type: "invoice" },
+  // ── REQ-06 ──
+  { id: "R06-001", req: 6, vendor: "Robert Hiep", desc: "Container", amount: 669.76, hasBackup: true, type: "invoice" },
+  { id: "R06-002", req: 6, vendor: "Coppola & Sons", desc: "Labor & materials", amount: 3000, hasBackup: true, type: "invoice" },
+  { id: "R06-005", req: 6, vendor: "ABC Supply", desc: "Roofing material", amount: 19016.5, hasBackup: true, type: "invoice" },
+  { id: "R06-006", req: 6, vendor: "Dykes Lumber", desc: "Azek trim", amount: 1754.59, hasBackup: true, type: "invoice" },
+  { id: "R06-007", req: 6, vendor: "Home Depot", desc: "Azek trim", amount: 99.64, hasBackup: true, type: "invoice" },
+  { id: "R06-008a", req: 6, vendor: "Builders First Source", desc: "Framing material", amount: 529.29, hasBackup: true, type: "invoice" },
+  { id: "R06-008b", req: 6, vendor: "Ontime Supply", desc: "Wire coil", amount: 985.84, hasBackup: true, type: "invoice" },
+  { id: "R06-009", req: 6, vendor: "Beckerle Lumber", desc: "Wasp & hornet spray", amount: 8.6, hasBackup: true, type: "invoice" },
+  { id: "R06-010", req: 6, vendor: "Beckerle Lumber", desc: "Alum trim coil", amount: 183.59, hasBackup: true, type: "invoice" },
+  { id: "R06-011", req: 6, vendor: "Dykes Lumber", desc: "Angled paslode finish nail", amount: 932.79, hasBackup: true, type: "invoice" },
+  { id: "R06-012", req: 6, vendor: "Builders First Source", desc: "Misc. Materials", amount: 204.83, hasBackup: true, type: "invoice" },
+  { id: "R06-013", req: 6, vendor: "Beckerle Lumber", desc: "Misc. Materials", amount: 3.07, hasBackup: true, type: "invoice" },
+  { id: "R06-014", req: 6, vendor: "Home Depot", desc: "Fire barrier foam", amount: 29.87, hasBackup: true, type: "invoice" },
+  { id: "R06-015", req: 6, vendor: "Home Depot", desc: "Fire barrier foam, rapid mortar", amount: 50.43, hasBackup: true, type: "invoice" },
+  { id: "R06-016", req: 6, vendor: "Dykes Lumber", desc: "Lauan wiggle board", amount: 271.36, hasBackup: true, type: "invoice" },
+  { id: "R06-017", req: 6, vendor: "Drywall Center", desc: "Misc. Materials", amount: 9059.25, hasBackup: true, type: "invoice" },
+  { id: "R06-018", req: 6, vendor: "Drywall Center", desc: "Misc. Materials", amount: 702.95, hasBackup: true, type: "invoice" },
+  // ── REQ-07 ──
+  { id: "R07-001", req: 7, vendor: "Robert Hiep", desc: "Container", amount: 785.94, hasBackup: true, type: "invoice" },
+  { id: "R07-002", req: 7, vendor: "Rockland Masonry Depot", desc: "Materials/Services", amount: 24.11, hasBackup: true, type: "invoice" },
+  { id: "R07-003", req: 7, vendor: "Black Wolf Contracting", desc: "Misc. Materials", amount: 2411, hasBackup: true, type: "invoice" },
+  { id: "R07-004", req: 7, vendor: "Black Wolf Contracting", desc: "Sandblast", amount: 6499, hasBackup: true, type: "invoice" },
+  { id: "R07-006", req: 7, vendor: "Beckerle", desc: "Materials/Services", amount: 137.85, hasBackup: true, type: "invoice" },
+  { id: "R07-007", req: 7, vendor: "Paragon Stairs", desc: "Materials/Services", amount: 9841.81, hasBackup: true, type: "invoice" },
+  { id: "R07-008", req: 7, vendor: "Quatrochi & Sons", desc: "Materials/Services", amount: 1544.34, hasBackup: true, type: "invoice" },
+  { id: "R07-009", req: 7, vendor: "ABC Supply", desc: "Roof cap", amount: 98.62, hasBackup: true, type: "invoice" },
+  { id: "R07-010", req: 7, vendor: "Beckerle", desc: "Materials/Services", amount: 20.63, hasBackup: true, type: "invoice" },
+  { id: "R07-011", req: 7, vendor: "Beckerle", desc: "Materials/Services", amount: 119.8, hasBackup: true, type: "invoice" },
+  { id: "R07-012", req: 7, vendor: "Beckerle", desc: "Materials/Services", amount: 51.43, hasBackup: true, type: "invoice" },
+  { id: "R07-013", req: 7, vendor: "Beckerle", desc: "Materials/Services", amount: 21.61, hasBackup: true, type: "invoice" },
+  { id: "R07-014", req: 7, vendor: "Beckerle", desc: "House wrap, saw", amount: 151.27, hasBackup: true, type: "invoice" },
+  { id: "R07-015", req: 7, vendor: "Dykes", desc: "Trim boards", amount: 1122.11, hasBackup: true, type: "invoice" },
+  { id: "R07-016", req: 7, vendor: "Dykes", desc: "Materials/Services", amount: 914.36, hasBackup: true, type: "invoice" },
+  { id: "R07-017", req: 7, vendor: "Dykes", desc: "Materials/Services", amount: 528.6, hasBackup: true, type: "invoice" },
+  { id: "R07-018", req: 7, vendor: "Home Depot", desc: "Housewrap", amount: 136.94, hasBackup: true, type: "invoice" },
+  { id: "R07-019", req: 7, vendor: "Home Depot", desc: "Materials/Services", amount: 69.26, hasBackup: true, type: "invoice" },
+  { id: "R07-020", req: 7, vendor: "Ontime Supply", desc: "Materials/Services", amount: 281.67, hasBackup: true, type: "invoice" },
+  { id: "R07-021", req: 7, vendor: "Ontime Supply", desc: "Max combination", amount: 650.2, hasBackup: true, type: "invoice" },
+  { id: "R07-022", req: 7, vendor: "Dyer Drywall", desc: "Drywall", amount: 12000, hasBackup: true, type: "invoice" },
+  { id: "R07-023", req: 7, vendor: "Valley Mechanical", desc: "Install AC in new living room area & replace two furnace coil units", amount: 10800, hasBackup: true, type: "invoice" },
+  { id: "R07-024", req: 7, vendor: "DeLeonardis", desc: "Materials/Services", amount: 20948.63, hasBackup: true, type: "invoice" },
+  // ── REQ-08 ──
+  { id: "R08-001", req: 8, vendor: "Robert Hiep", desc: "Container", amount: 694.64, hasBackup: true, type: "invoice" },
+  { id: "R08-002", req: 8, vendor: "Paragon Stairs", desc: "Materials/Services", amount: 2708.15, hasBackup: true, type: "invoice" },
+  { id: "R08-003", req: 8, vendor: "Home Depot", desc: "Materials/Services", amount: 13.74, hasBackup: true, type: "invoice" },
+  { id: "R08-004", req: 8, vendor: "H&J Home Improvements", desc: "Materials/Services", amount: 2400, hasBackup: true, type: "invoice" },
+  { id: "R08-005", req: 8, vendor: "Montana Contracting", desc: "not in R7 base", amount: 1200, hasBackup: true, type: "self-performed" },
+  { id: "R08-006", req: 8, vendor: "Paragon Stairs", desc: "Materials/Services", amount: 9841.67, hasBackup: true, type: "invoice" },
+  { id: "R08-007", req: 8, vendor: "Quatrochi & Sons Roofing", desc: "Materials/Services", amount: 8000, hasBackup: true, type: "invoice" },
+  { id: "R08-008", req: 8, vendor: "Quatrochi & Sons Roofing", desc: "Roofing labor", amount: 12000, hasBackup: true, type: "invoice" },
+  { id: "R08-009", req: 8, vendor: "Builders First Source", desc: "Materials/Services", amount: 264.32, hasBackup: true, type: "invoice" },
+  { id: "R08-010", req: 8, vendor: "ABC Supply", desc: "Materials/Services", amount: 1129.27, hasBackup: true, type: "invoice" },
+  { id: "R08-011", req: 8, vendor: "Dykes Lumber", desc: "Materials/Services", amount: 319.44, hasBackup: true, type: "invoice" },
+  { id: "R08-012", req: 8, vendor: "Dykes Lumber", desc: "Materials/Services", amount: 843.61, hasBackup: true, type: "invoice" },
+  { id: "R08-013", req: 8, vendor: "Dykes Lumber", desc: "Materials/Services", amount: 7952.98, hasBackup: true, type: "invoice" },
+  { id: "R08-014", req: 8, vendor: "Montana Contracting", desc: "Self-Performed Work", amount: 3660, hasBackup: true, type: "self-performed" },
+  { id: "R08-015", req: 8, vendor: "H&J Home Improvements", desc: "Materials/Services", amount: 825, hasBackup: true, type: "invoice" },
+  { id: "R08-016", req: 8, vendor: "Dyer Drywall", desc: "Drywall", amount: 15000, hasBackup: true, type: "invoice" },
+  { id: "R08-017", req: 8, vendor: "Vision Tile & Marble", desc: "Materials/Services", amount: 31575, hasBackup: true, type: "invoice" },
+  { id: "R08-018", req: 8, vendor: "Stone Surfaces", desc: "Materials/Services", amount: 3350, hasBackup: true, type: "invoice" },
+  { id: "R08-019", req: 8, vendor: "Carpet World Flooring Center", desc: "Materials/Services", amount: 27000, hasBackup: true, type: "invoice" },
+  { id: "R08-020", req: 8, vendor: "Sunbelt Rentals", desc: "Materials/Services", amount: 4177.43, hasBackup: true, type: "invoice" },
+  { id: "R08-021", req: 8, vendor: "DeLeonardis Electric", desc: "Materials/Services", amount: 20695, hasBackup: true, type: "invoice" },
+  // ── REQ-09 ──
+  { id: "R09-001", req: 9, vendor: "Beckerle Lumber", desc: "Materials/Services", amount: 79.87, hasBackup: true, type: "invoice" },
+  { id: "R09-002", req: 9, vendor: "Glen Rock Stair Corp.", desc: "Materials/Services", amount: 6375, hasBackup: true, type: "invoice" },
+  { id: "R09-003", req: 9, vendor: "Beckerle Lumber", desc: "Materials/Services", amount: 107.29, hasBackup: true, type: "invoice" },
+  { id: "R09-004", req: 9, vendor: "Dykes Lumber", desc: "Materials/Services", amount: 10356.32, hasBackup: true, type: "invoice" },
+  { id: "R09-005", req: 9, vendor: "Dykes Lumber", desc: "Materials/Services", amount: 618.78, hasBackup: true, type: "invoice" },
+  { id: "R09-006", req: 9, vendor: "H&J Home Improvements", desc: "Materials/Services", amount: 687.5, hasBackup: true, type: "invoice" },
+  { id: "R09-007", req: 9, vendor: "Beckerle Lumber", desc: "Lumber", amount: 22.76, hasBackup: true, type: "invoice" },
+  { id: "R09-008", req: 9, vendor: "Beckerle Lumber", desc: "Materials/Services", amount: 127.75, hasBackup: true, type: "invoice" },
+  { id: "R09-009", req: 9, vendor: "Home Depot", desc: "Materials/Services", amount: 84.47, hasBackup: true, type: "invoice" },
+  { id: "R09-010", req: 9, vendor: "Stone Surfaces", desc: "Materials/Services", amount: 325, hasBackup: true, type: "invoice" },
+  { id: "R09-011", req: 9, vendor: "Korth & Shannahan Painting Company", desc: "Materials/Services", amount: 7527.5, hasBackup: true, type: "invoice" },
+  { id: "R09-012", req: 9, vendor: "Korth & Shannahan Painting Company", desc: "Painting", amount: 6037.5, hasBackup: true, type: "invoice" },
+  { id: "R09-013", req: 9, vendor: "Home Depot", desc: "Materials/Services", amount: 63.22, hasBackup: true, type: "invoice" },
+  { id: "R09-014", req: 9, vendor: "Sunbelt", desc: "Equipment rental", amount: 3039.48, hasBackup: true, type: "invoice" },
+  // ── REQ-10 ──
+  { id: "R10-001", req: 10, vendor: "Montana Contracting", desc: "Self-Performed Work", amount: 600, hasBackup: true, type: "self-performed" },
+  { id: "R10-002", req: 10, vendor: "Montana Contracting", desc: "Work - allocated to PCCO #68 4 hours", amount: -240, hasBackup: false, type: "self-performed" },
+  { id: "R10-003", req: 10, vendor: "Montana Contracting", desc: "Self-Performed Work", amount: 375, hasBackup: true, type: "self-performed" },
+  { id: "R10-004", req: 10, vendor: "Masonry Depot", desc: "Materials/Services", amount: 20.37, hasBackup: true, type: "invoice" },
+  { id: "R10-005", req: 10, vendor: "Builders First Source", desc: "Materials", amount: 476.99, hasBackup: true, type: "invoice" },
+  { id: "R10-006", req: 10, vendor: "Montana Contracting", desc: "Self-Performed Work", amount: 3525, hasBackup: true, type: "self-performed" },
+  { id: "R10-007", req: 10, vendor: "Montana Contracting", desc: "Work - allocated to PCCO #64 30 hours", amount: -2250, hasBackup: false, type: "self-performed" },
+  { id: "R10-008", req: 10, vendor: "Montana Contracting", desc: "Work - allocated to PCCO #67 8 hours", amount: -600, hasBackup: false, type: "self-performed" },
+  { id: "R10-009", req: 10, vendor: "ABC Supply Co.", desc: "Materials/Services", amount: 460.59, hasBackup: true, type: "invoice" },
+  { id: "R10-010", req: 10, vendor: "Builders First Source", desc: "Materials/Services", amount: 58.23, hasBackup: true, type: "invoice" },
+  { id: "R10-011", req: 10, vendor: "Montana Contracting", desc: "Self-Performed Work", amount: 9180, hasBackup: true, type: "self-performed" },
+  { id: "R10-012", req: 10, vendor: "Montana Contracting", desc: "Self-Performed (PCCO #66 24 hrs)", amount: -1440, hasBackup: false, type: "self-performed" },
+  { id: "R10-013", req: 10, vendor: "Montana Contracting", desc: "Self-Performed Work", amount: 9113.04, hasBackup: true, type: "invoice" },
+  { id: "R10-014", req: 10, vendor: "Builders First Source", desc: "Materials/Services", amount: 646.74, hasBackup: true, type: "invoice" },
+  { id: "R10-015", req: 10, vendor: "Montana Contracting", desc: "Self-Performed Work", amount: 2550, hasBackup: true, type: "self-performed" },
+  { id: "R10-016", req: 10, vendor: "Montana Contracting", desc: "Self-Performed (PCCO #65 10 hrs)", amount: -750, hasBackup: false, type: "self-performed" },
+  { id: "R10-017", req: 10, vendor: "Valley Mechanical", desc: "Materials/Services", amount: 8735, hasBackup: true, type: "invoice" },
+  // ── REQ-11 ──
+  { id: "R11-001", req: 11, vendor: "Robert Hiep", desc: "Materials/Services", amount: 672.4, hasBackup: true, type: "invoice" },
+  { id: "R11-002", req: 11, vendor: "Korth & Shannahan", desc: "Materials/Services", amount: 9825, hasBackup: true, type: "invoice" },
+  { id: "R11-003", req: 11, vendor: "Home Depot", desc: "Materials/Services", amount: 200.32, hasBackup: true, type: "invoice" },
+  { id: "R11-004", req: 11, vendor: "Dykes Lumber Company", desc: "Materials/Services", amount: 1146.17, hasBackup: true, type: "invoice" },
+  { id: "R11-005", req: 11, vendor: "Dykes Lumber Company", desc: "Materials/Services", amount: 7185.34, hasBackup: true, type: "invoice" },
+  { id: "R11-006", req: 11, vendor: "Builders First Source", desc: "Materials", amount: 313.55, hasBackup: true, type: "invoice" },
+  { id: "R11-007", req: 11, vendor: "Builders First Source", desc: "Materials/Services", amount: 121.9, hasBackup: true, type: "invoice" },
+  { id: "R11-008", req: 11, vendor: "Builders First Source", desc: "Materials/Services", amount: 20.54, hasBackup: true, type: "invoice" },
+  { id: "R11-009", req: 11, vendor: "Builders First Source", desc: "S6400-M", amount: 249.65, hasBackup: true, type: "invoice" },
+  { id: "R11-010", req: 11, vendor: "Montana Contracting", desc: "Self-Performed Labor", amount: 2962.5, hasBackup: true, type: "self-performed" },
+  { id: "R11-011", req: 11, vendor: "Ontime Supply", desc: "Materials", amount: 107.6, hasBackup: true, type: "invoice" },
+  { id: "R11-012", req: 11, vendor: "Home Depot", desc: "Materials/Services", amount: 43.32, hasBackup: true, type: "invoice" },
+  { id: "R11-013", req: 11, vendor: "Dykes Lumber", desc: "Materials/Services", amount: 154.87, hasBackup: true, type: "invoice" },
+  { id: "R11-014", req: 11, vendor: "Beckerle Lumber", desc: "Materials/Services", amount: 119.21, hasBackup: true, type: "invoice" },
+  { id: "R11-015", req: 11, vendor: "Beckerle Lumber", desc: "Materials", amount: 44.43, hasBackup: true, type: "invoice" },
+  { id: "R11-016", req: 11, vendor: "Beckerle Lumber", desc: "Materials/Services", amount: 75.68, hasBackup: true, type: "invoice" },
+  { id: "R11-017", req: 11, vendor: "Korth & Shannahan", desc: "Materials/Services", amount: 18112.5, hasBackup: true, type: "invoice" },
+  // ── REQ-12 ──
+  { id: "R12-001", req: 12, vendor: "Dykes Lumber", desc: "Materials/Services", amount: 4016.05, hasBackup: true, type: "invoice" },
+  { id: "R12-002", req: 12, vendor: "Beckerle Lumber", desc: "Materials/Services", amount: 164.73, hasBackup: true, type: "invoice" },
+  { id: "R12-006", req: 12, vendor: "Builders First Source", desc: "Materials/Services", amount: 213.61, hasBackup: true, type: "invoice" },
+  { id: "R12-008", req: 12, vendor: "A&J Reliable", desc: "Demolition", amount: 10200, hasBackup: true, type: "invoice" },
+  { id: "R12-010", req: 12, vendor: "Korth & Shannahan", desc: "Materials/Services", amount: 24580, hasBackup: true, type: "invoice" },
+  // ── REQ-13 ──
+  { id: "R13R1-015a", req: 13, vendor: "Korth & Shannahan", desc: "Progress Payment", amount: 8575, hasBackup: true, type: "invoice" },
+  { id: "R13R1-015b", req: 13, vendor: "Carpet World Flooring Center", desc: "Materials/Services", amount: 20225.22, hasBackup: true, type: "invoice" },
+  { id: "R13R1-016a", req: 13, vendor: "Beckerle", desc: "BOST.18GA 1 1/4\" Brad SS Nails", amount: 29.07, hasBackup: true, type: "invoice" },
+  { id: "R13R1-016b", req: 13, vendor: "Valley Mechanical", desc: "Materials/Services", amount: 17000, hasBackup: true, type: "invoice" },
+  { id: "R13R1-017a", req: 13, vendor: "Beckerle", desc: "Trim Caulking Materials", amount: 54.56, hasBackup: true, type: "invoice" },
+  { id: "R13R1-017b", req: 13, vendor: "Valley Mechanical", desc: "Base Contract Final Payment", amount: 42015, hasBackup: true, type: "invoice" },
+  { id: "R13R1-018a", req: 13, vendor: "BFS", desc: "Trim Materials", amount: 604.11, hasBackup: true, type: "invoice" },
+  { id: "R13R1-018b", req: 13, vendor: "Valley Mechanical", desc: "Relocate 2nd Floor Boiler & Piping", amount: 8400, hasBackup: true, type: "invoice" },
+  { id: "R13R1-019a", req: 13, vendor: "Dykes", desc: "Cedar trim", amount: 820.59, hasBackup: true, type: "invoice" },
+  { id: "R13R1-019b", req: 13, vendor: "Valley Mechanical", desc: "Living Room AC", amount: 5200, hasBackup: true, type: "invoice" },
+  { id: "R13R1-020", req: 13, vendor: "Dykes", desc: "Trim Materials", amount: 675, hasBackup: true, type: "invoice" },
+  { id: "R13R1-021", req: 13, vendor: "Dykes", desc: "x4 Pine Delivered", amount: 374.2, hasBackup: true, type: "invoice" },
+  { id: "R13R1-022", req: 13, vendor: "Home Depot", desc: "X-Board", amount: 77.93, hasBackup: true, type: "invoice" },
+  { id: "R13R1-023", req: 13, vendor: "Home Depot", desc: "Diablo CSB", amount: 119.91, hasBackup: true, type: "invoice" },
+  { id: "R13R1-024", req: 13, vendor: "Home Depot", desc: "X Board", amount: 162.4, hasBackup: true, type: "invoice" },
+  { id: "R13R1-025", req: 13, vendor: "Home Depot", desc: "X Board & Wipes", amount: 56.19, hasBackup: true, type: "invoice" },
+  { id: "R13R1-026", req: 13, vendor: "Eastern", desc: "Insulation", amount: 4599.68, hasBackup: true, type: "invoice" },
+  { id: "R13R1-027", req: 13, vendor: "Builders First Source", desc: "Materials/Services", amount: 88.34, hasBackup: true, type: "invoice" },
+  { id: "R13R1-028a", req: 13, vendor: "A Touch of Glass", desc: "Materials/Services", amount: 8295, hasBackup: true, type: "invoice" },
+  { id: "R13R1-028b", req: 13, vendor: "Montana Contracting", desc: "Removed Per Site Meeting 4.27.23. Owner Paid Direct.", amount: -8295, hasBackup: true, type: "credit" },
+  { id: "R13R1-029", req: 13, vendor: "Bauco Access Panel Solutions", desc: "Materials/Services", amount: 466.86, hasBackup: true, type: "invoice" },
+  { id: "R13R1-030", req: 13, vendor: "Valley Mechanical", desc: "Living Room AC", amount: 5200, hasBackup: true, type: "invoice" },
+  { id: "R13R1-031", req: 13, vendor: "DeLeonardis Electric", desc: "(Req 7) Adjusting Credit for Service Relocation - See CO 12", amount: -9500, hasBackup: false, type: "credit" },
+  // ── REQ-14 ──
+  { id: "R14-001", req: 14, vendor: "Dykes", desc: "Materials/Services", amount: 1325.64, hasBackup: true, type: "invoice" },
+  { id: "R14-002", req: 14, vendor: "Dykes", desc: "Materials/Services", amount: -958.47, hasBackup: true, type: "credit" },
+  { id: "R14-003", req: 14, vendor: "Glen Rock", desc: "Materials/Services", amount: 6375, hasBackup: true, type: "invoice" },
+  { id: "R14-004", req: 14, vendor: "Dykes", desc: "Materials", amount: 176.12, hasBackup: true, type: "invoice" },
+  { id: "R14-005", req: 14, vendor: "Lowes", desc: "Materials/Services", amount: 39.86, hasBackup: true, type: "invoice" },
+  { id: "R14-006", req: 14, vendor: "Beckerle", desc: "Materials/Services", amount: 117.05, hasBackup: true, type: "invoice" },
+  { id: "R14-007", req: 14, vendor: "Beckerle", desc: "Materials/Services", amount: 7.58, hasBackup: true, type: "invoice" },
+  { id: "R14-008", req: 14, vendor: "Beckerle", desc: "Materials", amount: 40.43, hasBackup: true, type: "invoice" },
+  { id: "R14-009", req: 14, vendor: "Beckerle", desc: "Materials/Services", amount: 33.81, hasBackup: true, type: "invoice" },
+  { id: "R14-010", req: 14, vendor: "Dykes", desc: "Materials/Services", amount: 106.86, hasBackup: true, type: "invoice" },
+  { id: "R14-011", req: 14, vendor: "Glen Rock Stair Corp.", desc: "Stairs & Railings", amount: 545, hasBackup: true, type: "invoice" },
+  { id: "R14-012", req: 14, vendor: "Home Depot", desc: "Materials/Services", amount: 97.19, hasBackup: true, type: "invoice" },
+  { id: "R14-013", req: 14, vendor: "Montana Contracting", desc: "Less Decking CO 24 Hours", amount: -1800, hasBackup: false, type: "credit" },
+  { id: "R14-014", req: 14, vendor: "Montana Contracting", desc: "Less Wood Plug Labor PCCO#120", amount: -450, hasBackup: false, type: "credit" },
+  // ── REQ-15 ──
+  { id: "R15-004", req: 15, vendor: "DeLeonardis", desc: "DeLeonardis Base Contract Balance", amount: 5015, hasBackup: true, type: "invoice" },
+];
+
 // ── TIMELINE EVENTS ──────────────────────────────────────────────────────────
 const TIMELINE_EVENTS = [
   { date: "2021-06-15", category: "contract",     desc: "AIA A110-2021 Contract Executed — Cost-Plus with 25% Fee" },
@@ -3331,6 +3593,254 @@ function Strategy({ claims }) {
 
 // [Reconciliation + BackupVariance deleted — merged into Requisitions tab]
 
+// ── INVOICE CATALOGUE TAB ────────────────────────────────────────────────────
+function InvoiceCatalogue() {
+  const [search, setSearch] = useState("");
+  const [reqFilter, setReqFilter] = useState("all");
+  const [typeFilter, setTypeFilter] = useState("all");
+  const [backupFilter, setBackupFilter] = useState("all");
+  const [sortCol, setSortCol] = useState("id");
+  const [sortDir, setSortDir] = useState(1);
+
+  // Unique vendors for display
+  const uniqueVendors = useMemo(() => [...new Set(INVOICE_CATALOGUE.map(e => e.vendor))].sort(), []);
+  const uniqueReqs = useMemo(() => [...new Set(INVOICE_CATALOGUE.map(e => e.req))].sort((a, b) => a - b), []);
+
+  // Filter & search
+  const filtered = useMemo(() => {
+    let items = INVOICE_CATALOGUE;
+    if (reqFilter !== "all") items = items.filter(e => e.req === parseInt(reqFilter));
+    if (typeFilter !== "all") items = items.filter(e => e.type === typeFilter);
+    if (backupFilter === "yes") items = items.filter(e => e.hasBackup);
+    if (backupFilter === "no") items = items.filter(e => !e.hasBackup);
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      items = items.filter(e =>
+        e.id.toLowerCase().includes(q) ||
+        e.vendor.toLowerCase().includes(q) ||
+        e.desc.toLowerCase().includes(q) ||
+        String(e.amount).includes(q)
+      );
+    }
+    // Sort
+    items = [...items].sort((a, b) => {
+      if (sortCol === "id") {
+        if (a.req !== b.req) return (a.req - b.req) * sortDir;
+        return a.id.localeCompare(b.id) * sortDir;
+      }
+      if (sortCol === "vendor") return a.vendor.localeCompare(b.vendor) * sortDir;
+      if (sortCol === "amount") return (a.amount - b.amount) * sortDir;
+      if (sortCol === "req") return (a.req - b.req) * sortDir;
+      return 0;
+    });
+    return items;
+  }, [search, reqFilter, typeFilter, backupFilter, sortCol, sortDir]);
+
+  const totalAmount = filtered.reduce((s, e) => s + e.amount, 0);
+  const withBackup = filtered.filter(e => e.hasBackup).length;
+  const missingBackup = filtered.filter(e => !e.hasBackup).length;
+
+  const handleSort = (col) => {
+    if (sortCol === col) setSortDir(d => d * -1);
+    else { setSortCol(col); setSortDir(1); }
+  };
+
+  const SortArrow = ({ col }) => sortCol === col ? (sortDir === 1 ? " \u25B2" : " \u25BC") : "";
+
+  const typeBadge = (type) => {
+    const styles = {
+      invoice: { color: T.blue, bg: T.blueBg, border: T.blueBorder },
+      "self-performed": { color: T.purple, bg: T.purpleBg, border: T.purpleBorder },
+      credit: { color: T.red, bg: T.redBg, border: T.redBorder },
+    };
+    const s = styles[type] || styles.invoice;
+    return (
+      <span style={{ fontSize: 10, fontWeight: 600, padding: "2px 8px", borderRadius: 6, background: s.bg, color: s.color, border: `1px solid ${s.border}`, textTransform: "capitalize", letterSpacing: 0.3 }}>
+        {type === "self-performed" ? "Self" : type}
+      </span>
+    );
+  };
+
+  return (
+    <div>
+      <SectionTitle title="Invoice Catalogue" subtitle={`${INVOICE_CATALOGUE.length} base contract invoices catalogued across REQs 1\u201315 \u00B7 CO entries & REQ-16 to be added`} />
+
+      {/* KPI Row */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 16 }}>
+        <Card padding={16}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>Catalogued</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: T.text, fontFamily: T.mono }}>{INVOICE_CATALOGUE.length}</div>
+          <div style={{ fontSize: 10, color: T.textMuted }}>invoices</div>
+        </Card>
+        <Card padding={16}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>Showing</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: T.accent, fontFamily: T.mono }}>{filtered.length}</div>
+          <div style={{ fontSize: 10, color: T.textMuted }}>matching filters</div>
+        </Card>
+        <Card padding={16}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>Total Value</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: totalAmount < 0 ? T.red : T.text, fontFamily: T.mono }}>${Math.abs(totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}</div>
+          <div style={{ fontSize: 10, color: T.textMuted }}>{totalAmount < 0 ? "net credit" : "filtered total"}</div>
+        </Card>
+        <Card padding={16}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>Has Backup</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: T.green, fontFamily: T.mono }}>{withBackup}</div>
+          <div style={{ fontSize: 10, color: T.textMuted }}>{filtered.length > 0 ? Math.round(withBackup / filtered.length * 100) : 0}% of filtered</div>
+        </Card>
+        <Card padding={16}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>Missing Backup</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: missingBackup > 0 ? T.red : T.green, fontFamily: T.mono }}>{missingBackup}</div>
+          <div style={{ fontSize: 10, color: T.textMuted }}>{missingBackup > 0 ? "needs attention" : "all documented"}</div>
+        </Card>
+      </div>
+
+      {/* Search + Filters */}
+      <Card style={{ marginBottom: 16 }} padding={16}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ position: "relative", flex: "1 1 280px" }}>
+            <Ic name="search" size={14} color={T.textMuted} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }} />
+            <input
+              type="text" placeholder="Search R-code, vendor, description, amount..."
+              value={search} onChange={e => setSearch(e.target.value)}
+              style={{
+                width: "100%", padding: "8px 12px 8px 32px", fontSize: 13, fontFamily: T.font,
+                border: `1px solid ${T.border}`, borderRadius: 8, background: T.bg, color: T.text,
+                outline: "none", boxSizing: "border-box",
+              }}
+            />
+          </div>
+          <select value={reqFilter} onChange={e => setReqFilter(e.target.value)}
+            style={{ padding: "8px 12px", fontSize: 12, fontFamily: T.font, border: `1px solid ${T.border}`, borderRadius: 8, background: T.bg, color: T.text, cursor: "pointer" }}>
+            <option value="all">All REQs</option>
+            {uniqueReqs.map(r => <option key={r} value={r}>REQ-{String(r).padStart(2, "0")}</option>)}
+          </select>
+          <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
+            style={{ padding: "8px 12px", fontSize: 12, fontFamily: T.font, border: `1px solid ${T.border}`, borderRadius: 8, background: T.bg, color: T.text, cursor: "pointer" }}>
+            <option value="all">All Types</option>
+            <option value="invoice">Invoice</option>
+            <option value="self-performed">Self-Performed</option>
+            <option value="credit">Credit</option>
+          </select>
+          <select value={backupFilter} onChange={e => setBackupFilter(e.target.value)}
+            style={{ padding: "8px 12px", fontSize: 12, fontFamily: T.font, border: `1px solid ${T.border}`, borderRadius: 8, background: T.bg, color: T.text, cursor: "pointer" }}>
+            <option value="all">All Backup Status</option>
+            <option value="yes">Has Backup</option>
+            <option value="no">Missing Backup</option>
+          </select>
+          {(search || reqFilter !== "all" || typeFilter !== "all" || backupFilter !== "all") && (
+            <button onClick={() => { setSearch(""); setReqFilter("all"); setTypeFilter("all"); setBackupFilter("all"); }}
+              style={{ padding: "8px 14px", fontSize: 12, fontFamily: T.font, background: T.redBg, color: T.red, border: `1px solid ${T.redBorder}`, borderRadius: 8, cursor: "pointer", fontWeight: 500 }}>
+              Clear Filters
+            </button>
+          )}
+        </div>
+      </Card>
+
+      {/* Table */}
+      <Card padding={0}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12, fontFamily: T.font }}>
+            <thead>
+              <tr style={{ background: T.bg, borderBottom: `2px solid ${T.border}` }}>
+                {[
+                  { col: "id", label: "R-Code", width: 100 },
+                  { col: "req", label: "REQ", width: 60 },
+                  { col: "vendor", label: "Vendor", width: 200 },
+                  { col: "desc", label: "Description", width: undefined },
+                  { col: "amount", label: "Amount", width: 110 },
+                  { col: "type", label: "Type", width: 80 },
+                  { col: "backup", label: "Backup", width: 70 },
+                ].map(h => (
+                  <th key={h.col} onClick={() => h.col !== "backup" && h.col !== "desc" && handleSort(h.col)}
+                    style={{
+                      padding: "10px 14px", textAlign: h.col === "amount" ? "right" : "left",
+                      fontSize: 10, fontWeight: 700, color: T.textMuted, textTransform: "uppercase",
+                      letterSpacing: 0.5, cursor: h.col !== "backup" && h.col !== "desc" ? "pointer" : "default",
+                      userSelect: "none", width: h.width, whiteSpace: "nowrap",
+                    }}>
+                    {h.label}<SortArrow col={h.col} />
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {filtered.length === 0 ? (
+                <tr><td colSpan={7} style={{ padding: 32, textAlign: "center", color: T.textMuted, fontSize: 13 }}>No invoices match your filters</td></tr>
+              ) : filtered.map((e, i) => (
+                <tr key={`${e.id}-${i}`} style={{
+                  borderBottom: `1px solid ${T.border}`,
+                  background: !e.hasBackup ? T.redBg + "60" : i % 2 === 0 ? T.surface : T.bg,
+                  transition: T.fast,
+                }}>
+                  <td style={{ padding: "9px 14px", fontFamily: T.mono, fontWeight: 600, fontSize: 12, color: T.accent, letterSpacing: -0.3 }}>{e.id}</td>
+                  <td style={{ padding: "9px 14px", fontFamily: T.mono, fontSize: 11, color: T.textMid }}>{String(e.req).padStart(2, "0")}</td>
+                  <td style={{ padding: "9px 14px", fontSize: 12, color: T.text, fontWeight: 500 }}>{e.vendor}</td>
+                  <td style={{ padding: "9px 14px", fontSize: 12, color: T.textMid, maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.desc}</td>
+                  <td style={{ padding: "9px 14px", textAlign: "right", fontFamily: T.mono, fontSize: 12, fontWeight: 600, color: e.amount < 0 ? T.red : T.text }}>
+                    {e.amount < 0 ? "-" : ""}${Math.abs(e.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                  </td>
+                  <td style={{ padding: "9px 14px" }}>{typeBadge(e.type)}</td>
+                  <td style={{ padding: "9px 14px", textAlign: "center" }}>
+                    {e.hasBackup
+                      ? <span style={{ color: T.green, fontSize: 13 }}><Ic name="check" size={14} color={T.green} /></span>
+                      : <span style={{ color: T.red, fontSize: 13 }}><Ic name="alert" size={14} color={T.red} /></span>
+                    }
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        {filtered.length > 0 && (
+          <div style={{ padding: "12px 14px", borderTop: `2px solid ${T.border}`, background: T.bg, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <span style={{ fontSize: 11, color: T.textMuted, fontFamily: T.font }}>
+              {filtered.length} invoice{filtered.length !== 1 ? "s" : ""} &middot; {uniqueVendors.length} unique vendors &middot; {uniqueReqs.length} requisitions
+            </span>
+            <span style={{ fontSize: 12, fontWeight: 700, fontFamily: T.mono, color: totalAmount < 0 ? T.red : T.text }}>
+              Total: {totalAmount < 0 ? "-" : ""}${Math.abs(totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+            </span>
+          </div>
+        )}
+      </Card>
+
+      {/* Vendor Summary */}
+      <div style={{ marginTop: 16 }}>
+        <Card>
+          <CardLabel label="Vendor Summary" />
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(260px, 1fr))", gap: 8 }}>
+            {(() => {
+              const vendorTotals = {};
+              for (const e of filtered) {
+                if (!vendorTotals[e.vendor]) vendorTotals[e.vendor] = { count: 0, total: 0, hasAllBackup: true };
+                vendorTotals[e.vendor].count++;
+                vendorTotals[e.vendor].total += e.amount;
+                if (!e.hasBackup) vendorTotals[e.vendor].hasAllBackup = false;
+              }
+              return Object.entries(vendorTotals)
+                .sort((a, b) => b[1].total - a[1].total)
+                .map(([vendor, data]) => (
+                  <div key={vendor} style={{
+                    padding: "10px 14px", borderRadius: 8, background: T.bg,
+                    border: `1px solid ${data.hasAllBackup ? T.border : T.redBorder}`,
+                    display: "flex", justifyContent: "space-between", alignItems: "center",
+                  }}>
+                    <div>
+                      <div style={{ fontSize: 12, fontWeight: 500, color: T.text }}>{vendor}</div>
+                      <div style={{ fontSize: 10, color: T.textMuted }}>{data.count} invoice{data.count !== 1 ? "s" : ""}{!data.hasAllBackup ? " \u00B7 missing backup" : ""}</div>
+                    </div>
+                    <div style={{ fontSize: 12, fontWeight: 600, fontFamily: T.mono, color: data.total < 0 ? T.red : T.text }}>
+                      {data.total < 0 ? "-" : ""}${Math.abs(data.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}
+                    </div>
+                  </div>
+                ));
+            })()}
+          </div>
+        </Card>
+      </div>
+    </div>
+  );
+}
+
 // ── FINANCIAL RECONCILIATION ─────────────────────────────────────────────────
 function FinancialReconciliation({ reqs }) {
   const [view, setView] = useState("waterfall");
@@ -5559,6 +6069,7 @@ export default function App() {
     { id: "claims",       label: mode === "presentation" ? "Claims & Defenses" : "Owner Claims", icon: "flag" },
     { id: "timeline",     label: "Timeline", icon: "clock" },
     { id: "documents",    label: "Documents", icon: "folder" },
+    { id: "catalogue",   label: "Invoice Catalogue", icon: "book" },
   ];
   const PREP_TABS = [
     { id: "audit",     label: "Audit Risk", icon: "alert" },
@@ -5625,6 +6136,7 @@ export default function App() {
         {tab === "claims" && <Claims claims={claims} updateClaim={updateClaim} />}
         {tab === "timeline" && <TimelineTab reqs={reqs} claims={claims} />}
         {tab === "documents" && <Documents docs={docs} updateDoc={updateDoc} addDoc={addDoc} removeDoc={removeDoc} />}
+        {tab === "catalogue" && <InvoiceCatalogue />}
         {tab === "audit" && <AuditRisk reqs={reqs} />}
         {tab === "simulator" && <ArbitrationSimulator reqs={reqs} claims={claims} />}
         {tab === "strategy" && <Strategy claims={claims} reqs={reqs} />}
