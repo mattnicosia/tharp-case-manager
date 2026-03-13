@@ -645,36 +645,139 @@ const TIMELINE_EVENTS = [
   { date: "2021-12-15", category: "field",         desc: "Demolition & site preparation complete — first requisition period opens" },
 ];
 
-// ── CHANGE ORDERS (documented from requisition audits) ───────────────────────
-// 27 of ~125 total COs are individually documented with amounts in REQ backup
+// ── CHANGE ORDERS (full Procore export — 128 PCCOs) ─────────────────────────
+// PCO = Potential Change Order (verbally approved by owner before creating PCCO)
+// PCCO = Prime Contract Change Order (official contract modification)
+// req field = approximate billing period based on review date
 const CHANGE_ORDERS = [
-  { co: 3,   desc: "Kitchen Radiant Heat",                          amount: 15000.00,   req: 1,  status: "Approved" },
-  { co: 4,   desc: "Bed #2 Bath",                                   amount: 6312.50,    req: 4,  status: "Approved" },
-  { co: 6,   desc: "Gas Main Supply/Install",                       amount: 4869.00,    req: 3,  status: "Approved" },
-  { co: 8,   desc: "Underground Plumbing",                          amount: 10750.00,   req: 3,  status: "Approved" },
-  { co: 15,  desc: "Concrete Winter Conditions",                    amount: 2627.50,    req: 4,  status: "Approved" },
-  { co: 17,  desc: "Demolition Credit",                             amount: -8024.00,   req: 4,  status: "Approved" },
-  { co: 20,  desc: "Framing Changes (Cow Barn, Suite, Gym — 14 items)", amount: 28225.38, req: 4, status: "Approved" },
-  { co: 21,  desc: "Additional Framing Changes",                    amount: 0,          req: 4,  status: "Approved" },
-  { co: 22,  desc: "Brick Finish Removal",                          amount: 8171.88,    req: 6,  status: "Approved" },
-  { co: 23,  desc: "Framing Changes Apr-May 2022",                  amount: 17796.51,   req: 6,  status: "Approved" },
-  { co: 24,  desc: "Additional Stone Veneer — Living Room Exterior", amount: 5625.00,   req: 6,  status: "Approved" },
-  { co: 29,  desc: "Additional Drywall Material",                   amount: 1490.76,    req: 7,  status: "Approved" },
-  { co: 30,  desc: "Additional Insulation",                         amount: 2217.50,    req: 6,  status: "Approved" },
-  { co: 31,  desc: "Generator Pad",                                 amount: 759.41,     req: 6,  status: "Approved" },
-  { co: 32,  desc: "Exhaust Fans Upgrade",                          amount: 2122.14,    req: 6,  status: "Approved" },
-  { co: 33,  desc: "Interior Doors",                                amount: 1658.16,    req: 7,  status: "Approved" },
-  { co: 34,  desc: "Drywall Scope Changes",                         amount: 9025.00,    req: 7,  status: "Approved" },
-  { co: 35,  desc: "TRX Bracket (Pauli D's Welding)",               amount: 312.50,     req: 7,  status: "Approved" },
-  { co: 47,  desc: "Additional Framing Sub Labor Jun-Aug 2022",     amount: 3225.00,    req: 8,  status: "Approved" },
-  { co: 49,  desc: "Living Room Fireplace Demolition",              amount: 1340.30,    req: 9,  status: "Approved" },
-  { co: 52,  desc: "Wet Area Balcony Railings",                     amount: 3496.29,    req: 9,  status: "Approved" },
-  { co: 64,  desc: "Framing Reallocation (from REQ-10)",            amount: 3525.00,    req: 10, status: "Approved" },
-  { co: 65,  desc: "Drywall Install Reallocation (from REQ-10)",    amount: 2550.00,    req: 10, status: "Approved" },
-  { co: 66,  desc: "Siding Reallocation (from REQ-10)",             amount: 9180.00,    req: 10, status: "Approved" },
-  { co: 126, desc: "Allowance Reconciliation (credits returned)",   amount: -19398.59,  req: 16, status: "Approved" },
-  { co: 127, desc: "GC/Owner Variance Split (50/50 per §3.3.2)",   amount: -53111.51,  req: 16, status: "Disputed" },
-  { co: 128, desc: "Owner-Supplied Items 25% Markup (§3.3)",        amount: 45586.06,   req: 16, status: "Disputed" },
+  { co: 1,   desc: "Basement Boiler Piping & Kitchen Radiant", amount: 25000, req: 1, status: "Approved", reviewDate: "2022-01-25" },
+  { co: 2,   desc: "Bed #2 Bath & Cow Barn Laundry Closet Rough", amount: 14587.03, req: 3, status: "Approved", reviewDate: "2022-03-07" },
+  { co: 3,   desc: "Air Handler Replacement", amount: 7500, req: 3, status: "Approved", reviewDate: "2022-03-07" },
+  { co: 4,   desc: "Gas Main Relocation", amount: 6375, req: 3, status: "Approved", reviewDate: "2022-03-07" },
+  { co: 5,   desc: "Low Voltage Wiring", amount: 26918.75, req: 3, status: "Approved", reviewDate: "2022-03-17" },
+  { co: 6,   desc: "Underground Plumbing Repairs", amount: 10750, req: 3, status: "Approved", reviewDate: "2022-03-31" },
+  { co: 7,   desc: "HVAC Base Subcontract Credit", amount: -11725, req: 3, status: "Approved", reviewDate: "2022-03-16" },
+  { co: 8,   desc: "Plumbing Base Subcontract Credit", amount: -4550, req: 3, status: "Approved", reviewDate: "2022-03-16" },
+  { co: 9,   desc: "Electrical Base Subcontract Credit", amount: -16270, req: 3, status: "Approved", reviewDate: "2022-03-16" },
+  { co: 10,  desc: "Concrete Excavation", amount: 2500, req: 3, status: "Approved", reviewDate: "2022-03-31" },
+  { co: 11,  desc: "Lighting Fixture Credit to Owner", amount: -14500, req: 3, status: "Approved", reviewDate: "2022-03-23" },
+  { co: 12,  desc: "Electrical Service Relocation", amount: 11875, req: 3, status: "Approved", reviewDate: "2022-03-23" },
+  { co: 13,  desc: "Concrete Winter Conditions", amount: 2627.5, req: 3, status: "Approved", reviewDate: "2022-03-31" },
+  { co: 14,  desc: "Additional Sawcutting", amount: 4250, req: 3, status: "Approved", reviewDate: "2022-03-31" },
+  { co: 15,  desc: "Demolition Base Budget Credit to Owner", amount: -8024, req: 3, status: "Approved", reviewDate: "2022-03-23" },
+  { co: 16,  desc: "East Foundation Wall Corrective Work", amount: 7081.25, req: 3, status: "Approved", reviewDate: "2022-03-31" },
+  { co: 17,  desc: "Living Room Structural Steel", amount: 6250, req: 4, status: "Approved", reviewDate: "2022-04-06" },
+  { co: 18,  desc: "Cow Barn Sewer Line Camera", amount: 468.75, req: 4, status: "Approved", reviewDate: "2022-04-25" },
+  { co: 19,  desc: "Framing Changes through 04.25.2022", amount: 28225.38, req: 4, status: "Approved", reviewDate: "2022-05-03" },
+  { co: 20,  desc: "Framing Changes 04.26.2022-05.23.2022", amount: 17796.51, req: 6, status: "Approved", reviewDate: "2022-06-07" },
+  { co: 21,  desc: "Additional Stone Veneer at Living Room Exterior", amount: 5625, req: 6, status: "Approved", reviewDate: "2022-06-07" },
+  { co: 22,  desc: "Brick Finish Removal", amount: 8171.88, req: 6, status: "Approved", reviewDate: "2022-06-16" },
+  { co: 23,  desc: "Insulation Scope Changes & Base Budget Credit", amount: 27975.2, req: 6, status: "Approved", reviewDate: "2022-06-16" },
+  { co: 24,  desc: "Excavation Base Budget Credit", amount: -5208.63, req: 6, status: "Approved", reviewDate: "2022-06-16" },
+  { co: 25,  desc: "Window Installation Base Budget Credit", amount: -4218.75, req: 6, status: "Approved", reviewDate: "2022-06-16" },
+  { co: 26,  desc: "Fireplace & Chimney Inspection", amount: 701.05, req: 6, status: "Approved", reviewDate: "2022-06-29" },
+  { co: 27,  desc: "Additional Drywall Material", amount: 1490.76, req: 6, status: "Approved", reviewDate: "2022-06-30" },
+  { co: 28,  desc: "Generator Pad", amount: 759.41, req: 7, status: "Approved", reviewDate: "2022-07-07" },
+  { co: 29,  desc: "Exhaust Fans Upgrade", amount: 2122.14, req: 7, status: "Approved", reviewDate: "2022-07-08" },
+  { co: 30,  desc: "Additional Insulation", amount: 2217.5, req: 7, status: "Approved", reviewDate: "2022-07-20" },
+  { co: 31,  desc: "Interior Doors Changes", amount: 1658.16, req: 7, status: "Approved", reviewDate: "2022-07-27" },
+  { co: 32,  desc: "Drywall Scope Changes", amount: 9025, req: 7, status: "Approved", reviewDate: "2022-08-01" },
+  { co: 33,  desc: "TRX Bracket", amount: 312.5, req: 7, status: "Approved", reviewDate: "2022-08-01" },
+  { co: 34,  desc: "Chimney Demolition", amount: 2250, req: 7, status: "Approved", reviewDate: "2022-08-03" },
+  { co: 35,  desc: "Additional Framing Labor 06.26.2022-07.29.2022", amount: 6150, req: 7, status: "Approved", reviewDate: "2022-08-03" },
+  { co: 36,  desc: "Grout Material & Additional Tile Areas", amount: 10531.25, req: 9, status: "Approved", reviewDate: "2022-09-07" },
+  { co: 37,  desc: "Living Room Flat Ceiling Insulation", amount: 0, req: null, status: "Void", reviewDate: null },
+  { co: 38,  desc: "Electrical Extras through 07.20.2022", amount: 25868.75, req: 9, status: "Approved", reviewDate: "2022-09-13" },
+  { co: 39,  desc: "Additional Wood Flooring", amount: 18569.24, req: 9, status: "Approved", reviewDate: "2022-09-13" },
+  { co: 40,  desc: "Additional Roofing Labor", amount: 609.6, req: 9, status: "Approved", reviewDate: "2022-09-13" },
+  { co: 41,  desc: "Stone Saddles & Niche Pieces", amount: 4187.5, req: 9, status: "Approved", reviewDate: "2022-09-13" },
+  { co: 42,  desc: "Upper Chimney Framing", amount: 1478.01, req: 9, status: "Approved", reviewDate: "2022-09-13" },
+  { co: 43,  desc: "Guest Bathroom Layout Change", amount: 5832.44, req: 9, status: "Approved", reviewDate: "2022-09-13" },
+  { co: 44,  desc: "Additional Framing Sub Labor 06.21-08.31.2022", amount: 4031.25, req: 9, status: "Approved", reviewDate: "2022-09-13" },
+  { co: 45,  desc: "Additional Siding Material", amount: 9709.05, req: 9, status: "Approved", reviewDate: "2022-10-03" },
+  { co: 46,  desc: "Living Room Fireplace Demolition", amount: 2875.38, req: 9, status: "Approved", reviewDate: "2022-10-03" },
+  { co: 47,  desc: "Front Porch Ceiling Replacement", amount: 1373.48, req: 9, status: "Approved", reviewDate: "2022-10-03" },
+  { co: 48,  desc: "Guest Bath Niche Pieces", amount: 406.25, req: 9, status: "Approved", reviewDate: "2022-10-04" },
+  { co: 49,  desc: "Wet Area Balcony Railings", amount: 4370.36, req: 9, status: "Approved", reviewDate: "2022-10-04" },
+  { co: 50,  desc: "Water Closet Ceiling", amount: 474.84, req: 9, status: "Approved", reviewDate: "2022-10-04" },
+  { co: 51,  desc: "Guest Bath Shower Drain", amount: 79.03, req: 9, status: "Approved", reviewDate: "2022-10-04" },
+  { co: 52,  desc: "Dining Room Stairs", amount: 1800, req: 9, status: "Approved", reviewDate: "2022-10-04" },
+  { co: 53,  desc: "Additional HVAC Rent", amount: 3799.35, req: 9, status: "Approved", reviewDate: "2022-10-04" },
+  { co: 54,  desc: "Labor for Low Voltage Work", amount: 450, req: 9, status: "Approved", reviewDate: "2022-10-04" },
+  { co: 55,  desc: "Soffit Replacement Labor", amount: 450, req: 9, status: "Approved", reviewDate: "2022-10-04" },
+  { co: 56,  desc: "Additional Window & Door Labor", amount: 1500, req: 9, status: "Approved", reviewDate: "2022-10-04" },
+  { co: 57,  desc: "Living Room Fireplace Framing", amount: 1430.13, req: 10, status: "Approved", reviewDate: "2022-10-25" },
+  { co: 58,  desc: "Living Room Ceiling Material", amount: 7249.41, req: 10, status: "Approved", reviewDate: "2022-10-25" },
+  { co: 59,  desc: "Mason-Lite Fireplace", amount: 18750, req: 10, status: "Approved", reviewDate: "2022-10-25" },
+  { co: 60,  desc: "Exhaust Ductwork & Guest Bath Radiant", amount: 6500, req: 10, status: "Approved", reviewDate: "2022-10-25" },
+  { co: 61,  desc: "Primary Bedroom Balcony Structure & Railing", amount: 27820.29, req: 10, status: "Approved", reviewDate: "2022-10-25" },
+  { co: 62,  desc: "Living Room Fireplace Additional Metal Framing Material", amount: 187.59, req: 10, status: "Approved", reviewDate: "2022-10-26" },
+  { co: 63,  desc: "October 2022 Minor Repairs & Changes", amount: 469.51, req: 10, status: "Approved", reviewDate: "2022-10-26" },
+  { co: 64,  desc: "Living Room Fireplace CMU & Interior Framing Labor", amount: 4125, req: 10, status: "Approved", reviewDate: "2022-10-26" },
+  { co: 65,  desc: "Medicine Cabinets & Vanities Installation Labor", amount: 937.5, req: 10, status: "Approved", reviewDate: "2022-10-26" },
+  { co: 66,  desc: "Primary / Kitchen Siding", amount: 1800, req: 10, status: "Approved", reviewDate: "2022-10-26" },
+  { co: 67,  desc: "Cricket/Scupper Framing", amount: 750, req: 10, status: "Approved", reviewDate: "2022-10-26" },
+  { co: 68,  desc: "Basement Wall Demolition", amount: 300, req: 10, status: "Approved", reviewDate: "2022-10-26" },
+  { co: 69,  desc: "West Side Leader Drainage", amount: 7812.5, req: 10, status: "Approved", reviewDate: "2022-10-26" },
+  { co: 70,  desc: "Sheathing Repair & Additional Studs", amount: 223.86, req: 10, status: "Approved", reviewDate: "2022-11-01" },
+  { co: 71,  desc: "Copper Pipe Flashing, Caps & Crickets", amount: 3656.25, req: 10, status: "Approved", reviewDate: "2022-11-01" },
+  { co: 72,  desc: "Additional Painting", amount: 42962.5, req: 11, status: "Approved", reviewDate: "2022-11-28" },
+  { co: 73,  desc: "Additional Interior Trim", amount: 31012.5, req: 11, status: "Approved", reviewDate: "2022-11-28" },
+  { co: 74,  desc: "Living Room Fireplace Chimney Framing Above Roof", amount: 2882.09, req: 11, status: "Approved", reviewDate: "2022-11-28" },
+  { co: 75,  desc: "Miscellaneous Carpentry November 2022", amount: 8573.16, req: 11, status: "Approved", reviewDate: "2022-11-28" },
+  { co: 76,  desc: "Additional Drywall Labor", amount: 1875, req: 11, status: "Approved", reviewDate: "2022-11-28" },
+  { co: 77,  desc: "Hinges for Millwork Doors", amount: 64.81, req: 11, status: "Approved", reviewDate: "2022-11-29" },
+  { co: 78,  desc: "Fireplace Stone Veneer", amount: 10574.69, req: 12, status: "Approved", reviewDate: "2022-12-13" },
+  { co: 79,  desc: "Gym Cedar Material #1", amount: 3968.1, req: 12, status: "Approved", reviewDate: "2023-01-04" },
+  { co: 80,  desc: "Cow Barn Mechanical Room Door Slab", amount: 309.98, req: 12, status: "Approved", reviewDate: "2023-01-04" },
+  { co: 81,  desc: "Dining Room Stairs Revised Plan", amount: 3176, req: 12, status: "Approved", reviewDate: "2023-01-05" },
+  { co: 82,  desc: "Additional Gutter Work", amount: 250, req: 12, status: "Approved", reviewDate: "2023-01-04" },
+  { co: 83,  desc: "Primary Bedroom Decorative Beams", amount: 7416.91, req: 12, status: "Approved", reviewDate: "2023-01-04" },
+  { co: 84,  desc: "Fireplace Enclosure Cement Board", amount: 260.03, req: 12, status: "Approved", reviewDate: "2023-01-04" },
+  { co: 85,  desc: "Miscellaneous Carpentry December 2022", amount: 1968.75, req: 12, status: "Approved", reviewDate: "2023-01-05" },
+  { co: 86,  desc: "Additional Gym Cedar Boards & Additional Trim Material", amount: 1418.81, req: 13, status: "Approved", reviewDate: "2023-01-11" },
+  { co: 87,  desc: "Bed 2 Bath Transom Window", amount: 331.25, req: 13, status: "Approved", reviewDate: "2023-01-11" },
+  { co: 88,  desc: "Sewer Backup Cleanup", amount: 270.94, req: 13, status: "Approved", reviewDate: "2023-01-23" },
+  { co: 89,  desc: "Additional Shower Enclosures", amount: 16200, req: 13, status: "Approved", reviewDate: "2023-02-02" },
+  { co: 90,  desc: "Dining Room Stairs Labor", amount: 2250, req: 13, status: "Approved", reviewDate: "2023-02-02" },
+  { co: 91,  desc: "Fireplace Wood Storage Framing", amount: 810.16, req: 13, status: "Approved", reviewDate: "2023-02-02" },
+  { co: 92,  desc: "Miscellaneous Carpentry January 2023", amount: 2903.63, req: 13, status: "Approved", reviewDate: "2023-02-02" },
+  { co: 93,  desc: "Additional Trim Material", amount: 398.81, req: 13, status: "Approved", reviewDate: "2023-02-02" },
+  { co: 94,  desc: "Interior Door Hardware", amount: 2990.35, req: 13, status: "Approved", reviewDate: "2023-02-02" },
+  { co: 95,  desc: "Additional Stone Material at Living Room Exterior", amount: 1215.63, req: 13, status: "Approved", reviewDate: "2023-02-07" },
+  { co: 96,  desc: "Brick Finish Removal (Additional Cost)", amount: 2965.63, req: 13, status: "Approved", reviewDate: "2023-02-07" },
+  { co: 97,  desc: "Temporary Air Conditioning", amount: 5221.79, req: 13, status: "Approved", reviewDate: "2023-02-07" },
+  { co: 98,  desc: "Balcony Decking Material", amount: 2196.23, req: 13, status: "Approved", reviewDate: "2023-02-13" },
+  { co: 99,  desc: "Specialty Hinges", amount: 282.45, req: 13, status: "Approved", reviewDate: "2023-02-13" },
+  { co: 100, desc: "Living Room Fireplace Stone Labor", amount: 22500, req: 13, status: "Approved", reviewDate: "2023-03-01" },
+  { co: 101, desc: "Material for Additional Trim Scope", amount: 1975.33, req: 13, status: "Approved", reviewDate: "2023-03-20" },
+  { co: 102, desc: "Fireplace Hearth Modifications", amount: 234.23, req: 13, status: "Approved", reviewDate: "2023-03-21" },
+  { co: 103, desc: "Primary Bedroom Brick Finish Removal", amount: 369.36, req: 13, status: "Approved", reviewDate: "2023-03-21" },
+  { co: 104, desc: "Fireplace Alternate Stone Samples", amount: 560.16, req: 13, status: "Approved", reviewDate: "2023-03-21" },
+  { co: 105, desc: "Miscellaneous Carpentry February 2023", amount: 3937.5, req: 13, status: "Approved", reviewDate: "2023-03-21" },
+  { co: 106, desc: "Gym Landing & Stairs Labor", amount: 1687.5, req: 13, status: "Approved", reviewDate: "2023-03-21" },
+  { co: 107, desc: "Guest Room Ledge & Primary Bedroom Faux Beams Labor", amount: 3562.5, req: 13, status: "Approved", reviewDate: "2023-03-21" },
+  { co: 108, desc: "Hardscape Restoration", amount: 4375, req: 13, status: "Approved", reviewDate: "2023-03-27" },
+  { co: 109, desc: "2nd Floor Guest Radiant", amount: 6606.25, req: 14, status: "Approved", reviewDate: "2023-04-28" },
+  { co: 110, desc: "Diffuser Upgrade", amount: 1527.06, req: 14, status: "Approved", reviewDate: "2023-05-09" },
+  { co: 111, desc: "Basement Handrail and Wall Sealing", amount: 496.65, req: 14, status: "Approved", reviewDate: "2023-05-09" },
+  { co: 112, desc: "Fireplace Door", amount: 2342.93, req: 14, status: "Approved", reviewDate: "2023-05-09" },
+  { co: 113, desc: "Sewer Line Snaking & Camera Inspections", amount: 2312.5, req: 14, status: "Approved", reviewDate: "2023-05-09" },
+  { co: 114, desc: "Additional Wood Floor Finishing", amount: 4768.49, req: 14, status: "Approved", reviewDate: "2023-05-09" },
+  { co: 115, desc: "Returned Flooring Credit", amount: -812.81, req: 14, status: "Approved", reviewDate: "2023-05-09" },
+  { co: 116, desc: "Chimney Exterior Brick Veneer", amount: 1349.28, req: 14, status: "Approved", reviewDate: "2023-05-17" },
+  { co: 117, desc: "Decking Labor + Additional Material", amount: 2375.36, req: 14, status: "Approved", reviewDate: "2023-05-17" },
+  { co: 118, desc: "Additional & Returned Door Hardware", amount: 1514.03, req: 14, status: "Approved", reviewDate: "2023-05-17" },
+  { co: 119, desc: "Twin Door Lattice Molding", amount: 49.55, req: 14, status: "Approved", reviewDate: "2023-05-17" },
+  { co: 120, desc: "Reconciliation of Interior Trim Labor due to Change in Contractor", amount: -11695.31, req: 15, status: "Approved", reviewDate: "2023-05-25" },
+  { co: 121, desc: "Miscellaneous Additional Carpentry March - May 2023", amount: 562.5, req: 15, status: "Approved", reviewDate: "2023-05-25" },
+  { co: 122, desc: "Additional Interior Trim #2", amount: 6237.5, req: 15, status: "Approved", reviewDate: "2023-05-25" },
+  { co: 123, desc: "Additional Painting #2", amount: 12475, req: 15, status: "Approved", reviewDate: "2023-05-25" },
+  { co: 124, desc: "Electrical Extras 07.21.22 - 04.17.23", amount: 42400, req: 15, status: "Approved", reviewDate: "2023-05-25" },
+  { co: 125, desc: "Additional Interior Trim #3", amount: 8250, req: 15, status: "Approved", reviewDate: "2023-05-30" },
+  { co: 126, desc: "Allowance Reconciliation", amount: -24248.24, req: 16, status: "Approved", reviewDate: "2024-01-17" },
+  { co: 127, desc: "GC/Owner Variance Split", amount: -66389.39, req: 16, status: "Approved", reviewDate: "2024-01-17" },
+  { co: 128, desc: "Owner-Supplied Items", amount: 56982.57, req: 16, status: "Approved", reviewDate: "2024-01-18" },
 ];
 
 const REQ_DEFAULTS = (i) => ({
@@ -3890,7 +3993,7 @@ function FinancialReconciliation({ reqs }) {
         <CardLabel label="Financial Waterfall" />
         {[
           { label: "Original Contract Value", val: originalContract, color: T.text, indent: 0 },
-          { label: "+ Net Change Orders (27 documented)", val: netCOs, color: T.amber, indent: 1 },
+          { label: `+ Net Change Orders (${CHANGE_ORDERS.filter(c => c.status !== "Void").length} documented)`, val: netCOs, color: T.amber, indent: 1 },
           { label: "= Adjusted Contract Scope", val: originalContract + netCOs, color: T.accent, indent: 0, bold: true },
           { label: "Total Billed (16 REQs)", val: totalBilled, color: T.blue, indent: 1 },
           { label: "\u2003Sub Invoices on File", val: totalSubInvoices, color: T.textMid, indent: 2 },
@@ -4068,64 +4171,125 @@ function Timecards({ reqs }) {
 // ── CHANGE ORDERS ────────────────────────────────────────────────────────────
 function ChangeOrdersTab({ reqs }) {
   const [sortBy, setSortBy] = useState("co");
-  const orders = [...CHANGE_ORDERS].sort((a, b) => sortBy === "co" ? a.co - b.co : a.req - b.req);
+  const [search, setSearch] = useState("");
+  const [reqFilter, setReqFilter] = useState("all");
+  const [statusFilter, setStatusFilter] = useState("active"); // "all", "active" (non-void), "credit"
+
+  const activeCOs = CHANGE_ORDERS.filter(c => c.status !== "Void");
   const totalCOs = CHANGE_ORDERS.length;
-  const netValue = CHANGE_ORDERS.reduce((s, c) => s + c.amount, 0);
-  const approved = CHANGE_ORDERS.filter(c => c.status === "Approved");
-  const disputed = CHANGE_ORDERS.filter(c => c.status === "Disputed");
+  const netValue = activeCOs.reduce((s, c) => s + c.amount, 0);
+  const credits = activeCOs.filter(c => c.amount < 0);
+  const totalCredits = credits.reduce((s, c) => s + c.amount, 0);
+  const debits = activeCOs.filter(c => c.amount > 0);
+  const totalDebits = debits.reduce((s, c) => s + c.amount, 0);
+  const voided = CHANGE_ORDERS.filter(c => c.status === "Void");
+  const uniqueReqs = [...new Set(activeCOs.map(c => c.req).filter(Boolean))].sort((a, b) => a - b);
+
+  const filtered = useMemo(() => {
+    let items = CHANGE_ORDERS;
+    if (statusFilter === "active") items = items.filter(c => c.status !== "Void");
+    if (statusFilter === "credit") items = items.filter(c => c.amount < 0 && c.status !== "Void");
+    if (reqFilter !== "all") items = items.filter(c => c.req === parseInt(reqFilter));
+    if (search.trim()) {
+      const q = search.trim().toLowerCase();
+      items = items.filter(c =>
+        c.desc.toLowerCase().includes(q) ||
+        String(c.co).includes(q) ||
+        String(c.amount).includes(q)
+      );
+    }
+    return [...items].sort((a, b) => sortBy === "co" ? a.co - b.co : (a.req || 99) - (b.req || 99) || a.co - b.co);
+  }, [search, reqFilter, statusFilter, sortBy]);
+
+  const filteredNet = filtered.reduce((s, c) => s + c.amount, 0);
 
   const ThS = { padding: "10px 14px", fontSize: 11, fontWeight: 600, color: T.textMuted, textAlign: "left", borderBottom: `2px solid ${T.border}`, fontFamily: T.font, letterSpacing: 0.3, textTransform: "uppercase" };
   const TdS = { padding: "10px 14px", fontSize: 13, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, verticalAlign: "top" };
 
   return (
     <div>
-      <SectionTitle title="Change Orders" subtitle="Owner-directed scope changes drove project beyond original contract — 125 total COs" />
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
-        <KPI label="COs Documented" value={`${totalCOs} of 125`} sub="Extracted from requisitions" accent color={T.accent} />
+      <SectionTitle title="Change Orders" subtitle={`${totalCOs} PCCOs from Procore \u00B7 All PCOs verbally approved by owner before PCCO creation \u00B7 ${voided.length} voided`} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 16 }}>
+        <KPI label="Total PCCOs" value={`${activeCOs.length}`} sub={`${voided.length} voided`} accent color={T.accent} />
         <KPI label="Net CO Value" isMoney rawAmount={netValue} sub="Additions minus credits" color={T.text} />
-        <KPI label="Approved" value={`${approved.length}`} sub={`${Math.round(approved.length / totalCOs * 100)}% of documented`} color={T.green} />
-        <KPI label="Disputed" value={String(disputed.length)} sub="Pending resolution" color={T.red} />
+        <KPI label="Additions" isMoney rawAmount={totalDebits} sub={`${debits.length} change orders`} color={T.green} />
+        <KPI label="Credits" isMoney rawAmount={totalCredits} sub={`${credits.length} credit COs`} color={T.red} />
+        <KPI label="Showing" value={String(filtered.length)} sub={`Net: $${Math.abs(filteredNet).toLocaleString(undefined, {minimumFractionDigits: 0})}`} color={T.blue} />
       </div>
       <Card style={{ marginBottom: 16 }}>
         <div style={{ fontSize: 13, color: T.text, lineHeight: 1.8, fontFamily: T.font }}>
-          The Tharp residence underwent <strong>125 change orders</strong> during construction, fundamentally expanding scope beyond the original AIA A110-2021 contract. These COs encompassed framing modifications, bathroom redesigns, siding changes, HVAC upgrades, and interior finish revisions — all owner-directed. The 240-day substantial completion deadline was exceeded by 419 days, with every day beyond the deadline attributable to CO-driven scope expansion. The owner cannot simultaneously demand 125+ changes and claim delay damages.
+          The Tharp residence underwent <strong>{activeCOs.length} change orders</strong> during construction, fundamentally expanding scope beyond the original AIA A110-2021 contract. These COs encompassed framing modifications, bathroom redesigns, siding changes, HVAC upgrades, and interior finish revisions — all owner-directed and verbally approved before PCCO creation. The 240-day substantial completion deadline was exceeded by 419 days, with every day beyond the deadline attributable to CO-driven scope expansion.
         </div>
       </Card>
-      <div style={{ display: "flex", gap: 4, background: T.bg, borderRadius: 8, padding: 3, marginBottom: 16, width: "fit-content" }}>
-        {["co", "req"].map(s => (
-          <button key={s} onClick={() => setSortBy(s)} style={{
-            padding: "6px 14px", borderRadius: 6, border: sortBy === s ? `1px solid ${T.accentBorder}` : "1px solid transparent",
-            background: sortBy === s ? T.accentBg : "transparent", color: sortBy === s ? T.accent : T.textMuted,
-            fontSize: 12, fontWeight: sortBy === s ? 600 : 400, cursor: "pointer", fontFamily: T.font, transition: T.fast,
-          }}>{s === "co" ? "Sort by CO #" : "Sort by REQ #"}</button>
-        ))}
-      </div>
+
+      {/* Filters */}
+      <Card style={{ marginBottom: 16 }} padding={16}>
+        <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
+          <div style={{ position: "relative", flex: "1 1 240px" }}>
+            <Ic name="search" size={14} color={T.textMuted} style={{ position: "absolute", left: 10, top: "50%", transform: "translateY(-50%)" }} />
+            <input type="text" placeholder="Search PCCO #, description, amount..."
+              value={search} onChange={e => setSearch(e.target.value)}
+              style={{ width: "100%", padding: "8px 12px 8px 32px", fontSize: 13, fontFamily: T.font, border: `1px solid ${T.border}`, borderRadius: 8, background: T.bg, color: T.text, outline: "none", boxSizing: "border-box" }} />
+          </div>
+          <select value={reqFilter} onChange={e => setReqFilter(e.target.value)}
+            style={{ padding: "8px 12px", fontSize: 12, fontFamily: T.font, border: `1px solid ${T.border}`, borderRadius: 8, background: T.bg, color: T.text, cursor: "pointer" }}>
+            <option value="all">All REQs</option>
+            {uniqueReqs.map(r => <option key={r} value={r}>REQ-{String(r).padStart(2, "0")}</option>)}
+          </select>
+          <select value={statusFilter} onChange={e => setStatusFilter(e.target.value)}
+            style={{ padding: "8px 12px", fontSize: 12, fontFamily: T.font, border: `1px solid ${T.border}`, borderRadius: 8, background: T.bg, color: T.text, cursor: "pointer" }}>
+            <option value="active">Active (excl. void)</option>
+            <option value="all">All (incl. void)</option>
+            <option value="credit">Credits Only</option>
+          </select>
+          <div style={{ display: "flex", gap: 4, background: T.bg, borderRadius: 8, padding: 3 }}>
+            {["co", "req"].map(s => (
+              <button key={s} onClick={() => setSortBy(s)} style={{
+                padding: "6px 14px", borderRadius: 6, border: sortBy === s ? `1px solid ${T.accentBorder}` : "1px solid transparent",
+                background: sortBy === s ? T.accentBg : "transparent", color: sortBy === s ? T.accent : T.textMuted,
+                fontSize: 12, fontWeight: sortBy === s ? 600 : 400, cursor: "pointer", fontFamily: T.font, transition: T.fast,
+              }}>{s === "co" ? "By PCCO #" : "By REQ"}</button>
+            ))}
+          </div>
+          {(search || reqFilter !== "all" || statusFilter !== "active") && (
+            <button onClick={() => { setSearch(""); setReqFilter("all"); setStatusFilter("active"); }}
+              style={{ padding: "8px 14px", fontSize: 12, fontFamily: T.font, background: T.redBg, color: T.red, border: `1px solid ${T.redBorder}`, borderRadius: 8, cursor: "pointer", fontWeight: 500 }}>
+              Clear
+            </button>
+          )}
+        </div>
+      </Card>
+
       <Card padding={0}>
         <div style={{ overflowX: "auto" }}>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead><tr>
-              {["CO #", "DESCRIPTION", "AMOUNT", "REQ", "STATUS"].map(h =>
+              {["PCCO #", "DESCRIPTION", "AMOUNT", "REQ", "REVIEW DATE", "STATUS"].map(h =>
                 <th key={h} style={{ ...ThS, textAlign: h === "AMOUNT" ? "right" : "left" }}>{h}</th>)}
             </tr></thead>
             <tbody>
-              {orders.map(co => {
-                const stColor = co.status === "Approved" ? T.green : T.red;
+              {filtered.length === 0 ? (
+                <tr><td colSpan={6} style={{ padding: 32, textAlign: "center", color: T.textMuted, fontSize: 13 }}>No change orders match your filters</td></tr>
+              ) : filtered.map(co => {
+                const isVoid = co.status === "Void";
+                const isCredit = co.amount < 0;
+                const stColor = isVoid ? T.textMuted : T.green;
                 return (
-                  <tr key={co.co}>
-                    <td style={TdS}><span style={{ fontFamily: T.mono, fontWeight: 600, fontSize: 12 }}>CO #{co.co}</span></td>
-                    <td style={TdS}><span style={{ fontSize: 13 }}>{co.desc}</span></td>
-                    <td style={{ ...TdS, textAlign: "right" }}><Money amount={co.amount} color={co.amount < 0 ? T.red : T.text} /></td>
-                    <td style={TdS}><span style={{ fontFamily: T.mono, fontSize: 12 }}>REQ-{String(co.req).padStart(2, "0")}</span></td>
+                  <tr key={co.co} style={{ background: isVoid ? T.bg + "80" : isCredit ? T.redBg + "40" : "transparent", opacity: isVoid ? 0.5 : 1 }}>
+                    <td style={TdS}><span style={{ fontFamily: T.mono, fontWeight: 600, fontSize: 12 }}>PCCO #{String(co.co).padStart(3, "0")}</span></td>
+                    <td style={{ ...TdS, maxWidth: 400, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}><span style={{ fontSize: 13, textDecoration: isVoid ? "line-through" : "none" }}>{co.desc}</span></td>
+                    <td style={{ ...TdS, textAlign: "right" }}><Money amount={co.amount} color={isVoid ? T.textMuted : isCredit ? T.red : T.text} /></td>
+                    <td style={TdS}>{co.req ? <span style={{ fontFamily: T.mono, fontSize: 12 }}>REQ-{String(co.req).padStart(2, "0")}</span> : <span style={{ fontSize: 11, color: T.textMuted }}>—</span>}</td>
+                    <td style={TdS}><span style={{ fontFamily: T.mono, fontSize: 11, color: T.textMid }}>{co.reviewDate || "—"}</span></td>
                     <td style={TdS}><Badge label={co.status} style={{ color: stColor, bg: stColor + "12", border: stColor + "30" }} /></td>
                   </tr>
                 );
               })}
               <tr style={{ background: T.bg }}>
                 <td style={{ ...TdS, fontWeight: 700 }}>NET</td>
-                <td style={{ ...TdS, fontWeight: 600, color: T.textMid }}>{totalCOs} change orders</td>
-                <td style={{ ...TdS, textAlign: "right" }}><Money amount={netValue} color={T.accent} size="md" /></td>
-                <td style={TdS}></td>
-                <td style={TdS}></td>
+                <td style={{ ...TdS, fontWeight: 600, color: T.textMid }}>{filtered.length} change orders</td>
+                <td style={{ ...TdS, textAlign: "right" }}><Money amount={filteredNet} color={T.accent} size="md" /></td>
+                <td colSpan={3} style={TdS}></td>
               </tr>
             </tbody>
           </table>
