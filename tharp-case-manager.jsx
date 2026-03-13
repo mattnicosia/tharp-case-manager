@@ -141,7 +141,7 @@ const OWNER_CLAIMS_INITIAL = [
   { id: 20, description: "Molding around french doors — incorrect measurement", ownerAmount: 3000, agreedAmount: 1140, status: "AGREED", defense: "Agreed concept, corrected value.", strength: "N/A" },
   { id: 21, description: "Lost/stolen Kohler sink", ownerAmount: 99, agreedAmount: 0, status: "DISPUTED", defense: "Client-ordered fixture. Replacement obtained at no cost.", strength: "MODERATE" },
   { id: 22, description: "Repair and paint pantry wall and ceiling", ownerAmount: 1000, agreedAmount: 1000, status: "AGREED", defense: "Agreed.", strength: "N/A" },
-  { id: 23, description: "Most doors not hung properly — gaps, rattle", ownerAmount: 3000, agreedAmount: 0, status: "DISPUTED", defense: "Punchlist work — will complete upon receipt of past-due payment.", strength: "MODERATE" },
+  { id: 23, description: "Most doors not hung properly — gaps, rattle", ownerAmount: 3000, agreedAmount: 0, status: "DISPUTED", defense: "Punchlist work — Montana offered to complete upon receipt of past-due payment. Owner independently hired the same subcontractor who originally hung the doors and paid him to finish/balance them, undermining this claim.", strength: "STRONG" },
   { id: 24, description: "12-month warranty escrow for winter systems", ownerAmount: 10000, agreedAmount: 0, status: "DISPUTED", defense: "Warranties issue upon final payment per contract. Owner's withholding creates this condition.", strength: "STRONG" },
 ];
 
