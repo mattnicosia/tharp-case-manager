@@ -6151,6 +6151,8 @@ function ArbitratorQAChat({ reqs, claims, docs }) {
   const [arbId, setArbId] = useState("abramowitz");
   const [sidebar, setSidebar] = useState(null);
   const [showSuggested, setShowSuggested] = useState(false);
+  const [keyInput, setKeyInput] = useState("");
+  const [hasKey, setHasKey] = useState(!!window._openaiKey);
   const chatRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -6265,6 +6267,30 @@ function ArbitratorQAChat({ reqs, claims, docs }) {
             </div>
           </div>
         </div>
+
+        {/* API key setup */}
+        {!hasKey && (
+          <div style={{ background: T.amber + "10", border: `1px solid ${T.amber}40`, borderRadius: 12, padding: 20, marginBottom: 16, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+            <div style={{ flex: "1 1 200px" }}>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.text, fontFamily: T.font }}>OpenAI API Key Required</div>
+              <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font, marginTop: 4 }}>Enter your OpenAI key to enable AI-powered Q&A. Your key is stored locally and never sent anywhere except OpenAI.</div>
+            </div>
+            <div style={{ display: "flex", gap: 8, flex: "1 1 300px" }}>
+              <input
+                type="password"
+                value={keyInput}
+                onChange={e => setKeyInput(e.target.value)}
+                onKeyDown={e => { if (e.key === "Enter" && keyInput.trim()) { localStorage.setItem("tharp-openai-key", keyInput.trim()); window._openaiKey = keyInput.trim(); setHasKey(true); setKeyInput(""); } }}
+                placeholder="sk-..."
+                style={{ flex: 1, padding: "8px 12px", borderRadius: 8, border: `1px solid ${T.border}`, background: T.surface, color: T.text, fontFamily: T.mono, fontSize: 12 }}
+              />
+              <button onClick={() => { if (keyInput.trim()) { localStorage.setItem("tharp-openai-key", keyInput.trim()); window._openaiKey = keyInput.trim(); setHasKey(true); setKeyInput(""); } }} style={{
+                padding: "8px 16px", borderRadius: 8, border: "none", background: T.accent, color: "#FFF",
+                fontFamily: T.font, fontSize: 12, fontWeight: 600, cursor: keyInput.trim() ? "pointer" : "default",
+              }}>Save</button>
+            </div>
+          </div>
+        )}
 
         {/* Chat messages */}
         <div ref={chatRef} style={{
@@ -6625,6 +6651,9 @@ export default function App() {
       }));
       if (c) setClaims(c);
       if (d) setDocs(d);
+      // Restore OpenAI key from localStorage
+      const storedKey = localStorage.getItem("tharp-openai-key");
+      if (storedKey && !window._openaiKey) window._openaiKey = storedKey;
       setLoaded(true);
     })();
   }, []);
