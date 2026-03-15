@@ -90,6 +90,12 @@ function Ic({ name, size = 16, color = "currentColor", sw = 1.75, style = {} }) 
     "target":       "M12 22a10 10 0 100-20 10 10 0 000 20z|M12 18a6 6 0 100-12 6 6 0 000 12z|M12 14a2 2 0 100-4 2 2 0 000 4z",
     "play":         "M5 3l14 9-14 9V3z",
     "clock":        "M12 22a10 10 0 100-20 10 10 0 000 20z|M12 6v6l4 2",
+    "copy":         "M20 9h-9a2 2 0 00-2 2v9a2 2 0 002 2h9a2 2 0 002-2v-9a2 2 0 00-2-2z|M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1",
+    "trash":        "M3 6h18|M8 6V4a2 2 0 012-2h4a2 2 0 012 2v2|M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6|M10 11v6|M14 11v6",
+    "user":         "M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2|M12 11a4 4 0 100-8 4 4 0 000 8z",
+    "message-circle":"M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z",
+    "help-circle":  "M12 22a10 10 0 100-20 10 10 0 000 20z|M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3|M12 17h.01",
+    "send":         "M22 2L11 13|M22 2l-7 20-4-9-9-4 20-7z",
   };
   const d = P[name];
   if (!d) return null;
@@ -3004,7 +3010,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
         status: classify.status || "submitted", notes: "", storagePath: path, fileName: file.name, fileSize: file.size, mimeType: mime,
         tags: allFileTags, linkedReqs: allLinkedReqs, extractedText, vendor: classify.vendor, costCode: classify.costCode });
       if (window._openaiKey && extractedText) {
-        analyzeUploadedDoc({ id }, extractedText, docs).then(u => { if (u) updateDoc(id, u); }).catch(() => {});
+        analyzeUploadedDoc({ id }, extractedText, reqs).then(u => { if (u) updateDoc(id, u); }).catch(() => {});
       }
       setUploading(prev => prev.map((u, j) => j === i ? { ...u, progress: 100, status: "done" } : u));
     }
@@ -4638,7 +4644,7 @@ function buildCaseDisputes(claims) {
   const totalAgreed = claims.reduce((s, c) => s + (c.agreedAmount || 0), 0);
   const agreedItems = claims.filter(c => c.agreedAmount > 0);
   const req13Billed = REQS_INITIAL[12].totalBilled || 0;
-  const unappliedCredits = Math.abs(BACKUP_VARIANCE[16]?.items?.filter(it => it.amount < 0).reduce((s, it) => s + it.amount, 0) || 135385);
+  const unappliedCredits = Math.abs(BACKUP_VARIANCE[16]?.items?.filter(it => it.amount < 0).reduce((s, it) => s + it.amount, 0) ?? 135385);
   const korthOver = 40492; // Korth contract value not in structured data
   const ohpEstimate = 50000; // estimate — no structured data source
   const docEstimate = 40000; // estimate — no structured data source
@@ -4744,7 +4750,7 @@ function buildPartyAnalysis(claims, reqs) {
   const totalAgreed = claims.reduce((s, c) => s + (c.agreedAmount || 0), 0);
   const totalPaid = reqs.reduce((s, r) => s + (r.paidAmount || 0), 0);
   const waivedTotal = claims.filter(c => c.status === "WAIVED").reduce((s, c) => s + (c.ownerAmount || 0), 0);
-  const unappliedCredits = Math.abs(BACKUP_VARIANCE[16]?.items?.filter(it => it.amount < 0).reduce((s, it) => s + it.amount, 0) || 135385);
+  const unappliedCredits = Math.abs(BACKUP_VARIANCE[16]?.items?.filter(it => it.amount < 0).reduce((s, it) => s + it.amount, 0) ?? 135385);
   return {
   mc: {
     strengths: [
@@ -5251,7 +5257,7 @@ const DOCS_INITIAL = [
   { id: "doc-023", category: "invoice", name: "Korth Plumbing Invoice Package", date: "2023-09-15", description: "Korth plumbing invoices — subject to overbilling dispute. Owner alleges duplicate / inflated charges.", parties: "Korth / MC", status: "disputed", notes: "" },
 ];
 
-function Documents({ docs, updateDoc, addDoc, removeDoc }) {
+function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
   const [filter, setFilter] = useState("all");
   const [tagFilter, setTagFilter] = useState(null);
   const [sel, setSel] = useState(null);
@@ -5262,7 +5268,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
   const [uploading, setUploading] = useState([]); // [{name, progress, status}]
   const [uploadSummary, setUploadSummary] = useState(null);
   const [newTag, setNewTag] = useState("");
-  const [previewUrl, setPreviewUrl] = useState(null);
+
 
   const filtered = docs.filter(d => {
     if (filter !== "all" && d.category !== filter) return false;
@@ -5379,7 +5385,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc }) {
 
       // AI auto-analysis (non-blocking)
       if (window._openaiKey && extractedText) {
-        analyzeUploadedDoc(newDocRecord, extractedText, docs)
+        analyzeUploadedDoc(newDocRecord, extractedText, reqs)
           .then(aiUpdates => { if (aiUpdates) updateDoc(id, aiUpdates); })
           .catch(err => console.warn("[AI] Upload analysis failed:", err.message));
       }
@@ -7026,7 +7032,7 @@ export default function App() {
         {tab === "changeorders" && <ChangeOrdersTab reqs={reqs} />}
         {tab === "claims" && <Claims claims={claims} updateClaim={updateClaim} />}
         {tab === "timeline" && <TimelineTab reqs={reqs} claims={claims} />}
-        {tab === "documents" && <Documents docs={docs} updateDoc={updateDoc} addDoc={addDoc} removeDoc={removeDoc} />}
+        {tab === "documents" && <Documents docs={docs} updateDoc={updateDoc} addDoc={addDoc} removeDoc={removeDoc} reqs={reqs} />}
         {tab === "catalogue" && <InvoiceCatalogue />}
         {tab === "qa" && <ArbitratorQAChat reqs={reqs} claims={claims} docs={docs} />}
         {tab === "audit" && <AuditRisk reqs={reqs} />}
