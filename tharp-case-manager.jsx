@@ -321,6 +321,31 @@ const LABOR_ANALYSIS = {
   totals: { supHours: 1573.5, tradeHours: 2265.0, totalHours: 3838.5 },
 };
 
+// ── PAYROLL COST DATA (from Montana Contracting Payroll Summary 11/28/2023) ──
+// Actual burdened cost per employee on Tharp project
+// Burden includes: employer taxes (FICA 7.65%, NY UI 3.03%, WC 17%, etc.) + vacation + 25% overhead
+// Billed rate: all labor billed at uniform $60/hr blended rate
+const PAYROLL_COST_DATA = [
+  { name: "Ficucello, Thomas",       role: "Job Superintendent", hourlyBase: 39.66, employerContrib: 11.50, vacation: 2.00, totalCostHr: 53.16, burden25: 13.29, burdenedRate: 66.45, hours: 1554.00, actualCost: 103266, billingRate: 60 },
+  { name: "Sandoval, Vidal A",       role: "Tradesman",          hourlyBase: 35.00, employerContrib: 10.15, vacation: 2.00, totalCostHr: 47.15, burden25: 11.79, burdenedRate: 58.94, hours: 692.00,  actualCost: 40785,  billingRate: 60 },
+  { name: "Laubauskas, Michael",     role: "Tradesman",          hourlyBase: 28.00, employerContrib: 8.12,  vacation: 2.00, totalCostHr: 38.12, burden25: 9.53,  burdenedRate: 47.65, hours: 435.00,  actualCost: 20728,  billingRate: 60 },
+  { name: "Palacios, Jose",          role: "Tradesman",          hourlyBase: 24.00, employerContrib: 6.96,  vacation: 2.00, totalCostHr: 32.96, burden25: 8.24,  burdenedRate: 41.20, hours: 336.50,  actualCost: 13864,  billingRate: 60 },
+  { name: "Yuvienco, John",          role: "Tradesman",          hourlyBase: 22.00, employerContrib: 6.38,  vacation: 2.00, totalCostHr: 30.38, burden25: 7.60,  burdenedRate: 37.98, hours: 184.25,  actualCost: 6997,   billingRate: 60 },
+  { name: "Grosso, Jessica",         role: "Tradesman",          hourlyBase: 31.25, employerContrib: 9.06,  vacation: 2.00, totalCostHr: 42.31, burden25: 10.58, burdenedRate: 52.89, hours: 120.25,  actualCost: 6360,   billingRate: 60 },
+  { name: "Falsetti, Anthony J",     role: "Tradesman",          hourlyBase: 25.00, employerContrib: 7.25,  vacation: 2.00, totalCostHr: 34.25, burden25: 8.56,  burdenedRate: 42.81, hours: 114.50,  actualCost: 4902,   billingRate: 60 },
+  { name: "Avelino, Pedro",          role: "Tradesman",          hourlyBase: 17.00, employerContrib: 4.93,  vacation: 2.00, totalCostHr: 23.93, burden25: 5.98,  burdenedRate: 29.91, hours: 110.00,  actualCost: 3290,   billingRate: 60 },
+  { name: "Lange, Chris",            role: "Supervisor",         hourlyBase: 57.69, employerContrib: 16.73, vacation: 2.00, totalCostHr: 76.42, burden25: 19.11, burdenedRate: 95.53, hours: 108.00,  actualCost: 10317,  billingRate: 60 },
+  { name: "Sheppard, Rodney L",      role: "Tradesman",          hourlyBase: 23.00, employerContrib: 6.67,  vacation: 2.00, totalCostHr: 31.67, burden25: 7.92,  burdenedRate: 39.59, hours: 40.50,   actualCost: 1603,   billingRate: 60 },
+  { name: "Torres, John",            role: "Asst Project Mgr",   hourlyBase: 28.85, employerContrib: 8.37,  vacation: 2.00, totalCostHr: 39.22, burden25: 9.80,  burdenedRate: 49.02, hours: 38.00,   actualCost: 1863,   billingRate: 60 },
+  { name: "Berrios Martinez, Duglas",role: "Tradesman",          hourlyBase: 25.00, employerContrib: 7.25,  vacation: 2.00, totalCostHr: 34.25, burden25: 8.56,  burdenedRate: 42.81, hours: 29.00,   actualCost: 1242,   billingRate: 60 },
+  { name: "O'Donahue, Ryan",         role: "Supervisor",         hourlyBase: 43.27, employerContrib: 12.55, vacation: 2.00, totalCostHr: 57.82, burden25: 14.45, burdenedRate: 72.27, hours: 24.50,   actualCost: 1771,   billingRate: 60 },
+  { name: "Montana, Michael",        role: "Tradesman",          hourlyBase: 28.00, employerContrib: 8.12,  vacation: 2.00, totalCostHr: 38.12, burden25: 9.53,  burdenedRate: 47.65, hours: 24.00,   actualCost: 1144,   billingRate: 60 },
+  { name: "Slavin, Dean",            role: "Tradesman",          hourlyBase: 18.00, employerContrib: 5.22,  vacation: 2.00, totalCostHr: 25.22, burden25: 6.31,  burdenedRate: 31.53, hours: 17.00,   actualCost: 536,    billingRate: 60 },
+  { name: "Montana, Joseph M.",      role: "Project Manager",    hourlyBase: 48.00, employerContrib: 13.92, vacation: 2.00, totalCostHr: 63.92, burden25: 15.98, burdenedRate: 79.90, hours: 9.00,    actualCost: 719,    billingRate: 60 },
+];
+// Control total: 3,852 hours · $219,387 actual burdened cost
+// Employer tax/burden breakdown: Fed UI 0.60%, SS 6.20%, Medicare 1.45%, NY Disability 0.45%, NY UI 3.03%, NY Re-employment 0.08%, Workers Comp 17.00% = 28.80% total
+
 // ── PARSED INVOICE TOTALS (from Matt's invoice labeling spreadsheet) ────────
 // These are BASE CONTRACT cost-of-work totals per req (pre-markup)
 // Source: extracted_invoice_spreadsheet_tabs.txt BASE CONTRACT TOTALS row
@@ -4161,6 +4186,208 @@ function Timecards({ reqs }) {
             <p style={{ marginBottom: 10 }}><strong>Derived Period Hours:</strong> REQ-01 period ~497 hrs (3,726-3,229) · REQ-02 period ~108 hrs (3,229-3,121) · REQ-03 period ~147 hrs (3,121-2,974).</p>
             <p style={{ marginBottom: 10 }}><strong>Rate:</strong> All labor billed at uniform $60/hr across all trades (demolition, framing, siding, drywall). Flagged as "blended_rate" — not actual payroll cost.</p>
             <p><strong>Source:</strong> 15 PDFs from <code style={{ fontFamily: T.mono, fontSize: 11, background: T.bg, padding: "1px 4px", borderRadius: 3 }}>Legal/Timecards/Req N sent YYYY.MM.DD.pdf</code></p>
+          </div>
+        </Card>
+      </div>
+      <PayrollAnalysis />
+    </div>
+  );
+}
+
+// ── PAYROLL ANALYSIS ─────────────────────────────────────────────────────────
+function PayrollAnalysis() {
+  const [sortCol, setSortCol] = useState("hours");
+  const [sortDir, setSortDir] = useState("desc");
+
+  const totalHours = PAYROLL_COST_DATA.reduce((s, e) => s + e.hours, 0);
+  const totalActualCost = PAYROLL_COST_DATA.reduce((s, e) => s + e.actualCost, 0);
+  const totalBilled = PAYROLL_COST_DATA.reduce((s, e) => s + e.hours * e.billingRate, 0);
+  const totalDiff = totalBilled - totalActualCost;
+  const avgBurdenedRate = totalActualCost / totalHours;
+
+  const sorted = useMemo(() => {
+    const data = [...PAYROLL_COST_DATA];
+    const dir = sortDir === "asc" ? 1 : -1;
+    return data.sort((a, b) => {
+      if (sortCol === "name") return dir * a.name.localeCompare(b.name);
+      if (sortCol === "role") return dir * a.role.localeCompare(b.role);
+      if (sortCol === "hourlyBase") return dir * (a.hourlyBase - b.hourlyBase);
+      if (sortCol === "burdenedRate") return dir * (a.burdenedRate - b.burdenedRate);
+      if (sortCol === "hours") return dir * (a.hours - b.hours);
+      if (sortCol === "actualCost") return dir * (a.actualCost - b.actualCost);
+      if (sortCol === "billed") return dir * ((a.hours * a.billingRate) - (b.hours * b.billingRate));
+      if (sortCol === "diff") return dir * (((a.hours * a.billingRate) - a.actualCost) - ((b.hours * b.billingRate) - b.actualCost));
+      return 0;
+    });
+  }, [sortCol, sortDir]);
+
+  const toggleSort = (col) => {
+    if (sortCol === col) setSortDir(d => d === "asc" ? "desc" : "asc");
+    else { setSortCol(col); setSortDir("desc"); }
+  };
+
+  const ThS = { padding: "10px 14px", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: `2px solid ${T.border}`, fontFamily: T.font, letterSpacing: 0.3, textTransform: "uppercase", cursor: "pointer", userSelect: "none", whiteSpace: "nowrap" };
+  const TdS = { padding: "10px 14px", fontSize: 13, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, verticalAlign: "top" };
+  const arrow = (col) => sortCol === col ? (sortDir === "asc" ? " ▲" : " ▼") : "";
+
+  return (
+    <div style={{ marginTop: 32 }}>
+      <SectionTitle title="Payroll Cost Analysis — Billed vs. Actual" subtitle={`${totalHours.toLocaleString()} total hours · 16 employees · Source: Montana Contracting Payroll Summary 11/28/2023`} />
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
+        <KPI label="Total Billed @ $60/hr" isMoney rawAmount={totalBilled} sub={`${totalHours.toLocaleString()} hrs × $60`} accent color={T.accent} />
+        <KPI label="Actual Burdened Cost" isMoney rawAmount={totalActualCost} sub="Payroll + taxes + WC + vacation" color={T.amber} />
+        <KPI label="Net Difference" isMoney rawAmount={totalDiff} sub={totalDiff >= 0 ? "Billed exceeded cost" : "Cost exceeded billing"} color={totalDiff >= 0 ? T.green : T.red} />
+        <KPI label="Avg Burdened Rate" value={`$${avgBurdenedRate.toFixed(2)}/hr`} sub="Weighted average actual cost" color={T.blue} />
+      </div>
+
+      <Card style={{ marginBottom: 16, padding: "14px 16px" }}>
+        <div style={{ fontSize: 12, color: T.textMid, lineHeight: 1.7 }}>
+          <p style={{ margin: 0 }}>
+            <strong style={{ color: T.accent }}>Key Finding:</strong> Montana billed all labor at a uniform <strong>$60/hr blended rate</strong>.
+            The actual weighted average burdened cost was <strong>${avgBurdenedRate.toFixed(2)}/hr</strong> (including FICA 7.65%, NY unemployment 3.03%,
+            workers' comp 17%, vacation accrual, and overhead).{" "}
+            {totalDiff >= 0
+              ? <>The $60/hr rate exceeded actual cost by only <strong>${totalDiff.toLocaleString()}</strong> ({(totalDiff / totalBilled * 100).toFixed(1)}%) — a de minimis margin that demonstrates the rate was reasonable.</>
+              : <>Montana's actual cost <em>exceeded</em> the billed rate by <strong>${Math.abs(totalDiff).toLocaleString()}</strong>, meaning Montana absorbed the shortfall.</>
+            }
+            {" "}Employees with burdened rates above $60/hr (highlighted in red below) represent direct losses to Montana on every hour worked.
+          </p>
+        </div>
+      </Card>
+
+      <Card padding={0}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr>
+              <th style={{ ...ThS, textAlign: "left" }} onClick={() => toggleSort("name")}>Employee{arrow("name")}</th>
+              <th style={{ ...ThS, textAlign: "left" }} onClick={() => toggleSort("role")}>Role{arrow("role")}</th>
+              <th style={{ ...ThS, textAlign: "right" }} onClick={() => toggleSort("hourlyBase")}>Base Rate{arrow("hourlyBase")}</th>
+              <th style={{ ...ThS, textAlign: "right" }} onClick={() => toggleSort("burdenedRate")}>Burdened Rate{arrow("burdenedRate")}</th>
+              <th style={{ ...ThS, textAlign: "right" }} onClick={() => toggleSort("hours")}>Hours{arrow("hours")}</th>
+              <th style={{ ...ThS, textAlign: "right" }} onClick={() => toggleSort("billed")}>Billed @ $60{arrow("billed")}</th>
+              <th style={{ ...ThS, textAlign: "right" }} onClick={() => toggleSort("actualCost")}>Actual Cost{arrow("actualCost")}</th>
+              <th style={{ ...ThS, textAlign: "right" }} onClick={() => toggleSort("diff")}>Difference{arrow("diff")}</th>
+            </tr></thead>
+            <tbody>
+              {sorted.map(e => {
+                const billed = e.hours * e.billingRate;
+                const diff = billed - e.actualCost;
+                const overBudget = e.burdenedRate > e.billingRate;
+                return (
+                  <tr key={e.name} style={{ background: overBudget ? "rgba(239,68,68,0.04)" : undefined }}>
+                    <td style={TdS}>
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>{e.name}</span>
+                    </td>
+                    <td style={TdS}>
+                      <span style={{ fontSize: 11, color: T.textMid, background: T.bg, padding: "2px 6px", borderRadius: 4 }}>{e.role}</span>
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      <span style={{ fontFamily: T.mono, fontSize: 12 }}>${e.hourlyBase.toFixed(2)}</span>
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      <span style={{ fontFamily: T.mono, fontSize: 12, fontWeight: 600, color: overBudget ? T.red : T.green }}>
+                        ${e.burdenedRate.toFixed(2)}
+                      </span>
+                      {overBudget && <span style={{ fontSize: 9, color: T.red, marginLeft: 4 }}>▲ LOSS</span>}
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 600 }}>{e.hours.toFixed(2)}</span>
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      <Money amount={billed} />
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      <Money amount={e.actualCost} color={T.amber} />
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 600, color: diff >= 0 ? T.green : T.red }}>
+                        {diff >= 0 ? "+" : ""}{diff < 0 ? "(" : ""}${Math.abs(diff).toLocaleString()}{diff < 0 ? ")" : ""}
+                      </span>
+                    </td>
+                  </tr>
+                );
+              })}
+              <tr style={{ background: T.bg, fontWeight: 700 }}>
+                <td style={{ ...TdS, fontWeight: 700 }}>TOTAL</td>
+                <td style={TdS}><span style={{ fontSize: 11, color: T.textMid }}>16 employees</span></td>
+                <td style={TdS}></td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 12, fontWeight: 600 }}>${avgBurdenedRate.toFixed(2)} avg</span>
+                </td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700 }}>{totalHours.toFixed(2)}</span>
+                </td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: T.accent }}>${totalBilled.toLocaleString()}</span>
+                </td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: T.amber }}>${totalActualCost.toLocaleString()}</span>
+                </td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: totalDiff >= 0 ? T.green : T.red }}>
+                    {totalDiff >= 0 ? "+" : ""}${totalDiff.toLocaleString()}
+                  </span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginTop: 16 }}>
+        <Card>
+          <CardLabel label="Burden Breakdown (per payroll dollar)" />
+          <div style={{ fontSize: 12, color: T.textMid, lineHeight: 2 }}>
+            {[
+              { label: "Federal Unemployment", rate: "0.60%" },
+              { label: "Social Security", rate: "6.20%" },
+              { label: "Medicare", rate: "1.45%" },
+              { label: "NY Disability", rate: "0.45%" },
+              { label: "NY Unemployment", rate: "3.03%" },
+              { label: "NY Re-employment", rate: "0.08%" },
+              { label: "Workers Compensation", rate: "17.00%" },
+            ].map(item => (
+              <div key={item.label} style={{ display: "flex", justifyContent: "space-between", borderBottom: `1px solid ${T.border}`, padding: "4px 0" }}>
+                <span>{item.label}</span>
+                <span style={{ fontFamily: T.mono, fontWeight: 600 }}>{item.rate}</span>
+              </div>
+            ))}
+            <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontWeight: 700, color: T.text }}>
+              <span>Total Employer Burden</span>
+              <span style={{ fontFamily: T.mono }}>28.80%</span>
+            </div>
+            <div style={{ marginTop: 8, fontSize: 11, color: T.textMuted }}>
+              Plus: vacation accrual ($0.53–$2.25/hr per employee) and 25% overhead allocation
+            </div>
+          </div>
+        </Card>
+        <Card>
+          <CardLabel label="Rate Comparison by Employee" />
+          <div style={{ fontSize: 12, color: T.textMid }}>
+            {PAYROLL_COST_DATA.map(e => {
+              const pct = ((e.burdenedRate / e.billingRate) * 100);
+              const over = e.burdenedRate > e.billingRate;
+              return (
+                <div key={e.name} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
+                  <span style={{ width: 140, fontSize: 11, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>{e.name}</span>
+                  <div style={{ flex: 1, height: 14, background: T.bg, borderRadius: 7, overflow: "hidden", position: "relative" }}>
+                    <div style={{
+                      width: `${Math.min(pct, 100)}%`, height: "100%", borderRadius: 7,
+                      background: over ? "rgba(239,68,68,0.5)" : "rgba(34,197,94,0.4)",
+                    }} />
+                    {over && <div style={{
+                      position: "absolute", left: `${(60/e.burdenedRate)*100}%`, top: 0, bottom: 0, width: 2, background: T.red,
+                    }} />}
+                  </div>
+                  <span style={{ fontFamily: T.mono, fontSize: 10, width: 42, textAlign: "right", color: over ? T.red : T.green, fontWeight: 600 }}>
+                    {pct.toFixed(0)}%
+                  </span>
+                </div>
+              );
+            })}
+            <div style={{ marginTop: 8, fontSize: 10, color: T.textMuted }}>
+              Bar shows burdened rate as % of $60/hr billing rate. Red line = breakeven. Red bars = loss per hour.
+            </div>
           </div>
         </Card>
       </div>
