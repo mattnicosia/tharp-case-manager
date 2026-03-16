@@ -8,8 +8,57 @@ document.head.appendChild(fontLink);
 
 // ── CSS Keyframes ────────────────────────────────────────────────────────────
 const styleSheet = document.createElement("style");
-styleSheet.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
+styleSheet.textContent = `@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`;
 document.head.appendChild(styleSheet);
+
+// ── IndexedDB PDF Storage ────────────────────────────────────────────────────
+const IDBNAME = "tharp-attachments";
+const IDBSTORE = "pdfs";
+function openIDB() {
+  return new Promise((resolve, reject) => {
+    const req = indexedDB.open(IDBNAME, 1);
+    req.onupgradeneeded = () => req.result.createObjectStore(IDBSTORE);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+}
+async function idbPut(key, blob) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDBSTORE, "readwrite");
+    tx.objectStore(IDBSTORE).put(blob, key);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+async function idbGet(key) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDBSTORE, "readonly");
+    const req = tx.objectStore(IDBSTORE).get(key);
+    req.onsuccess = () => { db.close(); resolve(req.result); };
+    req.onerror = () => { db.close(); reject(req.error); };
+  });
+}
+async function idbDelete(key) {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDBSTORE, "readwrite");
+    tx.objectStore(IDBSTORE).delete(key);
+    tx.oncomplete = () => { db.close(); resolve(); };
+    tx.onerror = () => { db.close(); reject(tx.error); };
+  });
+}
+async function idbKeys() {
+  const db = await openIDB();
+  return new Promise((resolve, reject) => {
+    const tx = db.transaction(IDBSTORE, "readonly");
+    const req = tx.objectStore(IDBSTORE).getAllKeys();
+    req.onsuccess = () => { db.close(); resolve(req.result); };
+    req.onerror = () => { db.close(); reject(req.error); };
+  });
+}
 
 // ── Design Tokens ─────────────────────────────────────────────────────────────
 const T = {
@@ -96,6 +145,11 @@ function Ic({ name, size = 16, color = "currentColor", sw = 1.75, style = {} }) 
     "message-circle":"M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z",
     "help-circle":  "M12 22a10 10 0 100-20 10 10 0 000 20z|M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3|M12 17h.01",
     "send":         "M22 2L11 13|M22 2l-7 20-4-9-9-4 20-7z",
+    "paperclip":    "M21.44 11.05l-9.19 9.19a6 6 0 01-8.49-8.49l9.19-9.19a4 4 0 015.66 5.66l-9.2 9.19a2 2 0 01-2.83-2.83l8.49-8.48",
+    "eye":          "M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z|M12 15a3 3 0 100-6 3 3 0 000 6z",
+    "download":     "M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4|M7 10l5 5 5-5|M12 15V3",
+    "link":         "M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71|M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71",
+    "external-link":"M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6|M15 3h6v6|M10 14L21 3",
   };
   const d = P[name];
   if (!d) return null;
@@ -3727,18 +3781,102 @@ function Strategy({ claims }) {
 
 // [Reconciliation + BackupVariance deleted — merged into Requisitions tab]
 
+// ── PDF VIEWER MODAL ─────────────────────────────────────────────────────────
+function PdfViewerModal({ invoiceId, fileName, onClose }) {
+  const [blobUrl, setBlobUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    let url = null;
+    (async () => {
+      try {
+        const blob = await idbGet("attach-" + invoiceId);
+        if (!blob) { setError("PDF not found in storage"); setLoading(false); return; }
+        url = URL.createObjectURL(blob);
+        setBlobUrl(url);
+      } catch (e) { setError(e.message); }
+      setLoading(false);
+    })();
+    return () => { if (url) URL.revokeObjectURL(url); };
+  }, [invoiceId]);
+
+  return (
+    <div onClick={onClose} style={{
+      position: "fixed", inset: 0, zIndex: 9999, background: "rgba(0,0,0,0.6)",
+      display: "flex", alignItems: "center", justifyContent: "center",
+      backdropFilter: "blur(4px)", animation: "fadeInUp 0.2s ease",
+    }}>
+      <div onClick={e => e.stopPropagation()} style={{
+        width: "90vw", maxWidth: 1000, height: "85vh", background: T.surface,
+        borderRadius: 16, boxShadow: T.sh3, display: "flex", flexDirection: "column", overflow: "hidden",
+      }}>
+        {/* Header */}
+        <div style={{
+          padding: "14px 20px", borderBottom: `1px solid ${T.border}`, display: "flex",
+          alignItems: "center", justifyContent: "space-between", background: T.bg, flexShrink: 0,
+        }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <Ic name="file-text" size={18} color={T.accent} />
+            <div>
+              <div style={{ fontSize: 14, fontWeight: 600, color: T.text, fontFamily: T.font }}>{invoiceId}</div>
+              <div style={{ fontSize: 11, color: T.textMuted }}>{fileName}</div>
+            </div>
+          </div>
+          <div style={{ display: "flex", gap: 8 }}>
+            {blobUrl && (
+              <a href={blobUrl} download={fileName} style={{
+                padding: "6px 12px", fontSize: 11, fontWeight: 500, fontFamily: T.font,
+                background: T.accentBg, color: T.accent, border: `1px solid ${T.accentBorder}`,
+                borderRadius: 8, cursor: "pointer", textDecoration: "none",
+                display: "inline-flex", alignItems: "center", gap: 5,
+              }}><Ic name="download" size={12} color={T.accent} />Download</a>
+            )}
+            {blobUrl && (
+              <button onClick={() => window.open(blobUrl, "_blank")} style={{
+                padding: "6px 12px", fontSize: 11, fontWeight: 500, fontFamily: T.font,
+                background: T.blueBg, color: T.blue, border: `1px solid ${T.blueBorder}`,
+                borderRadius: 8, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 5,
+              }}><Ic name="external-link" size={12} color={T.blue} />New Tab</button>
+            )}
+            <button onClick={onClose} style={{
+              background: "none", border: `1px solid ${T.border}`, borderRadius: 8,
+              padding: "6px 10px", cursor: "pointer", display: "flex", alignItems: "center",
+            }}><Ic name="x" size={14} color={T.textMuted} /></button>
+          </div>
+        </div>
+        {/* Body */}
+        <div style={{ flex: 1, overflow: "hidden" }}>
+          {loading && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: T.textMuted, fontSize: 13 }}>Loading PDF...</div>}
+          {error && <div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%", color: T.red, fontSize: 13 }}>{error}</div>}
+          {blobUrl && <iframe src={blobUrl + "#toolbar=1&navpanes=0"} title={fileName} style={{ width: "100%", height: "100%", border: "none" }} />}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 // ── INVOICE CATALOGUE TAB ────────────────────────────────────────────────────
-function InvoiceCatalogue() {
+function InvoiceCatalogue({ attachments, onAttach, onDetach }) {
   const [search, setSearch] = useState("");
   const [reqFilter, setReqFilter] = useState("all");
   const [typeFilter, setTypeFilter] = useState("all");
   const [backupFilter, setBackupFilter] = useState("all");
+  const [attachFilter, setAttachFilter] = useState("all");
   const [sortCol, setSortCol] = useState("id");
   const [sortDir, setSortDir] = useState(1);
+  const [viewingPdf, setViewingPdf] = useState(null);  // { invoiceId, fileName }
+  const [bulkUploading, setBulkUploading] = useState(false);
+  const [bulkResults, setBulkResults] = useState(null); // { matched, unmatched, total }
+  const fileInputRef = useRef(null);
+  const bulkInputRef = useRef(null);
+  const [uploadTarget, setUploadTarget] = useState(null); // invoice id for single upload
 
   // Unique vendors for display
   const uniqueVendors = useMemo(() => [...new Set(INVOICE_CATALOGUE.map(e => e.vendor))].sort(), []);
   const uniqueReqs = useMemo(() => [...new Set(INVOICE_CATALOGUE.map(e => e.req))].sort((a, b) => a - b), []);
+
+  const attachedCount = useMemo(() => Object.keys(attachments).length, [attachments]);
 
   // Filter & search
   const filtered = useMemo(() => {
@@ -3747,6 +3885,8 @@ function InvoiceCatalogue() {
     if (typeFilter !== "all") items = items.filter(e => e.type === typeFilter);
     if (backupFilter === "yes") items = items.filter(e => e.hasBackup);
     if (backupFilter === "no") items = items.filter(e => !e.hasBackup);
+    if (attachFilter === "attached") items = items.filter(e => attachments[e.id]);
+    if (attachFilter === "unattached") items = items.filter(e => !attachments[e.id]);
     if (search.trim()) {
       const q = search.trim().toLowerCase();
       items = items.filter(e =>
@@ -3768,7 +3908,7 @@ function InvoiceCatalogue() {
       return 0;
     });
     return items;
-  }, [search, reqFilter, typeFilter, backupFilter, sortCol, sortDir]);
+  }, [search, reqFilter, typeFilter, backupFilter, attachFilter, sortCol, sortDir, attachments]);
 
   const totalAmount = filtered.reduce((s, e) => s + e.amount, 0);
   const withBackup = filtered.filter(e => e.hasBackup).length;
@@ -3795,12 +3935,104 @@ function InvoiceCatalogue() {
     );
   };
 
+  // Single file upload handler
+  const handleSingleUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !uploadTarget) return;
+    try {
+      await idbPut("attach-" + uploadTarget, file);
+      onAttach(uploadTarget, { fileName: file.name, size: file.size, date: new Date().toISOString().slice(0, 10) });
+    } catch (err) { console.error("Upload failed:", err); }
+    setUploadTarget(null);
+    if (fileInputRef.current) fileInputRef.current.value = "";
+  };
+
+  // Bulk upload — auto-match filenames to invoice IDs
+  const handleBulkUpload = async (e) => {
+    const files = Array.from(e.target.files || []);
+    if (!files.length) return;
+    setBulkUploading(true);
+    setBulkResults(null);
+
+    const allIds = new Set(INVOICE_CATALOGUE.map(inv => inv.id.toLowerCase()));
+    let matched = 0, unmatched = [];
+
+    for (const file of files) {
+      // Try to extract R-code from filename: R01-001, R01_001, R01 001, etc.
+      const nameNoExt = file.name.replace(/\.[^.]+$/, "");
+      const patterns = [
+        // Exact match: R01-001, R01-001a
+        /\b(R\d{2}-\d{3}[a-z]?)\b/i,
+        // Underscore variant: R01_001
+        /\b(R\d{2}_\d{3}[a-z]?)\b/i,
+        // Space variant: R01 001
+        /\b(R\d{2}\s\d{3}[a-z]?)\b/i,
+        // No separator: R01001
+        /\b(R\d{2}\d{3}[a-z]?)\b/i,
+      ];
+
+      let matchedId = null;
+      for (const pat of patterns) {
+        const m = nameNoExt.match(pat);
+        if (m) {
+          // Normalize to R01-001 format
+          let candidate = m[1].replace(/[\s_]/g, "-").toUpperCase();
+          // Handle R01001 → R01-001
+          if (/^R\d{5,}/.test(candidate)) {
+            candidate = candidate.slice(0, 3) + "-" + candidate.slice(3);
+          }
+          // Check for letter suffix (lowercase)
+          const last = m[1].slice(-1);
+          if (/[a-z]/.test(last)) candidate = candidate.slice(0, -1) + last;
+          if (allIds.has(candidate.toLowerCase())) { matchedId = candidate; break; }
+          // Try without letter suffix
+          const noSuffix = candidate.replace(/[a-z]$/, "");
+          if (allIds.has(noSuffix.toLowerCase())) { matchedId = noSuffix; break; }
+        }
+      }
+
+      // Also try matching the full catalogue id set more loosely
+      if (!matchedId) {
+        const norm = nameNoExt.toLowerCase().replace(/[\s_-]/g, "");
+        for (const id of allIds) {
+          if (norm.includes(id.replace("-", ""))) { matchedId = id.toUpperCase(); break; }
+        }
+      }
+
+      if (matchedId) {
+        // Find the canonical casing
+        const canonical = INVOICE_CATALOGUE.find(inv => inv.id.toLowerCase() === matchedId.toLowerCase())?.id || matchedId;
+        await idbPut("attach-" + canonical, file);
+        onAttach(canonical, { fileName: file.name, size: file.size, date: new Date().toISOString().slice(0, 10) });
+        matched++;
+      } else {
+        unmatched.push(file.name);
+      }
+    }
+
+    setBulkResults({ matched, unmatched, total: files.length });
+    setBulkUploading(false);
+    if (bulkInputRef.current) bulkInputRef.current.value = "";
+  };
+
+  // Remove attachment
+  const handleDetach = async (invoiceId) => {
+    try {
+      await idbDelete("attach-" + invoiceId);
+      onDetach(invoiceId);
+    } catch (err) { console.error("Detach failed:", err); }
+  };
+
   return (
     <div>
-      <SectionTitle title="Invoice Catalogue" subtitle={`${INVOICE_CATALOGUE.length} base contract invoices catalogued across REQs 1\u201315 \u00B7 CO entries & REQ-16 to be added`} />
+      <SectionTitle title="Invoice Catalogue" subtitle={`${INVOICE_CATALOGUE.length} base contract invoices catalogued across REQs 1\u201315 \u00B7 ${attachedCount} PDF${attachedCount !== 1 ? "s" : ""} attached`} />
+
+      {/* Hidden file inputs */}
+      <input ref={fileInputRef} type="file" accept=".pdf,image/*" style={{ display: "none" }} onChange={handleSingleUpload} />
+      <input ref={bulkInputRef} type="file" accept=".pdf,image/*" multiple style={{ display: "none" }} onChange={handleBulkUpload} />
 
       {/* KPI Row */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 12, marginBottom: 16 }}>
         <Card padding={16}>
           <div style={{ fontSize: 10, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>Catalogued</div>
           <div style={{ fontSize: 22, fontWeight: 700, color: T.text, fontFamily: T.mono }}>{INVOICE_CATALOGUE.length}</div>
@@ -3826,7 +4058,55 @@ function InvoiceCatalogue() {
           <div style={{ fontSize: 22, fontWeight: 700, color: missingBackup > 0 ? T.red : T.green, fontFamily: T.mono }}>{missingBackup}</div>
           <div style={{ fontSize: 10, color: T.textMuted }}>{missingBackup > 0 ? "needs attention" : "all documented"}</div>
         </Card>
+        <Card padding={16} style={{ border: `1px solid ${T.accentBorder}`, background: T.accentBg }}>
+          <div style={{ fontSize: 10, fontWeight: 600, color: T.accent, letterSpacing: 0.5, textTransform: "uppercase", marginBottom: 4 }}>PDFs Attached</div>
+          <div style={{ fontSize: 22, fontWeight: 700, color: T.accent, fontFamily: T.mono }}>{attachedCount}</div>
+          <div style={{ fontSize: 10, color: T.textMuted }}>{INVOICE_CATALOGUE.length > 0 ? Math.round(attachedCount / INVOICE_CATALOGUE.length * 100) : 0}% coverage</div>
+        </Card>
       </div>
+
+      {/* Bulk Upload Banner */}
+      <Card style={{ marginBottom: 16, border: `1px dashed ${T.accentBorder}`, background: T.accentBg }} padding={16}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 16 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <Ic name="upload" size={20} color={T.accent} />
+            <div>
+              <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>Bulk Attach PDFs</div>
+              <div style={{ fontSize: 11, color: T.textMid }}>
+                Select multiple files — auto-matches by R-code in filename (e.g., <span style={{ fontFamily: T.mono, fontSize: 10 }}>R01-001.pdf</span>, <span style={{ fontFamily: T.mono, fontSize: 10 }}>R02-003a invoice.pdf</span>)
+              </div>
+            </div>
+          </div>
+          <button onClick={() => bulkInputRef.current?.click()} disabled={bulkUploading}
+            style={{
+              padding: "8px 20px", fontSize: 12, fontWeight: 600, fontFamily: T.font,
+              background: T.accent, color: "#fff", border: "none", borderRadius: 8,
+              cursor: bulkUploading ? "wait" : "pointer", opacity: bulkUploading ? 0.6 : 1,
+              display: "inline-flex", alignItems: "center", gap: 6, whiteSpace: "nowrap",
+            }}>
+            <Ic name="upload" size={14} color="#fff" />
+            {bulkUploading ? "Processing..." : "Select Files"}
+          </button>
+        </div>
+        {bulkResults && (
+          <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: T.surface, border: `1px solid ${T.border}` }}>
+            <div style={{ fontSize: 12, fontWeight: 600, color: T.text, marginBottom: 4 }}>
+              Upload Complete: {bulkResults.matched} of {bulkResults.total} files matched
+            </div>
+            {bulkResults.matched > 0 && (
+              <div style={{ fontSize: 11, color: T.green, marginBottom: 2 }}>
+                <Ic name="check" size={12} color={T.green} /> {bulkResults.matched} file{bulkResults.matched !== 1 ? "s" : ""} attached to matching invoices
+              </div>
+            )}
+            {bulkResults.unmatched.length > 0 && (
+              <div style={{ fontSize: 11, color: T.amber }}>
+                <Ic name="alert" size={12} color={T.amber} /> {bulkResults.unmatched.length} unmatched: {bulkResults.unmatched.slice(0, 5).join(", ")}{bulkResults.unmatched.length > 5 ? ` +${bulkResults.unmatched.length - 5} more` : ""}
+              </div>
+            )}
+            <button onClick={() => setBulkResults(null)} style={{ marginTop: 6, fontSize: 10, color: T.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Dismiss</button>
+          </div>
+        )}
+      </Card>
 
       {/* Search + Filters */}
       <Card style={{ marginBottom: 16 }} padding={16}>
@@ -3861,8 +4141,14 @@ function InvoiceCatalogue() {
             <option value="yes">Has Backup</option>
             <option value="no">Missing Backup</option>
           </select>
-          {(search || reqFilter !== "all" || typeFilter !== "all" || backupFilter !== "all") && (
-            <button onClick={() => { setSearch(""); setReqFilter("all"); setTypeFilter("all"); setBackupFilter("all"); }}
+          <select value={attachFilter} onChange={e => setAttachFilter(e.target.value)}
+            style={{ padding: "8px 12px", fontSize: 12, fontFamily: T.font, border: `1px solid ${T.accentBorder}`, borderRadius: 8, background: T.accentBg, color: T.accent, cursor: "pointer", fontWeight: 500 }}>
+            <option value="all">All Attachments</option>
+            <option value="attached">Has PDF</option>
+            <option value="unattached">No PDF</option>
+          </select>
+          {(search || reqFilter !== "all" || typeFilter !== "all" || backupFilter !== "all" || attachFilter !== "all") && (
+            <button onClick={() => { setSearch(""); setReqFilter("all"); setTypeFilter("all"); setBackupFilter("all"); setAttachFilter("all"); }}
               style={{ padding: "8px 14px", fontSize: 12, fontFamily: T.font, background: T.redBg, color: T.red, border: `1px solid ${T.redBorder}`, borderRadius: 8, cursor: "pointer", fontWeight: 500 }}>
               Clear Filters
             </button>
@@ -3879,17 +4165,18 @@ function InvoiceCatalogue() {
                 {[
                   { col: "id", label: "R-Code", width: 100 },
                   { col: "req", label: "REQ", width: 60 },
-                  { col: "vendor", label: "Vendor", width: 200 },
+                  { col: "vendor", label: "Vendor", width: 180 },
                   { col: "desc", label: "Description", width: undefined },
                   { col: "amount", label: "Amount", width: 110 },
                   { col: "type", label: "Type", width: 80 },
-                  { col: "backup", label: "Backup", width: 70 },
+                  { col: "backup", label: "Backup", width: 60 },
+                  { col: "pdf", label: "PDF", width: 120 },
                 ].map(h => (
-                  <th key={h.col} onClick={() => h.col !== "backup" && h.col !== "desc" && handleSort(h.col)}
+                  <th key={h.col} onClick={() => !["backup", "desc", "pdf"].includes(h.col) && handleSort(h.col)}
                     style={{
-                      padding: "10px 14px", textAlign: h.col === "amount" ? "right" : "left",
+                      padding: "10px 14px", textAlign: h.col === "amount" ? "right" : h.col === "pdf" ? "center" : "left",
                       fontSize: 10, fontWeight: 700, color: T.textMuted, textTransform: "uppercase",
-                      letterSpacing: 0.5, cursor: h.col !== "backup" && h.col !== "desc" ? "pointer" : "default",
+                      letterSpacing: 0.5, cursor: !["backup", "desc", "pdf"].includes(h.col) ? "pointer" : "default",
                       userSelect: "none", width: h.width, whiteSpace: "nowrap",
                     }}>
                     {h.label}<SortArrow col={h.col} />
@@ -3899,8 +4186,10 @@ function InvoiceCatalogue() {
             </thead>
             <tbody>
               {filtered.length === 0 ? (
-                <tr><td colSpan={7} style={{ padding: 32, textAlign: "center", color: T.textMuted, fontSize: 13 }}>No invoices match your filters</td></tr>
-              ) : filtered.map((e, i) => (
+                <tr><td colSpan={8} style={{ padding: 32, textAlign: "center", color: T.textMuted, fontSize: 13 }}>No invoices match your filters</td></tr>
+              ) : filtered.map((e, i) => {
+                const att = attachments[e.id];
+                return (
                 <tr key={`${e.id}-${i}`} style={{
                   borderBottom: `1px solid ${T.border}`,
                   background: !e.hasBackup ? T.redBg + "60" : i % 2 === 0 ? T.surface : T.bg,
@@ -3909,26 +4198,63 @@ function InvoiceCatalogue() {
                   <td style={{ padding: "9px 14px", fontFamily: T.mono, fontWeight: 600, fontSize: 12, color: T.accent, letterSpacing: -0.3 }}>{e.id}</td>
                   <td style={{ padding: "9px 14px", fontFamily: T.mono, fontSize: 11, color: T.textMid }}>{String(e.req).padStart(2, "0")}</td>
                   <td style={{ padding: "9px 14px", fontSize: 12, color: T.text, fontWeight: 500 }}>{e.vendor}</td>
-                  <td style={{ padding: "9px 14px", fontSize: 12, color: T.textMid, maxWidth: 300, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.desc}</td>
+                  <td style={{ padding: "9px 14px", fontSize: 12, color: T.textMid, maxWidth: 280, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{e.desc}</td>
                   <td style={{ padding: "9px 14px", textAlign: "right", fontFamily: T.mono, fontSize: 12, fontWeight: 600, color: e.amount < 0 ? T.red : T.text }}>
                     {e.amount < 0 ? "-" : ""}${Math.abs(e.amount).toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                   </td>
                   <td style={{ padding: "9px 14px" }}>{typeBadge(e.type)}</td>
                   <td style={{ padding: "9px 14px", textAlign: "center" }}>
                     {e.hasBackup
-                      ? <span style={{ color: T.green, fontSize: 13 }}><Ic name="check" size={14} color={T.green} /></span>
-                      : <span style={{ color: T.red, fontSize: 13 }}><Ic name="alert" size={14} color={T.red} /></span>
+                      ? <Ic name="check" size={14} color={T.green} />
+                      : <Ic name="alert" size={14} color={T.red} />
                     }
                   </td>
+                  <td style={{ padding: "6px 10px", textAlign: "center" }}>
+                    {att ? (
+                      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}>
+                        <button onClick={() => setViewingPdf({ invoiceId: e.id, fileName: att.fileName })}
+                          title={`View ${att.fileName}`}
+                          style={{
+                            padding: "4px 8px", fontSize: 10, fontWeight: 600, fontFamily: T.font,
+                            background: T.greenBg, color: T.green, border: `1px solid ${T.greenBorder}`,
+                            borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 3,
+                          }}>
+                          <Ic name="eye" size={11} color={T.green} />View
+                        </button>
+                        <button onClick={() => handleDetach(e.id)} title="Remove attachment"
+                          style={{
+                            padding: "4px 5px", background: "none", border: `1px solid ${T.border}`,
+                            borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", opacity: 0.5,
+                          }}>
+                          <Ic name="x" size={10} color={T.textMuted} />
+                        </button>
+                      </div>
+                    ) : (
+                      <button onClick={() => { setUploadTarget(e.id); fileInputRef.current?.click(); }}
+                        title={`Attach PDF to ${e.id}`}
+                        style={{
+                          padding: "4px 8px", fontSize: 10, fontWeight: 500, fontFamily: T.font,
+                          background: T.bg, color: T.textMuted, border: `1px solid ${T.border}`,
+                          borderRadius: 6, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: 3,
+                          transition: T.fast,
+                        }}
+                        onMouseOver={ev => { ev.currentTarget.style.borderColor = T.accent; ev.currentTarget.style.color = T.accent; }}
+                        onMouseOut={ev => { ev.currentTarget.style.borderColor = T.border; ev.currentTarget.style.color = T.textMuted; }}
+                      >
+                        <Ic name="paperclip" size={11} />Attach
+                      </button>
+                    )}
+                  </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>
         {filtered.length > 0 && (
           <div style={{ padding: "12px 14px", borderTop: `2px solid ${T.border}`, background: T.bg, display: "flex", justifyContent: "space-between", alignItems: "center" }}>
             <span style={{ fontSize: 11, color: T.textMuted, fontFamily: T.font }}>
-              {filtered.length} invoice{filtered.length !== 1 ? "s" : ""} &middot; {uniqueVendors.length} unique vendors &middot; {uniqueReqs.length} requisitions
+              {filtered.length} invoice{filtered.length !== 1 ? "s" : ""} &middot; {uniqueVendors.length} unique vendors &middot; {uniqueReqs.length} requisitions &middot; <span style={{ color: T.accent, fontWeight: 600 }}>{attachedCount} PDFs attached</span>
             </span>
             <span style={{ fontSize: 12, fontWeight: 700, fontFamily: T.mono, color: totalAmount < 0 ? T.red : T.text }}>
               Total: {totalAmount < 0 ? "-" : ""}${Math.abs(totalAmount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -3945,10 +4271,11 @@ function InvoiceCatalogue() {
             {(() => {
               const vendorTotals = {};
               for (const e of filtered) {
-                if (!vendorTotals[e.vendor]) vendorTotals[e.vendor] = { count: 0, total: 0, hasAllBackup: true };
+                if (!vendorTotals[e.vendor]) vendorTotals[e.vendor] = { count: 0, total: 0, hasAllBackup: true, attachedCount: 0 };
                 vendorTotals[e.vendor].count++;
                 vendorTotals[e.vendor].total += e.amount;
                 if (!e.hasBackup) vendorTotals[e.vendor].hasAllBackup = false;
+                if (attachments[e.id]) vendorTotals[e.vendor].attachedCount++;
               }
               return Object.entries(vendorTotals)
                 .sort((a, b) => b[1].total - a[1].total)
@@ -3960,7 +4287,11 @@ function InvoiceCatalogue() {
                   }}>
                     <div>
                       <div style={{ fontSize: 12, fontWeight: 500, color: T.text }}>{vendor}</div>
-                      <div style={{ fontSize: 10, color: T.textMuted }}>{data.count} invoice{data.count !== 1 ? "s" : ""}{!data.hasAllBackup ? " \u00B7 missing backup" : ""}</div>
+                      <div style={{ fontSize: 10, color: T.textMuted }}>
+                        {data.count} invoice{data.count !== 1 ? "s" : ""}
+                        {data.attachedCount > 0 ? ` \u00B7 ${data.attachedCount} PDF${data.attachedCount !== 1 ? "s" : ""}` : ""}
+                        {!data.hasAllBackup ? " \u00B7 missing backup" : ""}
+                      </div>
                     </div>
                     <div style={{ fontSize: 12, fontWeight: 600, fontFamily: T.mono, color: data.total < 0 ? T.red : T.text }}>
                       {data.total < 0 ? "-" : ""}${Math.abs(data.total).toLocaleString(undefined, { minimumFractionDigits: 2 })}
@@ -3971,6 +4302,15 @@ function InvoiceCatalogue() {
           </div>
         </Card>
       </div>
+
+      {/* PDF Viewer Modal */}
+      {viewingPdf && (
+        <PdfViewerModal
+          invoiceId={viewingPdf.invoiceId}
+          fileName={viewingPdf.fileName}
+          onClose={() => setViewingPdf(null)}
+        />
+      )}
     </div>
   );
 }
@@ -6869,6 +7209,7 @@ export default function App() {
   const [reqs, setReqs] = useState(REQS_INITIAL);
   const [claims, setClaims] = useState(OWNER_CLAIMS_INITIAL);
   const [docs, setDocs] = useState(DOCS_INITIAL);
+  const [attachments, setAttachments] = useState({}); // { invoiceId: { fileName, size, date } }
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
 
@@ -6884,6 +7225,9 @@ export default function App() {
       }));
       if (c) setClaims(c);
       if (d) setDocs(d);
+      // Restore attachments metadata
+      const att = await storageGet("tharp-attachments-v1");
+      if (att) setAttachments(att);
       // Restore OpenAI key from localStorage
       const storedKey = localStorage.getItem("tharp-openai-key");
       if (storedKey && !window._openaiKey) window._openaiKey = storedKey;
@@ -6943,6 +7287,23 @@ export default function App() {
       return next;
     });
   }, [saveDocs]);
+
+  // Attachment management (PDF ↔ Invoice Catalogue)
+  const onAttach = useCallback((invoiceId, meta) => {
+    setAttachments(prev => {
+      const next = { ...prev, [invoiceId]: meta };
+      storageSet("tharp-attachments-v1", next);
+      return next;
+    });
+  }, []);
+  const onDetach = useCallback((invoiceId) => {
+    setAttachments(prev => {
+      const next = { ...prev };
+      delete next[invoiceId];
+      storageSet("tharp-attachments-v1", next);
+      return next;
+    });
+  }, []);
 
   // When mode switches, fall back to dashboard if current tab is hidden
   useEffect(() => {
@@ -7033,7 +7394,7 @@ export default function App() {
         {tab === "claims" && <Claims claims={claims} updateClaim={updateClaim} />}
         {tab === "timeline" && <TimelineTab reqs={reqs} claims={claims} />}
         {tab === "documents" && <Documents docs={docs} updateDoc={updateDoc} addDoc={addDoc} removeDoc={removeDoc} reqs={reqs} />}
-        {tab === "catalogue" && <InvoiceCatalogue />}
+        {tab === "catalogue" && <InvoiceCatalogue attachments={attachments} onAttach={onAttach} onDetach={onDetach} />}
         {tab === "qa" && <ArbitratorQAChat reqs={reqs} claims={claims} docs={docs} />}
         {tab === "audit" && <AuditRisk reqs={reqs} />}
         {tab === "simulator" && <ArbitrationSimulator reqs={reqs} claims={claims} />}
