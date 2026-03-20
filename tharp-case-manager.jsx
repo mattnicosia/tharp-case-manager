@@ -9,7 +9,8 @@ document.head.appendChild(fontLink);
 // ── CSS Keyframes ────────────────────────────────────────────────────────────
 const styleSheet = document.createElement("style");
 styleSheet.textContent = `@keyframes spin { to { transform: rotate(360deg); } }
-@keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }`;
+@keyframes fadeInUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }`;
 document.head.appendChild(styleSheet);
 
 // ── IndexedDB PDF Storage ────────────────────────────────────────────────────
@@ -50,16 +51,6 @@ async function idbDelete(key) {
     tx.onerror = () => { db.close(); reject(tx.error); };
   });
 }
-async function idbKeys() {
-  const db = await openIDB();
-  return new Promise((resolve, reject) => {
-    const tx = db.transaction(IDBSTORE, "readonly");
-    const req = tx.objectStore(IDBSTORE).getAllKeys();
-    req.onsuccess = () => { db.close(); resolve(req.result); };
-    req.onerror = () => { db.close(); reject(req.error); };
-  });
-}
-
 // ── Design Tokens ─────────────────────────────────────────────────────────────
 const T = {
   bg: "#FAFAF8",
@@ -157,6 +148,7 @@ function Ic({ name, size = 16, color = "currentColor", sw = 1.75, style = {} }) 
     "download":     "M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4|M7 10l5 5 5-5|M12 15V3",
     "link":         "M10 13a5 5 0 007.54.54l3-3a5 5 0 00-7.07-7.07l-1.72 1.71|M14 11a5 5 0 00-7.54-.54l-3 3a5 5 0 007.07 7.07l1.71-1.71",
     "external-link":"M18 13v6a2 2 0 01-2 2H5a2 2 0 01-2-2V8a2 2 0 012-2h6|M15 3h6v6|M10 14L21 3",
+    "lock":         "M19 11H5a2 2 0 00-2 2v7a2 2 0 002 2h14a2 2 0 002-2v-7a2 2 0 00-2-2z|M7 11V7a5 5 0 0110 0v4",
   };
   const d = P[name];
   if (!d) return null;
@@ -2823,7 +2815,7 @@ function Money({ amount = 0, color = T.text, size = "md", neg = false }) {
   };
   const s = sizes[size] || sizes.md;
   return (
-    <span style={{ display: "inline-flex", alignItems: "baseline", gap: 1, fontFamily: T.num, fontVariantNumeric: "tabular-nums", color }}>
+    <span style={{ display: "inline-flex", alignItems: "baseline", gap: 1, fontFamily: T.mono, fontVariantNumeric: "tabular-nums", color }}>
       {isNeg && <span style={{ fontSize: s.sym, color, opacity: 0.6, marginRight: 1 }}>–</span>}
       <span style={{ fontSize: s.sym, opacity: 0.45, fontWeight: 500, letterSpacing: 0 }}>$</span>
       <span style={{ fontSize: s.main, fontWeight: 600, letterSpacing: -0.5 }}>{dollars}</span>
@@ -2960,56 +2952,72 @@ function Dashboard({ reqs, claims, mode }) {
     <div>
       <SectionTitle title={mode === "presentation" ? "Case Overview" : "Case Dashboard"} subtitle="Tharp/Bumgardner · 515 N. Midland Ave, Upper Nyack NY · AIA A110-2021 Cost-Plus · AAA Arbitration" />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: T.sp3, marginBottom: T.sp3 }}>
-        <KPI label="Total Billed" isMoney rawAmount={totalBilled} sub="16 payment applications" accent color={T.accent} />
-        <KPI label="Open Balance" isMoney rawAmount={openBalance} sub="Billed minus payments received" color={T.amber} />
-        <KPI label="High Risk Reqs" value={`${highRisk}/16`} sub="Require mitigation" color={highRisk > 0 ? T.red : T.green} />
-      </div>
+      {mode === "presentation" ? (<>
+        {/* Presentation mode — clean factual KPIs only */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: T.sp3, marginBottom: T.sp3 }}>
+          <KPI label="Requisitions Filed" value="16" sub="REQ-01 through REQ-16" accent color={T.accent} />
+          <KPI label="Total Billed" isMoney rawAmount={totalBilled} sub="16 payment applications" color={T.accent} />
+          <KPI label="Total Paid" isMoney rawAmount={totalPaid} sub="Payments received" color={T.green} />
+          <KPI label="Open Balance" isMoney rawAmount={openBalance} sub="Billed minus payments received" color={T.amber} />
+        </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: T.sp3, marginBottom: T.sp5 }}>
+          <KPI label="Owner's Total Claims" isMoney rawAmount={totalOwner} sub="Gross claimed damages" color={T.red} />
+          <KPI label="MC Agreed Credits" isMoney rawAmount={totalAgreed} sub="Documented concessions" color={T.amber} />
+          <KPI label="Barred by §21.11" isMoney rawAmount={totalWaived} sub="Consequential waiver" color={T.purple} />
+        </div>
+      </>) : (<>
+        {/* Prep mode — full internal audit view */}
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: T.sp3, marginBottom: T.sp3 }}>
+          <KPI label="Total Billed" isMoney rawAmount={totalBilled} sub="16 payment applications" accent color={T.accent} />
+          <KPI label="Open Balance" isMoney rawAmount={openBalance} sub="Billed minus payments received" color={T.amber} />
+          <KPI label="High Risk Reqs" value={`${highRisk}/16`} sub="Require mitigation" color={highRisk > 0 ? T.red : T.green} />
+        </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: T.sp3, marginBottom: T.sp5 }}>
-        <KPI label="Owner's Total Claims" isMoney rawAmount={totalOwner} sub="Gross claimed damages" color={T.red} />
-        <KPI label="MC Agreed Credits" isMoney rawAmount={totalAgreed} sub="Documented concessions" color={T.amber} />
-        <KPI label="Active Disputed" isMoney rawAmount={totalDisputed} sub="Needs arbitration" color={T.red} />
-        <KPI label="Barred by §21.11" isMoney rawAmount={totalWaived} sub="Consequential waiver" color={T.purple} />
-      </div>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: T.sp3, marginBottom: T.sp5 }}>
+          <KPI label="Owner's Total Claims" isMoney rawAmount={totalOwner} sub="Gross claimed damages" color={T.red} />
+          <KPI label="MC Agreed Credits" isMoney rawAmount={totalAgreed} sub="Documented concessions" color={T.amber} />
+          <KPI label="Active Disputed" isMoney rawAmount={totalDisputed} sub="Needs arbitration" color={T.red} />
+          <KPI label="Barred by §21.11" isMoney rawAmount={totalWaived} sub="Consequential waiver" color={T.purple} />
+        </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: T.sp4, marginBottom: T.sp4 }}>
-        <Card>
-          <CardLabel label="Requisition Risk Distribution" />
-          {["HIGH", "MEDIUM", "LOW", "CLEAR"].map(level => {
-            const s = riskStyle(level);
-            const pct = Math.round((riskDist[level] / 16) * 100);
-            return (
-              <div key={level} style={{ display: "flex", alignItems: "center", gap: T.sp3, marginBottom: T.sp3 }}>
-                <Badge label={level} style={s} />
-                <div style={{ flex: 1, height: T.sp2+2, background: T.border, borderRadius: T.r1, overflow: "hidden" }}>
-                  <div style={{ height: T.sp2+2, background: s.color, width: `${pct}%`, borderRadius: T.r1, transition: T.med }} />
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: T.sp4, marginBottom: T.sp4 }}>
+          <Card>
+            <CardLabel label="Requisition Risk Distribution" />
+            {["HIGH", "MEDIUM", "LOW", "CLEAR"].map(level => {
+              const s = riskStyle(level);
+              const pct = Math.round((riskDist[level] / 16) * 100);
+              return (
+                <div key={level} style={{ display: "flex", alignItems: "center", gap: T.sp3, marginBottom: T.sp3 }}>
+                  <Badge label={level} style={s} />
+                  <div style={{ flex: 1, height: T.sp2+2, background: T.border, borderRadius: T.r1, overflow: "hidden" }}>
+                    <div style={{ height: T.sp2+2, background: s.color, width: `${pct}%`, borderRadius: T.r1, transition: T.med }} />
+                  </div>
+                  <span style={{ fontFamily: T.mono, fontSize: T.fs3, color: T.textMid, minWidth: T.sp7, textAlign: "right" }}>{riskDist[level]}</span>
                 </div>
-                <span style={{ fontFamily: T.mono, fontSize: T.fs3, color: T.textMid, minWidth: T.sp7, textAlign: "right" }}>{riskDist[level]}</span>
-              </div>
-            );
-          })}
-        </Card>
+              );
+            })}
+          </Card>
 
-        <Card>
-          <CardLabel label="Net Position Summary" />
-          {[
-            { label: "Owner's Gross Demand", val: totalOwner, color: T.red, neg: false },
-            { label: "Barred — §21.11 Consequential", val: totalWaived, color: T.purple, neg: true },
-            { label: "Disputed w/ Strong Defense", val: totalDisputed, color: T.blue, neg: true },
-            { label: "MC Agreed Credits", val: totalAgreed, color: T.amber, neg: false },
-          ].map(row => (
-            <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: `${T.sp2}px 0`, borderBottom: `1px solid ${T.border}` }}>
-              <span style={{ fontSize: T.fs3, color: T.textMid, fontFamily: T.font }}>{row.label}</span>
-              <Money amount={row.val} color={row.color} size="sm" neg={row.neg} />
+          <Card>
+            <CardLabel label="Net Position Summary" />
+            {[
+              { label: "Owner's Gross Demand", val: totalOwner, color: T.red, neg: false },
+              { label: "Barred — §21.11 Consequential", val: totalWaived, color: T.purple, neg: true },
+              { label: "Disputed w/ Strong Defense", val: totalDisputed, color: T.blue, neg: true },
+              { label: "MC Agreed Credits", val: totalAgreed, color: T.amber, neg: false },
+            ].map(row => (
+              <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: `${T.sp2}px 0`, borderBottom: `1px solid ${T.border}` }}>
+                <span style={{ fontSize: T.fs3, color: T.textMid, fontFamily: T.font }}>{row.label}</span>
+                <Money amount={row.val} color={row.color} size="sm" neg={row.neg} />
+              </div>
+            ))}
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: `${T.sp3}px 0 0`, marginTop: T.sp1 }}>
+              <span style={{ fontSize: T.fs3, fontWeight: 600, color: T.text, fontFamily: T.font }}>Settlement Target</span>
+              <Money amount={totalAgreed} color={T.accent} size="lg" />
             </div>
-          ))}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: `${T.sp3}px 0 0`, marginTop: T.sp1 }}>
-            <span style={{ fontSize: T.fs3, fontWeight: 600, color: T.text, fontFamily: T.font }}>Settlement Target</span>
-            <Money amount={totalAgreed} color={T.accent} size="lg" />
-          </div>
-        </Card>
-      </div>
+          </Card>
+        </div>
+      </>)}
 
       {/* Priority Items — prep mode only */}
       {mode !== "presentation" && <Card>
@@ -3035,7 +3043,7 @@ function Dashboard({ reqs, claims, mode }) {
 }
 
 // ── REQUISITIONS ──────────────────────────────────────────────────────────────
-function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
+function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc, mode = "prep" }) {
   const [sel, setSel] = useState(null);
   const [uploading, setUploading] = useState([]);
   const [uploadSummary, setUploadSummary] = useState(null);
@@ -3066,12 +3074,13 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
       const allFileTags = [...new Set([...classify.tags, ...textTags, editing.reqNumber])];
       setUploading(prev => prev.map((u, j) => j === i ? { ...u, progress: 90, status: "saving" } : u));
       const id = "doc-" + Date.now().toString(36) + "-" + Math.random().toString(36).slice(2, 6);
-      addDoc({ id, category: classify.category || "requisition", name: file.name.replace(/\.[^.]+$/, "").replace(/[_-]/g, " "),
+      const newDoc = { id, category: classify.category || "requisition", name: file.name.replace(/\.[^.]+$/, "").replace(/[_-]/g, " "),
         date: new Date().toISOString().slice(0, 10), description: `Uploaded from ${editing.reqNumber}`, parties: classify.vendor || "MC",
         status: classify.status || "submitted", notes: "", storagePath: path, fileName: file.name, fileSize: file.size, mimeType: mime,
-        tags: allFileTags, linkedReqs: allLinkedReqs, extractedText, vendor: classify.vendor, costCode: classify.costCode });
+        tags: allFileTags, linkedReqs: allLinkedReqs, extractedText, vendor: classify.vendor, costCode: classify.costCode };
+      addDoc(newDoc);
       if (window._openaiKey && extractedText) {
-        analyzeUploadedDoc({ id }, extractedText, reqs).then(u => { if (u) updateDoc(id, u); }).catch(() => {});
+        analyzeUploadedDoc(newDoc, extractedText, reqs).then(u => { if (u) updateDoc(id, u); }).catch(() => {});
       }
       setUploading(prev => prev.map((u, j) => j === i ? { ...u, progress: 100, status: "done" } : u));
     }
@@ -3294,7 +3303,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
         </div>
       </div>
 
-      {editing && (
+      {editing && mode === "prep" && (
         <div style={{ position: "sticky", top: T.sp4 }}>
           <Card>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: T.sp4, paddingBottom: T.sp3, borderBottom: `1px solid ${T.border}` }}>
@@ -3596,7 +3605,7 @@ function AuditRisk({ reqs }) {
 }
 
 // ── CLAIMS ────────────────────────────────────────────────────────────────────
-function Claims({ claims, updateClaim }) {
+function Claims({ claims, updateClaim, mode = "prep" }) {
   const [sel, setSel] = useState(null);
   const editing = sel ? claims.find(c => c.id === sel) : null;
   const totalOwner = claims.reduce((s, c) => s + c.ownerAmount, 0);
@@ -3651,7 +3660,7 @@ function Claims({ claims, updateClaim }) {
         </Card>
       </div>
 
-      {editing && (
+      {editing && mode === "prep" && (
         <div style={{ position: "sticky", top: 16 }}>
           <Card>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, paddingBottom: 14, borderBottom: `1px solid ${T.border}` }}>
@@ -4064,14 +4073,14 @@ function InvoiceCatalogue({ attachments, onAttach, onDetach }) {
         // Whole-requisition PDF — attach to all invoice lines in that req
         const reqInvoices = INVOICE_CATALOGUE.filter(inv => inv.req === result.reqMatch);
         for (const inv of reqInvoices) {
-          await idbPut("attach-" + inv.id, file);
+          try { await idbPut("attach-" + inv.id, file); } catch (e) { console.error("Attach failed:", inv.id, e); continue; }
           onAttach(inv.id, { fileName: file.name, size: file.size, date: new Date().toISOString().slice(0, 10) });
         }
         matched += reqInvoices.length;
         reqMatched++;
       } else if (result.id) {
         const canonical = INVOICE_CATALOGUE.find(inv => inv.id.toLowerCase() === result.id.toLowerCase())?.id || result.id;
-        await idbPut("attach-" + canonical, file);
+        try { await idbPut("attach-" + canonical, file); } catch (e) { console.error("Attach failed:", canonical, e); continue; }
         onAttach(canonical, { fileName: file.name, size: file.size, date: new Date().toISOString().slice(0, 10) });
         matched++;
         if (result.confidence === "vendor") vendorMatched++;
@@ -4134,7 +4143,7 @@ function InvoiceCatalogue({ attachments, onAttach, onDetach }) {
 
   return (
     <div>
-      <SectionTitle title="Invoice Catalogue" subtitle={`${INVOICE_CATALOGUE.length} base contract invoices catalogued across REQs 1\u201315 \u00B7 ${attachedCount} PDF${attachedCount !== 1 ? "s" : ""} attached`} />
+      <SectionTitle title="Invoice Catalogue" subtitle={`${INVOICE_CATALOGUE.length} base contract invoices catalogued across REQs 1\u201316 \u00B7 ${attachedCount} PDF${attachedCount !== 1 ? "s" : ""} attached`} />
 
       {/* Hidden file inputs */}
       <input ref={fileInputRef} type="file" accept=".pdf,image/*" style={{ display: "none" }} onChange={handleSingleUpload} />
@@ -4246,7 +4255,7 @@ function InvoiceCatalogue({ attachments, onAttach, onDetach }) {
                     ? entry.suggestions.filter(inv => !attachments[inv.id]).slice(0, 6)
                     : [];
                 return (
-                  <div key={idx} style={{ display: "flex", alignItems: "center", gap: 10, padding: 10, background: T.surface, borderRadius: 8, border: `1px solid ${T.border}` }}>
+                  <div key={entry.name + "-" + idx} style={{ display: "flex", alignItems: "center", gap: 10, padding: 10, background: T.surface, borderRadius: 8, border: `1px solid ${T.border}` }}>
                     {/* Filename */}
                     <div style={{ flex: "0 0 240px", overflow: "hidden" }}>
                       <div style={{ fontSize: 12, fontWeight: 500, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={entry.name}>
@@ -5279,7 +5288,7 @@ function buildCaseDisputes(claims) {
     // ── MC COUNTERCLAIMS (MC seeking credits/offsets from Owner) ──
     {
       id: "unapplied_credits", category: "mc_counter", title: "Unapplied CO Credits on G703",
-      description: `${$(unappliedCredits)} in credit COs at 0% on REQ-15 G703: PCO#130 'GC-Owner Variance Split' ($66,389), PCO#129 'Allowance Reconciliation' ($24,248), plus 5 others.`,
+      description: `${$(unappliedCredits)} in credit COs on REQ-16 G703: PCO#127 'GC/Owner Variance Split' ($53,112), PCO#126 'Allowance Reconciliation' ($19,399), plus base subcontract credits ($35,798).`,
       amountAtStake: unappliedCredits,
       mcStrength: "Credits are ON MC's own G703 schedule. MC acknowledged variances. PCO#130 title literally says 'Owner Variance Split.' These are documented admissions of amounts owed to owner.",
       ownerWeakness: "Owner never demanded application of these credits. Credits remained at 0% for months. Owner's own review failed to catch this. Some credits may reflect incomplete change order accounting rather than amounts owed.",
@@ -5525,7 +5534,7 @@ function ArbitrationSimulator({ reqs, claims }) {
 
   return (
     <div>
-      <SectionTitle title="Arbitration Simulator" subtitle="Model case outcomes across different arbitrator personalities · Based on actual case data from 15 requisitions and 24 owner claims" />
+      <SectionTitle title="Arbitration Simulator" subtitle="Model case outcomes across different arbitrator personalities · Based on actual case data from 16 requisitions and 24 owner claims" />
 
       {/* Arbitrator Selection */}
       <Card>
@@ -5834,7 +5843,7 @@ const DOCS_INITIAL = [
   { id: "doc-020", category: "arbitration", name: "Arbitrator Appointment — Robin S. Abramowitz", date: "2024-03-01", description: "AAA Construction Panel arbitrator assigned. Bond, Schoeneck & King PLLC.", parties: "AAA", status: "confirmed", notes: "" },
   { id: "doc-021", category: "correspondence", name: "Owner Punch List / Deficiency Claims", date: "2023-12-01", description: "Owner's list of alleged construction deficiencies including fireplace, air returns, and misc items.", parties: "Tharp", status: "received", notes: "" },
   { id: "doc-022", category: "change_order", name: "Change Order Log — Summary", date: "2023-11-30", description: "Summary of all change orders issued during the project. Includes approved, pending, and disputed COs.", parties: "MC / Tharp", status: "active", notes: "" },
-  { id: "doc-023", category: "invoice", name: "Korth Plumbing Invoice Package", date: "2023-09-15", description: "Korth plumbing invoices — subject to overbilling dispute. Owner alleges duplicate / inflated charges.", parties: "Korth / MC", status: "disputed", notes: "" },
+  { id: "doc-023", category: "invoice", name: "Korth Painting Invoice Package", date: "2023-09-15", description: "Korth & Shannahan painting invoices — subject to overbilling dispute ($89,942 vs $49,450 contract).", parties: "Korth / MC", status: "disputed", notes: "" },
 ];
 
 function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
@@ -6617,8 +6626,10 @@ function executeToolCall(name, args, appState, callbacks, actions) {
           || (d.tags || []).some(t => t.toLowerCase().includes(q))
           || (d.extractedText || "").toLowerCase().includes(q)
           || (d.vendor || "").toLowerCase().includes(q) || (d.notes || "").toLowerCase().includes(q);
-      }).slice(0, 10).map(d => ({ id: d.id, name: d.name, category: d.category, date: d.date, tags: (d.tags || []).slice(0, 5), hasFile: !!d.storagePath, status: d.status }));
-      return { results, totalMatches: results.length };
+      });
+      const totalMatches = results.length;
+      const results10 = results.slice(0, 10).map(d => ({ id: d.id, name: d.name, category: d.category, date: d.date, tags: (d.tags || []).slice(0, 5), hasFile: !!d.storagePath, status: d.status }));
+      return { results: results10, totalMatches };
     }
 
     case "analyze_document": {
@@ -6669,7 +6680,11 @@ async function handleAIRequest(userMessage, appState, callbacks) {
 
     messages.push(choice.message);
     for (const tc of choice.message.tool_calls) {
-      const args = JSON.parse(tc.function.arguments);
+      let args;
+      try { args = JSON.parse(tc.function.arguments); } catch (e) {
+        messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify({ error: "Failed to parse tool arguments" }) });
+        continue;
+      }
       const toolResult = executeToolCall(tc.function.name, args, appState, callbacks, actions);
       messages.push({ role: "tool", tool_call_id: tc.id, content: JSON.stringify(toolResult) });
     }
@@ -7457,7 +7472,6 @@ export default function App() {
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
 
-  const PREP_HASH = "5f4dcc3b5aa765d61d8327deb882cf99a04d5a163e5a"; // not the real hash, just a marker
   const handlePrepToggle = () => {
     if (mode === "prep") { setMode("presentation"); return; }
     if (prepUnlocked) { setMode("prep"); return; }
@@ -7482,10 +7496,14 @@ export default function App() {
       const r = await storageGet("tharp-reqs-v3");
       const c = await storageGet("tharp-claims-v3");
       const d = await storageGet("tharp-docs-v1");
-      // REQS_INITIAL is always authoritative — merge stored user-edits underneath
+      // REQS_INITIAL structural data is authoritative; user edits (notes, flags, status) layer on top
+      const userEditFields = ["notes", "flags", "backupStatus", "userNotes", "customStatus"];
       if (r) setReqs(REQS_INITIAL.map(init => {
         const stored = r.find(s => s.id === init.id);
-        return stored ? { ...stored, ...init } : init;
+        if (!stored) return init;
+        const edits = {};
+        userEditFields.forEach(k => { if (stored[k] !== undefined) edits[k] = stored[k]; });
+        return { ...init, ...edits };
       }));
       if (c) setClaims(c);
       if (d) setDocs(d);
@@ -7694,10 +7712,10 @@ export default function App() {
       <div style={{ padding: "32px 32px", maxWidth: 1400, margin: "0 auto" }}>
         {tab === "dashboard" && <Dashboard reqs={reqs} claims={claims} mode={mode} />}
         {tab === "financial" && <FinancialReconciliation reqs={reqs} />}
-        {tab === "requisitions" && <Requisitions reqs={reqs} updateReq={updateReq} docs={docs} updateDoc={updateDoc} addDoc={addDoc} />}
+        {tab === "requisitions" && <Requisitions reqs={reqs} updateReq={updateReq} docs={docs} updateDoc={updateDoc} addDoc={addDoc} mode={mode} />}
         {tab === "timecards" && <Timecards reqs={reqs} />}
         {tab === "changeorders" && <ChangeOrdersTab reqs={reqs} />}
-        {tab === "claims" && <Claims claims={claims} updateClaim={updateClaim} />}
+        {tab === "claims" && <Claims claims={claims} updateClaim={updateClaim} mode={mode} />}
         {tab === "timeline" && <TimelineTab reqs={reqs} claims={claims} />}
         {tab === "documents" && <Documents docs={docs} updateDoc={updateDoc} addDoc={addDoc} removeDoc={removeDoc} reqs={reqs} />}
         {tab === "catalogue" && <InvoiceCatalogue attachments={attachments} onAttach={onAttach} onDetach={onDetach} />}
