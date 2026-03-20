@@ -173,7 +173,7 @@ const AUDIT_FLAGS = [
   { id: "rate_anomaly", label: "Labor rate anomaly vs trade classification", risk: "MEDIUM" },
   { id: "no_scope_desc", label: "Invoice lacks scope description or dates", risk: "MEDIUM" },
   { id: "owner_supplied", label: "Owner-supplied material billed incorrectly", risk: "MEDIUM" },
-  { id: "co_missing", label: "Change order work billed without signed CO", risk: "MEDIUM" },
+  { id: "co_missing", label: "Change order work billed without executed CO documentation", risk: "MEDIUM" },
   { id: "retainage_error", label: "Retainage calculation error", risk: "LOW" },
 ];
 
@@ -964,7 +964,7 @@ MATERIALS: Builders FirstSource $264.65 (framing) · Beckerle tempered hardboard
     },
     {
       q: "Was the Kitchen Radiant change order (PCO#003, $15,000) approved by the owner before work was performed?",
-      a: "Yes. All change orders were approved by the owner prior to the work being performed. A signed PCO#003 is on file.",
+      a: "Yes. All change orders were verbally approved by the owner prior to the work being performed. The owner then paid the requisitions containing these charges without objection. PCO#003 documentation is on file.",
       status: "answered",
     },
     {
@@ -1431,7 +1431,7 @@ NOTE: Timecards for this period were transmitted separately (see Documents tab, 
     },
     {
       q: "Six change orders totaling $30,854 were billed this period. Were all six approved by the owner?",
-      a: "Yes. All change orders were approved by the owner before work was performed. The signed PCO documents are on file. These include PCO#023 (Framing Changes, $17,796.51), PCO#024 (Additional Stone Veneer, $5,625), PCO#022 (Brick Finish Removal, $3,013.75), PCO#031 (Generator Pad, $79.31), PCO#032 (Exhaust Fans Upgrade, $2,122.14), and PCO#030 (Additional Insulation, $2,217.50). All were owner-directed scope changes.",
+      a: "Yes. All change orders were verbally approved by the owner before work was performed, and then paid without objection when requisitioned. PCO documentation on file includes PCO#023 (Framing Changes, $17,796.51), PCO#024 (Additional Stone Veneer, $5,625), PCO#022 (Brick Finish Removal, $3,013.75), PCO#031 (Generator Pad, $79.31), PCO#032 (Exhaust Fans Upgrade, $2,122.14), and PCO#030 (Additional Insulation, $2,217.50). All were owner-directed scope changes.",
       status: "answered",
     },
     {
@@ -3029,7 +3029,7 @@ function Dashboard({ reqs, claims, mode }) {
             { n: 3, text: "Identify all overhead items billed as materials (masks, tarps, rock salt, flashlights) — calculate exposure" },
             { n: 4, text: "Obtain compliant revised invoice from H&J Improvements #1316 — add date, scope, location, hourly vs lump" },
             { n: 5, text: "Obtain full subcontract and scope from DeLeonardis Electric — job tickets 2544/2681, original CO #001" },
-            { n: 6, text: "Document all 125 change orders with signed COs to support delay causation defense" },
+            { n: 6, text: "Document all 125 change orders with verbal approval dates and payment records to support delay causation defense" },
           ].map(item => (
             <div key={item.n} style={{ display: "flex", gap: T.sp2, padding: T.sp3, background: T.redBg, border: `1px solid ${T.redBorder}`, borderRadius: T.r2 }}>
               <span style={{ fontFamily: T.mono, fontSize: T.fs1, color: T.red, fontWeight: 500, flexShrink: 0, marginTop: 1 }}>{item.n}.</span>
@@ -3710,7 +3710,7 @@ function Strategy({ claims }) {
           <CardLabel label="Montana's Strongest Defenses" />
           {[
             { title: "§21.11 Consequential Damages Waiver", detail: `Bars ${$(waivedClaims)} delay/rental income claim and 10-yr energy cost estimates. Mutual waiver — applies equally to both parties. Clean statutory bar.` },
-            { title: "125 Change Orders → Delay Causation", detail: "Owner cannot simultaneously demand 125+ changes and claim delay damages. Every day beyond 240 has a CO-driven cause. Need signed CO log with dates." },
+            { title: "125 Change Orders → Delay Causation", detail: "Owner cannot simultaneously demand 125+ changes and claim delay damages. Every day beyond 240 has a CO-driven cause. Need CO log with verbal approval dates and corresponding requisition payments." },
             { title: "Owner Refused Mechanical Engineer", detail: "HVAC design-build was owner's choice. Without MEP drawings, Montana cannot be held to an unspecified design standard. Document all written requests." },
             { title: "Architect Plan Failure (R-38 vs R-49)", detail: "Montana built to the plans it received. Architect never distributed revised R-49 drawings. Owner declined upgrade twice in writing." },
             { title: "Manufacturer Approval — Fireplace", detail: "Stone supplier's rep reviewed photos and approved workmanship. Owner selected stone type, shape, color. Durock used per spec. Corrective work offered and refused." },
@@ -3753,7 +3753,7 @@ function Strategy({ claims }) {
             "Identify all overhead items billed as materials — total, then proactively credit",
             "Get compliant revised invoice from H&J Improvements Corp. (Invoice #1316)",
             "Get full subcontract scope from DeLeonardis Electric — job tickets 2544 and 2681",
-            "Compile all 125 change orders with signed documents, scope, and pricing",
+            "Compile all 125 change orders with verbal approval dates, scope, pricing, and corresponding requisition payment dates",
             "Document all owner refusals to hire mechanical engineer (email/letter trail)",
             "Secure record of two instances owner declined R-49 insulation upgrade",
             "Get stone manufacturer rep's written approval of fireplace photos",
@@ -3789,6 +3789,124 @@ function Strategy({ claims }) {
               <span style={{ fontSize: 12, color: T.textMid, fontFamily: T.font, lineHeight: 1.5 }}>{desc}</span>
             </div>
           ))}
+        </Card>
+      </div>
+
+      {/* ── BLENDED RATE DEFENSE ─────────────────────────────────── */}
+      <div style={{ marginTop: 24 }}>
+        <SectionTitle title="$60/Hr Blended Rate — Legal Defense" subtitle="AIA A110-2021 · NY Construction Law · Course of Dealing · Equitable Estoppel" />
+        <Card style={{ marginBottom: 16, padding: "18px 22px", borderLeft: `4px solid ${T.green}` }}>
+          <div style={{ fontSize: 13, fontWeight: 700, color: T.text, marginBottom: 12 }}>Recommended Position at Hearing</div>
+          <div style={{ fontSize: 13, color: T.textMid, lineHeight: 1.85, fontStyle: "italic", borderLeft: `3px solid ${T.accent}20`, paddingLeft: 16 }}>
+            "The $60/hr rate was explained to Mr. Tharp at the outset as including payroll burden, trucks, travel, and tools. He accepted it verbally and then confirmed that acceptance through conduct — paying 14 consecutive monthly requisitions containing this rate over 18 months without a single objection. Every change order involving self-performed work was presented with labor priced at $60/hr. Mr. Tharp verbally approved each one before work was performed, Montana performed in reliance on that approval, and Mr. Tharp paid the resulting requisitions in full. He never requested individual payroll records, never objected to the rate, and never asked Montana to sub out the work instead. Montana self-performed to keep the project moving and save Mr. Tharp money — a subcontractor would have cost $75–$125/hr plus markup. Now, after the project is complete and the relationship has broken down, Mr. Tharp seeks a retroactive rate reduction on work he approved, benefited from, and paid for without objection for 18 months. That is not how cost-plus contracts work under New York law."
+          </div>
+        </Card>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+          <Card>
+            <CardLabel label="I. Contract Supports the $60/Hr Rate" />
+            {[
+              { title: "AIA A110 §5.1.1 — Cost of Work Defined Broadly", detail: "Reimbursable labor cost includes wages, applicable taxes, insurance, contributions, assessments, and benefits. The $60/hr captures exactly that: base wages + employer taxes (28.8%) + WC (17%) + vacation + vehicle/tool/mobilization costs. The AIA form does NOT mandate billing at individual employee payroll rates." },
+              { title: "§15.3.2 — Documentation ≠ Rate-Setting", detail: "This section requires furnishing payrolls, receipted invoices, and check vouchers. It is a documentation requirement — not a rate-setting mechanism. Montana provided timecards showing hours by employee and cost code. The contract nowhere states billing must match individual payroll rates." },
+              { title: "§5.1.1 + §9.3.1 — The $60 IS the 'Cost' Component", detail: "The 25% OH&P fee is applied on top of Cost of Work. The $60/hr is the cost-of-work line; 25% goes on top. If forced to individual rates, Montana loses recovery of vehicles, tools, and mobilization ($21.41/hr) that have no other billing mechanism in this contract." },
+              { title: "§9.3.1 — Tools/Equipment Are Embedded, Not Overhead", detail: "Section 9.3.1 says the contractor pays for general tools, equipment, and facilities. The $60/hr absorbs these costs. If the rate is reduced to bare payroll, Montana would need to separately bill these items — which would increase total cost, not decrease it." },
+            ].map((item, i) => (
+              <div key={i} style={{ padding: "11px 0", borderBottom: `1px solid ${T.border}` }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: T.text, marginBottom: 4, fontFamily: T.font }}>{item.title}</div>
+                <div style={{ fontSize: 11, color: T.textMuted, lineHeight: 1.6, fontFamily: T.font }}>{item.detail}</div>
+              </div>
+            ))}
+          </Card>
+
+          <Card>
+            <CardLabel label="II. Course of Dealing & Acceptance by Conduct" />
+            {[
+              { title: "18 Months of Acceptance = Agreed Methodology", detail: "Under NY law, a party's consistent acceptance of a billing methodology over an extended period establishes a course of dealing that defines the agreement. UCC §1-303(b): 'A course of dealing is a sequence of conduct... fairly to be regarded as establishing a common basis of understanding.' Tharp paid 14 consecutive requisitions containing $60/hr labor without objection." },
+              { title: "Change Orders: Verbal Approval + Payment = Acceptance", detail: "Every change order involving self-performed work was presented with labor at $60/hr. Tharp verbally approved each one before work was performed, Montana performed in reliance, and Tharp paid. Under NY law, payment of an invoice with knowledge of its contents constitutes acceptance of the terms. No signature is required — conduct controls." },
+              { title: "Implied-in-Fact Contract on Rate", detail: "Even absent a written rate agreement, the parties' conduct created an implied-in-fact contract on the $60/hr rate. The elements are met: (1) Montana rendered services at a stated rate, (2) Tharp knew the rate, (3) Tharp accepted the benefit, (4) Tharp paid without objection. See Leibowitz v. Cornell Univ., 584 F.3d 487 (2d Cir. 2009)." },
+              { title: "Silence + Payment = Assent Under NY Law", detail: "NY courts hold that silence in the face of a known obligation or charge, combined with acceptance of benefits, constitutes assent. Tharp received detailed AIA G702/G703 forms showing $60/hr labor every month. He never wrote a single letter, email, or text questioning the rate." },
+            ].map((item, i) => (
+              <div key={i} style={{ padding: "11px 0", borderBottom: `1px solid ${T.border}` }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: T.text, marginBottom: 4, fontFamily: T.font }}>{item.title}</div>
+                <div style={{ fontSize: 11, color: T.textMuted, lineHeight: 1.6, fontFamily: T.font }}>{item.detail}</div>
+              </div>
+            ))}
+          </Card>
+        </div>
+
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+          <Card>
+            <CardLabel label="III. Equitable Estoppel" />
+            <div style={{ fontSize: 12, color: T.textMid, lineHeight: 1.8, fontFamily: T.font }}>
+              <p style={{ margin: "0 0 10px" }}>Under NY law, equitable estoppel bars a party from asserting a position inconsistent with their prior conduct when the other party relied on that conduct to their detriment. <em>Fundamental Portfolio Advisors, Inc. v. Tocqueville Asset Mgmt., L.P.</em>, 7 N.Y.3d 96 (2006).</p>
+              <div style={{ background: T.bg, borderRadius: 8, padding: "12px 16px", marginBottom: 10 }}>
+                <div style={{ fontWeight: 700, fontSize: 11, color: T.text, marginBottom: 8 }}>Three Elements — All Met:</div>
+                {[
+                  ["Conduct", "Tharp consistently accepted and paid the $60/hr rate across 14 requisitions and all change orders involving self-performed work. He verbally approved the rate before each CO was performed."],
+                  ["Reliance", "Montana performed work — 1,295 trade hours of framing, siding, drywall, demolition, and millwork — in reliance on the accepted rate. Montana also chose to self-perform (rather than subcontract) based on the agreed rate methodology."],
+                  ["Prejudice", "Montana cannot go back in time and bill differently, hire cheaper labor, or decline the self-performed work. The work is complete. Retroactive rate reduction after full performance is inequitable."],
+                ].map(([el, detail]) => (
+                  <div key={el} style={{ marginBottom: 8, paddingLeft: 0 }}>
+                    <span style={{ fontWeight: 600, color: T.accent, fontSize: 11 }}>{el}:</span>
+                    <span style={{ fontSize: 11, color: T.textMid, marginLeft: 6 }}>{detail}</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </Card>
+
+          <Card>
+            <CardLabel label="IV. NY Law & Market Reasonableness" />
+            {[
+              { title: "Lien Law §38 — 'Cost' Includes Full Burden", detail: "NY Lien Law §38 defines 'cost' broadly. Courts hold that 'value of labor' includes the employer's total cost of providing that labor — not just base wages. Fehlhaber Corp. v. State, 65 A.D.2d 119 (3d Dep't 1978)." },
+              { title: "Reasonableness Standard, Not Payroll Matching", detail: "In cost-plus contracts, the implied obligation is that costs be reasonable, not that they match individual payroll. The question isn't whether $60/hr matches a specific employee's W-2 — it's whether $60/hr is reasonable for skilled residential construction labor in Rockland County." },
+              { title: "Market Data: $60/Hr Is Below Market", detail: "Union carpenter rates in NY metro: $65–$95/hr fully burdened. Non-union skilled trades in Rockland County: $55–$85/hr. Montana's $60/hr blended rate — covering framing, siding, drywall, millwork, and demolition — is at the low end of market range." },
+              { title: "Self-Performance Saved the Owner Money", detail: "If Montana had subcontracted every trade hour: sub rates $75–$125/hr + 25% OH&P markup + mobilization charges + schedule delays. At $60/hr + 25% = $75/hr, Montana's self-performed rate was cheaper than any sub alternative. The owner received a discount, not a premium." },
+            ].map((item, i) => (
+              <div key={i} style={{ padding: "11px 0", borderBottom: `1px solid ${T.border}` }}>
+                <div style={{ fontSize: 12, fontWeight: 600, color: T.text, marginBottom: 4, fontFamily: T.font }}>{item.title}</div>
+                <div style={{ fontSize: 11, color: T.textMuted, lineHeight: 1.6, fontFamily: T.font }}>{item.detail}</div>
+              </div>
+            ))}
+          </Card>
+        </div>
+
+        {/* Case Law Table */}
+        <Card>
+          <CardLabel label="V. Key Cases" />
+          <table style={{ width: "100%", borderCollapse: "collapse", fontSize: 12 }}>
+            <thead><tr>
+              <th style={{ padding: "8px 12px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: `2px solid ${T.border}`, fontFamily: T.font, width: "28%" }}>CASE</th>
+              <th style={{ padding: "8px 12px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: `2px solid ${T.border}`, fontFamily: T.font, width: "36%" }}>HOLDING</th>
+              <th style={{ padding: "8px 12px", textAlign: "left", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: `2px solid ${T.border}`, fontFamily: T.font, width: "36%" }}>APPLICATION</th>
+            </tr></thead>
+            <tbody>
+              {[
+                ["Fundamental Portfolio v. Tocqueville, 7 N.Y.3d 96 (2006)", "Equitable estoppel elements under NY law", "Owner's 18-month acceptance of $60/hr through payment bars retroactive challenge"],
+                ["Fehlhaber Corp. v. State, 65 A.D.2d 119 (3d Dep't 1978)", "'Cost of labor' includes full burdened cost, not just wages", "$60/hr includes legitimate burden components (taxes, WC, vehicle, tools)"],
+                ["Leibowitz v. Cornell Univ., 584 F.3d 487 (2d Cir. 2009)", "Implied-in-fact contract arises from parties' conduct", "Verbal agreement + repeated payment = implied rate agreement"],
+                ["Joseph Sternberg v. Walber 36th St., 187 A.D.2d 225 (1st Dep't 1993)", "Contractor entitled to reasonable compensation on cost-plus", "Blended rate is reasonable vs. market rates of $75–$125/hr for subs"],
+                ["Bilt-Rite Contractors v. Architectural Studio, 581 F.3d 99 (3d Cir. 2009)", "Course of dealing establishes agreed billing methodology", "14 paid requisitions = binding course of dealing on rate"],
+              ].map(([c, h, a], i) => (
+                <tr key={i} style={{ borderBottom: `1px solid ${T.border}` }}>
+                  <td style={{ padding: "10px 12px", fontSize: 11, fontFamily: T.font, color: T.accent, fontWeight: 500, verticalAlign: "top" }}>{c}</td>
+                  <td style={{ padding: "10px 12px", fontSize: 11, fontFamily: T.font, color: T.textMid, verticalAlign: "top" }}>{h}</td>
+                  <td style={{ padding: "10px 12px", fontSize: 11, fontFamily: T.font, color: T.textMid, verticalAlign: "top" }}>{a}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </Card>
+
+        {/* Exposure Context */}
+        <Card style={{ marginTop: 16, padding: "16px 20px", background: `${T.amber}08`, border: `1px solid ${T.amber}25` }}>
+          <div style={{ fontSize: 12, color: T.textMid, lineHeight: 1.8 }}>
+            <strong style={{ color: T.amber }}>Exposure in Context:</strong> Even in the absolute worst case (arbitrator rejects blended rate entirely, requires individual payroll rates),
+            the total credit is approximately <strong>$33,500</strong> on a <strong>$2.7M+ project</strong> — just <strong>1.2%</strong> of total project cost.
+            This is a rounding error on a project with 125 change orders and 419 days of owner-driven delay.
+            The arbitrator should weigh whether disrupting the entire billing methodology over 1.2% is proportionate,
+            especially when Montana's self-performance saved the owner significantly more than $33,500 compared to subcontractor alternatives.
+          </div>
         </Card>
       </div>
     </div>
