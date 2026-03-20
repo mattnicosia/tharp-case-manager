@@ -4785,6 +4785,7 @@ function Timecards({ reqs }) {
         </Card>
       </div>
       <PayrollAnalysis />
+      <BlendedRateExposure />
     </div>
   );
 }
@@ -4986,6 +4987,289 @@ function PayrollAnalysis() {
           </div>
         </Card>
       </div>
+    </div>
+  );
+}
+
+// ── BLENDED RATE EXPOSURE CALCULATOR ─────────────────────────────────────────
+function BlendedRateExposure() {
+  const [showAllEmployees, setShowAllEmployees] = useState(false);
+
+  // Classify each cost code as: "supervision" (PM/super), "gc" (general conditions/labor), or "trade"
+  const supPrefixes = ["01-000-1-200", "01-000-1-210", "01-000-1-225", "01-000-1-275", "01-000-1-285", "01-000-1-910"];
+  const gcPrefix = "01-000-1-100";
+
+  // Supervision roles — their hours are covered by 25% OH&P, never billed at $60/hr
+  const supRoles = ["Job Superintendent", "Supervisor", "Asst Project Manager", "Project Manager", "Office Admin"];
+
+  // Build per-employee analysis by merging LABOR_ANALYSIS cost codes with PAYROLL_COST_DATA rates
+  const analysis = useMemo(() => {
+    return LABOR_ANALYSIS.employees.map(la => {
+      // Find matching payroll record for cost data
+      const payroll = PAYROLL_COST_DATA.find(p => la.name.startsWith(p.name.split(",")[0]) && p.name.split(",")[0].length > 2)
+        || PAYROLL_COST_DATA.find(p => la.name === p.name);
+      const isSup = supRoles.includes(la.role);
+
+      // Classify each cost code's hours
+      let supHrs = 0, gcHrs = 0, tradeHrs = 0;
+      const tradeCodes = {};
+      Object.entries(la.codes).forEach(([code, hrs]) => {
+        const codeNum = code.split(" ")[0];
+        if (supPrefixes.some(p => codeNum.startsWith(p))) {
+          supHrs += hrs;
+        } else if (codeNum.startsWith(gcPrefix)) {
+          gcHrs += hrs;
+        } else {
+          tradeHrs += hrs;
+          const label = code.split(" ").slice(1).join(" ");
+          tradeCodes[label] = (tradeCodes[label] || 0) + hrs;
+        }
+      });
+      // Hours not in codes (e.g., Montana J with empty codes object)
+      const codedTotal = supHrs + gcHrs + tradeHrs;
+      if (codedTotal < la.totalHours) gcHrs += (la.totalHours - codedTotal);
+
+      const costPerHr = payroll ? payroll.totalCostHr : 0;
+      const billedTrade = tradeHrs * 60;
+      const actualTrade = tradeHrs * costPerHr;
+      const overbilling = billedTrade - actualTrade;
+
+      return {
+        name: la.name, role: la.role, isSup,
+        supHrs, gcHrs, tradeHrs, totalHrs: la.totalHours,
+        costPerHr, billedTrade, actualTrade, overbilling,
+        tradeCodes, dateRange: la.dateRange,
+        hourlyBase: payroll ? payroll.hourlyBase : 0,
+      };
+    });
+  }, []);
+
+  // Filter: only tradesmen for the exposure calc
+  const tradesmen = analysis.filter(e => !e.isSup);
+  const supervisors = analysis.filter(e => e.isSup);
+
+  const totTradeHrs = tradesmen.reduce((s, e) => s + e.tradeHrs, 0);
+  const totGcHrs = tradesmen.reduce((s, e) => s + e.gcHrs, 0);
+  const totSupHrs = supervisors.reduce((s, e) => s + e.totalHrs, 0);
+  const totAllGR = totGcHrs + totSupHrs + tradesmen.reduce((s, e) => s + e.supHrs, 0);
+  const totBilled = tradesmen.reduce((s, e) => s + e.billedTrade, 0);
+  const totActual = tradesmen.reduce((s, e) => s + e.actualTrade, 0);
+  const totOverbilling = totBilled - totActual;
+  const markupOnOverbilling = totOverbilling * 0.25;
+  const totalExposure = totOverbilling + markupOnOverbilling;
+
+  const displayed = showAllEmployees ? analysis : tradesmen;
+
+  const ThS = { padding: "10px 12px", fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: `2px solid ${T.border}`, fontFamily: T.font, letterSpacing: 0.3, textTransform: "uppercase", whiteSpace: "nowrap" };
+  const TdS = { padding: "10px 12px", fontSize: 13, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, verticalAlign: "top" };
+
+  return (
+    <div style={{ marginTop: 32 }}>
+      <SectionTitle title="Blended Rate Exposure Calculator" subtitle="Worst-case credit if arbitrator rejects $60/hr blended rate — trade-coded hours only" />
+
+      {/* Hour Classification Summary */}
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 16 }}>
+        <KPI label="Trade Hours (Billed @ $60)" value={totTradeHrs.toFixed(1)} sub={`$${totBilled.toLocaleString()} billed`} color={T.accent} />
+        <KPI label="General Conditions (OH&P)" value={(totGcHrs + tradesmen.reduce((s, e) => s + e.supHrs, 0)).toFixed(1)} sub="Covered by 25% markup" color={T.amber} />
+        <KPI label="Supervision (OH&P)" value={totSupHrs.toFixed(1)} sub="Ficucello, Lange, Torres, etc." color={T.textMuted} />
+        <KPI label="Worst-Case Credit" isMoney rawAmount={totalExposure} sub={`$${totOverbilling.toLocaleString()} + 25% markup`} color={T.red} />
+      </div>
+
+      {/* Visual Hour Split */}
+      <Card style={{ marginBottom: 16, padding: "16px 20px" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 10 }}>
+          <span style={{ fontSize: 13, fontWeight: 700, color: T.text }}>Hour Classification</span>
+          <span style={{ fontSize: 11, color: T.textMuted }}>— {LABOR_ANALYSIS.totals.totalHours.toLocaleString()} total project hours</span>
+        </div>
+        {/* Stacked bar */}
+        <div style={{ display: "flex", height: 32, borderRadius: 8, overflow: "hidden", marginBottom: 12 }}>
+          <div style={{ width: `${(totTradeHrs / LABOR_ANALYSIS.totals.totalHours * 100)}%`, background: T.accent, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ color: "#fff", fontSize: 11, fontWeight: 700 }}>{totTradeHrs.toFixed(0)} hrs</span>
+          </div>
+          <div style={{ width: `${((totGcHrs + tradesmen.reduce((s, e) => s + e.supHrs, 0)) / LABOR_ANALYSIS.totals.totalHours * 100)}%`, background: T.amber, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <span style={{ color: "#fff", fontSize: 11, fontWeight: 700 }}>{(totGcHrs + tradesmen.reduce((s, e) => s + e.supHrs, 0)).toFixed(0)}</span>
+          </div>
+          <div style={{ flex: 1, background: T.textMuted, display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.5 }}>
+            <span style={{ color: "#fff", fontSize: 11, fontWeight: 700 }}>{totSupHrs.toFixed(0)}</span>
+          </div>
+        </div>
+        <div style={{ display: "flex", gap: 20, fontSize: 11, color: T.textMid }}>
+          <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: T.accent, marginRight: 4, verticalAlign: "middle" }}></span> Trade hours — billed at $60/hr as cost-of-work</span>
+          <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: T.amber, marginRight: 4, verticalAlign: "middle" }}></span> General conditions — absorbed by 25% OH&P</span>
+          <span><span style={{ display: "inline-block", width: 10, height: 10, borderRadius: 2, background: T.textMuted, opacity: 0.5, marginRight: 4, verticalAlign: "middle" }}></span> Supervision/PM — absorbed by 25% OH&P</span>
+        </div>
+      </Card>
+
+      {/* Key Finding */}
+      <Card style={{ marginBottom: 16, padding: "14px 16px", borderLeft: `4px solid ${T.red}` }}>
+        <div style={{ fontSize: 12, color: T.textMid, lineHeight: 1.7 }}>
+          <strong style={{ color: T.red }}>Worst-Case Exposure:</strong> If the arbitrator rejects the $60/hr blended rate and requires actual payroll costs per employee,
+          the credit on <strong>{totTradeHrs.toFixed(1)} trade hours</strong> is <strong>${totOverbilling.toLocaleString()}</strong> on cost-of-work
+          plus <strong>${markupOnOverbilling.toLocaleString()}</strong> in 25% markup = <strong style={{ color: T.red }}>${totalExposure.toLocaleString()} total</strong>.
+          {" "}This is <strong>{(totalExposure / (PAYROLL_COST_DATA.reduce((s, e) => s + e.hours * 60, 0) * 1.25) * 100).toFixed(1)}%</strong> of total labor billing.
+          {" "}The remaining <strong>{(totAllGR).toFixed(1)} hours</strong> ({(totAllGR / LABOR_ANALYSIS.totals.totalHours * 100).toFixed(0)}% of project) are general conditions and supervision —
+          these are legitimately covered by the 25% OH&P markup and carry <strong>zero exposure</strong>.
+        </div>
+      </Card>
+
+      {/* Toggle */}
+      <div style={{ display: "flex", justifyContent: "flex-end", marginBottom: 8 }}>
+        <button onClick={() => setShowAllEmployees(!showAllEmployees)} style={{ fontSize: 11, color: T.accent, background: "none", border: `1px solid ${T.accent}`, padding: "4px 12px", borderRadius: 6, cursor: "pointer", fontFamily: T.font }}>
+          {showAllEmployees ? "Show Tradesmen Only" : "Show All Employees"}
+        </button>
+      </div>
+
+      {/* Main Table */}
+      <Card padding={0}>
+        <div style={{ overflowX: "auto" }}>
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr>
+              <th style={{ ...ThS, textAlign: "left" }}>Employee</th>
+              <th style={{ ...ThS, textAlign: "left" }}>Role</th>
+              <th style={{ ...ThS, textAlign: "right", color: T.textMuted }}>Supervision</th>
+              <th style={{ ...ThS, textAlign: "right", color: T.amber }}>Gen. Conditions</th>
+              <th style={{ ...ThS, textAlign: "right", color: T.accent }}>Trade Hours</th>
+              <th style={{ ...ThS, textAlign: "right" }}>Actual $/Hr</th>
+              <th style={{ ...ThS, textAlign: "right" }}>Billed @ $60</th>
+              <th style={{ ...ThS, textAlign: "right" }}>Actual Cost</th>
+              <th style={{ ...ThS, textAlign: "right" }}>Exposure</th>
+            </tr></thead>
+            <tbody>
+              {displayed.map(e => {
+                const isSupRow = e.isSup;
+                return (
+                  <tr key={e.name} style={{ background: isSupRow ? `${T.textMuted}08` : undefined, opacity: isSupRow ? 0.5 : 1 }}>
+                    <td style={TdS}>
+                      <span style={{ fontWeight: 600, fontSize: 13 }}>{e.name}</span>
+                      {/* Show trade codes as small tags */}
+                      {e.tradeHrs > 0 && !isSupRow && (
+                        <div style={{ marginTop: 3 }}>
+                          {Object.entries(e.tradeCodes).sort((a,b) => b[1] - a[1]).slice(0, 4).map(([code, hrs]) => (
+                            <span key={code} style={{ display: "inline-block", fontSize: 9, background: `${T.accent}15`, color: T.accent, padding: "1px 5px", borderRadius: 3, marginRight: 3, marginBottom: 2 }}>
+                              {code} ({hrs}h)
+                            </span>
+                          ))}
+                        </div>
+                      )}
+                    </td>
+                    <td style={TdS}>
+                      <span style={{ fontSize: 11, color: isSupRow ? T.textMuted : T.textMid, background: T.bg, padding: "2px 6px", borderRadius: 4 }}>{e.role}</span>
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      {e.supHrs > 0 ? (
+                        <span style={{ fontFamily: T.mono, fontSize: 12, color: T.textMuted }}>
+                          {e.supHrs.toFixed(1)}
+                          <span style={{ fontSize: 9, color: T.textMuted, marginLeft: 3, background: `${T.textMuted}15`, padding: "1px 4px", borderRadius: 3 }}>OH&P</span>
+                        </span>
+                      ) : <span style={{ fontSize: 11, color: T.textMuted }}>—</span>}
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      {e.gcHrs > 0 ? (
+                        <span style={{ fontFamily: T.mono, fontSize: 12, color: T.amber }}>
+                          {e.gcHrs.toFixed(1)}
+                          <span style={{ fontSize: 9, color: T.amber, marginLeft: 3, background: `${T.amber}15`, padding: "1px 4px", borderRadius: 3 }}>OH&P</span>
+                        </span>
+                      ) : <span style={{ fontSize: 11, color: T.textMuted }}>—</span>}
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      {e.tradeHrs > 0 ? (
+                        <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: isSupRow ? T.textMuted : T.accent }}>
+                          {e.tradeHrs.toFixed(1)}
+                        </span>
+                      ) : <span style={{ fontSize: 11, color: T.textMuted }}>—</span>}
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      <span style={{ fontFamily: T.mono, fontSize: 12, color: isSupRow ? T.textMuted : T.text }}>
+                        {e.costPerHr > 0 ? `$${e.costPerHr.toFixed(2)}` : "—"}
+                      </span>
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      {!isSupRow && e.tradeHrs > 0 ? <Money amount={e.billedTrade} /> : <span style={{ fontSize: 11, color: T.textMuted }}>—</span>}
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      {!isSupRow && e.tradeHrs > 0 ? <Money amount={e.actualTrade} color={T.amber} /> : <span style={{ fontSize: 11, color: T.textMuted }}>—</span>}
+                    </td>
+                    <td style={{ ...TdS, textAlign: "right" }}>
+                      {!isSupRow && e.tradeHrs > 0 ? (
+                        <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 600, color: e.overbilling > 0 ? T.red : T.green }}>
+                          ${e.overbilling.toLocaleString(undefined, { maximumFractionDigits: 0 })}
+                        </span>
+                      ) : <span style={{ fontSize: 11, color: T.textMuted }}>—</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+              {/* Totals row */}
+              <tr style={{ background: T.bg, fontWeight: 700 }}>
+                <td style={{ ...TdS, fontWeight: 700 }}>{showAllEmployees ? "ALL EMPLOYEES" : "TRADESMEN TOTAL"}</td>
+                <td style={TdS}><span style={{ fontSize: 11, color: T.textMid }}>{displayed.length} employees</span></td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 12, color: T.textMuted }}>{displayed.reduce((s, e) => s + e.supHrs, 0).toFixed(1)}</span>
+                </td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 12, color: T.amber }}>{displayed.reduce((s, e) => s + e.gcHrs, 0).toFixed(1)}</span>
+                </td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: T.accent }}>{tradesmen.reduce((s, e) => s + e.tradeHrs, 0).toFixed(1)}</span>
+                </td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 12 }}>${(totActual / totTradeHrs).toFixed(2)} avg</span>
+                </td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700 }}>${totBilled.toLocaleString()}</span>
+                </td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: T.amber }}>${totActual.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                </td>
+                <td style={{ ...TdS, textAlign: "right" }}>
+                  <span style={{ fontFamily: T.mono, fontSize: 13, fontWeight: 700, color: T.red }}>${totOverbilling.toLocaleString(undefined, { maximumFractionDigits: 0 })}</span>
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </Card>
+
+      {/* Exposure Summary Box */}
+      <Card style={{ marginTop: 16, padding: "16px 20px", background: `${T.red}06`, border: `1px solid ${T.red}25` }}>
+        <div style={{ fontSize: 13, fontWeight: 700, color: T.red, marginBottom: 8 }}>Exposure Breakdown</div>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 16 }}>
+          <div>
+            <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 4 }}>Overbilling on Cost-of-Work</div>
+            <div style={{ fontFamily: T.mono, fontSize: 18, fontWeight: 700, color: T.text }}>${totOverbilling.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            <div style={{ fontSize: 10, color: T.textMuted }}>{totTradeHrs.toFixed(0)} trade hrs × ($60 − ${(totActual / totTradeHrs).toFixed(2)} avg)</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 4 }}>25% Markup on Overbilling</div>
+            <div style={{ fontFamily: T.mono, fontSize: 18, fontWeight: 700, color: T.text }}>${markupOnOverbilling.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            <div style={{ fontSize: 10, color: T.textMuted }}>25% × ${totOverbilling.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+          </div>
+          <div>
+            <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 4 }}>Total Worst-Case Credit</div>
+            <div style={{ fontFamily: T.mono, fontSize: 22, fontWeight: 700, color: T.red }}>${totalExposure.toLocaleString(undefined, { maximumFractionDigits: 0 })}</div>
+            <div style={{ fontSize: 10, color: T.textMuted }}>If arbitrator rejects blended rate</div>
+          </div>
+        </div>
+      </Card>
+
+      {/* Defense Notes */}
+      <Card style={{ marginTop: 16 }}>
+        <CardLabel label="Defense Position" />
+        <div style={{ fontSize: 12, color: T.textMid, lineHeight: 1.8 }}>
+          <div style={{ marginBottom: 8 }}>
+            <strong>1. Blended rates are industry standard</strong> — tracking 11 tradesmen to individual tasks hour-by-hour is impractical on a residential renovation. The $60/hr composite crew rate is a common cost-plus methodology.
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            <strong>2. The rate covers more than just wages</strong> — the $60/hr absorbs small tools, personal protective equipment, vehicle/fuel costs for material runs, and job mobilization that are not separately reimbursable line items.
+          </div>
+          <div style={{ marginBottom: 8 }}>
+            <strong>3. Owner never objected</strong> — Tharp paid 14 consecutive requisitions at $60/hr without dispute. Acquiescence over 18+ months of billing establishes the rate as agreed.
+          </div>
+          <div>
+            <strong>4. {(totAllGR / LABOR_ANALYSIS.totals.totalHours * 100).toFixed(0)}% of hours are OH&P</strong> — only {totTradeHrs.toFixed(0)} of {LABOR_ANALYSIS.totals.totalHours.toLocaleString()} hours ({(totTradeHrs / LABOR_ANALYSIS.totals.totalHours * 100).toFixed(0)}%) were billed as cost-of-work. The vast majority of Montana's on-site presence was supervision and general conditions — legitimately absorbed by the 25% markup.
+          </div>
+        </div>
+      </Card>
     </div>
   );
 }
