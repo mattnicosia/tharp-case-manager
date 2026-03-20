@@ -94,6 +94,13 @@ const T = {
   navActive: "#FFFFFF",
   font: "'DM Sans', system-ui, -apple-system, sans-serif",
   mono: "'DM Mono', 'Fira Code', monospace",
+  // Typography scale
+  fs1: 11, fs2: 12, fs3: 13, fs4: 15, fs5: 18, fs6: 22, fs7: 28,
+  lh: 1.5, lhTight: 1.2, lhLoose: 1.7,
+  // Spacing scale (4px grid)
+  sp1: 4, sp2: 8, sp3: 12, sp4: 16, sp5: 20, sp6: 24, sp7: 32,
+  // Border radius tiers
+  r1: 6, r2: 10, r3: 16,
   radius: 12,
   sh1: "0 1px 3px rgba(0,0,0,0.04), 0 1px 2px rgba(0,0,0,0.02)",
   sh2: "0 4px 12px rgba(0,0,0,0.06), 0 1px 3px rgba(0,0,0,0.04)",
@@ -2831,48 +2838,48 @@ const $ = (n) => "$" + (Math.abs(n || 0)).toLocaleString("en-US", { minimumFract
 // ── Shared Components ─────────────────────────────────────────────────────────
 function Badge({ label, style: { color, bg, border } }) {
   return (
-    <span style={{ display: "inline-flex", alignItems: "center", fontSize: 11, fontWeight: 500, letterSpacing: 0.2, padding: "3px 10px", borderRadius: 6, background: bg, color, border: `1px solid ${border}`, fontFamily: T.font, whiteSpace: "nowrap", lineHeight: 1.4 }}>
+    <span style={{ display: "inline-flex", alignItems: "center", fontSize: T.fs1, fontWeight: 500, letterSpacing: 0.2, padding: `${T.sp1}px ${T.sp3}px`, borderRadius: T.r1, background: bg, color, border: `1px solid ${border}`, fontFamily: T.font, whiteSpace: "nowrap", lineHeight: T.lh }}>
       {label}
     </span>
   );
 }
 
-function Mono({ children, color = T.text, size = 13 }) {
+function Mono({ children, color = T.text, size = T.fs3 }) {
   return <span style={{ fontFamily: T.mono, fontSize: size, color, letterSpacing: -0.3 }}>{children}</span>;
 }
 
 function SectionTitle({ title, subtitle }) {
   return (
-    <div style={{ marginBottom: 24, paddingLeft: 16, borderLeft: `3px solid ${T.accent}` }}>
-      <h2 style={{ margin: 0, fontSize: 22, fontWeight: 700, color: T.text, fontFamily: T.font, letterSpacing: -0.5, lineHeight: 1.2 }}>{title}</h2>
-      {subtitle && <p style={{ margin: "4px 0 0", fontSize: 12, color: T.textMid, fontFamily: T.font, lineHeight: 1.5 }}>{subtitle}</p>}
+    <div style={{ marginBottom: T.sp6, paddingLeft: T.sp4, borderLeft: `3px solid ${T.accent}` }}>
+      <h2 style={{ margin: 0, fontSize: T.fs6, fontWeight: 700, color: T.text, fontFamily: T.font, letterSpacing: -0.5, lineHeight: T.lhTight }}>{title}</h2>
+      {subtitle && <p style={{ margin: `${T.sp1}px 0 0`, fontSize: T.fs2, color: T.textMid, fontFamily: T.font, lineHeight: T.lh }}>{subtitle}</p>}
     </div>
   );
 }
 
-function Card({ children, style = {}, padding = 24 }) {
+function Card({ children, style = {}, padding = T.sp6 }) {
   return (
-    <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.radius, padding, boxShadow: T.sh2, overflow: "hidden", ...style }}>
+    <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.r2, padding, boxShadow: T.sh2, overflow: "hidden", ...style }}>
       {children}
     </div>
   );
 }
 
 function CardLabel({ label }) {
-  return <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.8, color: T.textMuted, textTransform: "uppercase", marginBottom: 12, fontFamily: T.font }}>{label}</div>;
+  return <div style={{ fontSize: T.fs1, fontWeight: 600, letterSpacing: 0.8, color: T.textMuted, textTransform: "uppercase", marginBottom: T.sp3, fontFamily: T.font }}>{label}</div>;
 }
 
 function KPI({ label, value, sub, color = T.text, accent = false, isMoney = false, rawAmount = 0 }) {
   return (
     <Card style={{ borderTop: accent ? `3px solid ${T.accent}` : undefined, overflow: "visible" }}>
-      <div style={{ fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, textTransform: "uppercase", marginBottom: 10, fontFamily: T.font }}>{label}</div>
-      <div style={{ marginBottom: 4 }}>
+      <div style={{ fontSize: T.fs1, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, textTransform: "uppercase", marginBottom: T.sp2, fontFamily: T.font }}>{label}</div>
+      <div style={{ marginBottom: T.sp1 }}>
         {isMoney
           ? <Money amount={rawAmount} color={color} size="xl" />
-          : <span style={{ fontFamily: T.font, fontSize: 28, fontWeight: 700, color, letterSpacing: -1 }}>{value}</span>
+          : <span style={{ fontFamily: T.font, fontSize: T.fs7, fontWeight: 700, color, letterSpacing: -1 }}>{value}</span>
         }
       </div>
-      {sub && <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font, marginTop: 4 }}>{sub}</div>}
+      {sub && <div style={{ fontSize: T.fs2, color: T.textMuted, fontFamily: T.font, marginTop: T.sp1 }}>{sub}</div>}
     </Card>
   );
 }
@@ -2880,26 +2887,26 @@ function KPI({ label, value, sub, color = T.text, accent = false, isMoney = fals
 function TextInput({ label, value, onChange, type = "text" }) {
   const [focused, setFocused] = useState(false);
   return (
-    <div style={{ marginBottom: 14 }}>
-      <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.3, marginBottom: 5, fontFamily: T.font }}>{label}</label>
+    <div style={{ marginBottom: T.sp4 }}>
+      <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.3, marginBottom: T.sp1, fontFamily: T.font }}>{label}</label>
       <input type={type} value={value ?? ""} onChange={e => onChange(type === "number" ? parseFloat(e.target.value) || 0 : e.target.value)}
         onFocus={() => setFocused(true)} onBlur={() => setFocused(false)}
-        style={{ width: "100%", background: T.bg, border: `1px solid ${focused ? T.accent : T.border}`, borderRadius: 8, padding: "8px 12px", color: T.text, fontSize: 13, outline: "none", boxSizing: "border-box", fontFamily: type === "number" ? T.mono : T.font, transition: T.fast }} />
+        style={{ width: "100%", background: T.bg, border: `1px solid ${focused ? T.accent : T.border}`, borderRadius: T.r2, padding: `${T.sp2}px ${T.sp3}px`, color: T.text, fontSize: T.fs3, outline: "none", boxSizing: "border-box", fontFamily: type === "number" ? T.mono : T.font, transition: T.fast }} />
     </div>
   );
 }
 
 function SegmentControl({ options, value, onChange, colorFn }) {
   return (
-    <div style={{ display: "flex", gap: 4, background: T.bg, borderRadius: 8, padding: 3 }}>
+    <div style={{ display: "flex", gap: T.sp1, background: T.bg, borderRadius: T.r2, padding: T.sp1 }}>
       {options.map(opt => {
         const active = value === opt;
         const col = colorFn ? colorFn(opt) : { color: T.text, bg: T.surface, border: T.border };
         return (
           <button key={opt} onClick={() => onChange(opt)} style={{
-            flex: 1, padding: "6px 8px", borderRadius: 6, border: active ? `1px solid ${col.border}` : "1px solid transparent",
+            flex: 1, padding: `${T.r1}px ${T.sp2}px`, borderRadius: T.r1, border: active ? `1px solid ${col.border}` : "1px solid transparent",
             background: active ? col.bg : "transparent", color: active ? col.color : T.textMuted,
-            fontSize: 11, fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: T.font, transition: T.fast,
+            fontSize: T.fs1, fontWeight: active ? 600 : 400, cursor: "pointer", fontFamily: T.font, transition: T.fast,
             boxShadow: active ? T.sh1 : "none",
           }}>{opt}</button>
         );
@@ -2910,7 +2917,7 @@ function SegmentControl({ options, value, onChange, colorFn }) {
 
 function PrimaryButton({ label, onClick, icon, loading, size = "md", variant = "primary", style: extStyle = {} }) {
   const [hover, setHover] = useState(false);
-  const sizes = { sm: { px: 14, py: 8, fs: 12 }, md: { px: 20, py: 10, fs: 13 }, lg: { px: 28, py: 14, fs: 14 } };
+  const sizes = { sm: { px: T.sp3, py: T.sp2, fs: T.fs2 }, md: { px: T.sp5, py: T.sp2+2, fs: T.fs3 }, lg: { px: T.sp7, py: T.sp3+2, fs: T.fs4 } };
   const s = sizes[size];
   const variants = {
     primary: { bg: T.accent, hoverBg: T.accentHover, color: "#fff", border: "none" },
@@ -2921,8 +2928,8 @@ function PrimaryButton({ label, onClick, icon, loading, size = "md", variant = "
   return (
     <button onClick={onClick} onMouseEnter={() => setHover(true)} onMouseLeave={() => setHover(false)}
       style={{
-        display: "inline-flex", alignItems: "center", gap: 8,
-        padding: `${s.py}px ${s.px}px`, borderRadius: 8,
+        display: "inline-flex", alignItems: "center", gap: T.sp2,
+        padding: `${s.py}px ${s.px}px`, borderRadius: T.r2,
         background: hover ? v.hoverBg : v.bg, color: v.color,
         border: v.border, cursor: loading ? "wait" : "pointer",
         fontSize: s.fs, fontWeight: 600, fontFamily: T.font,
@@ -2953,32 +2960,32 @@ function Dashboard({ reqs, claims, mode }) {
     <div>
       <SectionTitle title={mode === "presentation" ? "Case Overview" : "Case Dashboard"} subtitle="Tharp/Bumgardner · 515 N. Midland Ave, Upper Nyack NY · AIA A110-2021 Cost-Plus · AAA Arbitration" />
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, marginBottom: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: T.sp3, marginBottom: T.sp3 }}>
         <KPI label="Total Billed" isMoney rawAmount={totalBilled} sub="16 payment applications" accent color={T.accent} />
         <KPI label="Open Balance" isMoney rawAmount={openBalance} sub="Billed minus payments received" color={T.amber} />
         <KPI label="High Risk Reqs" value={`${highRisk}/16`} sub="Require mitigation" color={highRisk > 0 ? T.red : T.green} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: 12, marginBottom: 20 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: T.sp3, marginBottom: T.sp5 }}>
         <KPI label="Owner's Total Claims" isMoney rawAmount={totalOwner} sub="Gross claimed damages" color={T.red} />
         <KPI label="MC Agreed Credits" isMoney rawAmount={totalAgreed} sub="Documented concessions" color={T.amber} />
         <KPI label="Active Disputed" isMoney rawAmount={totalDisputed} sub="Needs arbitration" color={T.red} />
         <KPI label="Barred by §21.11" isMoney rawAmount={totalWaived} sub="Consequential waiver" color={T.purple} />
       </div>
 
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: T.sp4, marginBottom: T.sp4 }}>
         <Card>
           <CardLabel label="Requisition Risk Distribution" />
           {["HIGH", "MEDIUM", "LOW", "CLEAR"].map(level => {
             const s = riskStyle(level);
             const pct = Math.round((riskDist[level] / 16) * 100);
             return (
-              <div key={level} style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+              <div key={level} style={{ display: "flex", alignItems: "center", gap: T.sp3, marginBottom: T.sp3 }}>
                 <Badge label={level} style={s} />
-                <div style={{ flex: 1, height: 10, background: T.border, borderRadius: 5, overflow: "hidden" }}>
-                  <div style={{ height: 10, background: s.color, width: `${pct}%`, borderRadius: 5, transition: "width 0.4s ease" }} />
+                <div style={{ flex: 1, height: T.sp2+2, background: T.border, borderRadius: T.r1, overflow: "hidden" }}>
+                  <div style={{ height: T.sp2+2, background: s.color, width: `${pct}%`, borderRadius: T.r1, transition: T.med }} />
                 </div>
-                <span style={{ fontFamily: T.mono, fontSize: 13, color: T.textMid, minWidth: 32, textAlign: "right" }}>{riskDist[level]}</span>
+                <span style={{ fontFamily: T.mono, fontSize: T.fs3, color: T.textMid, minWidth: T.sp7, textAlign: "right" }}>{riskDist[level]}</span>
               </div>
             );
           })}
@@ -2992,13 +2999,13 @@ function Dashboard({ reqs, claims, mode }) {
             { label: "Disputed w/ Strong Defense", val: totalDisputed, color: T.blue, neg: true },
             { label: "MC Agreed Credits", val: totalAgreed, color: T.amber, neg: false },
           ].map(row => (
-            <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "9px 0", borderBottom: `1px solid ${T.border}` }}>
-              <span style={{ fontSize: 13, color: T.textMid, fontFamily: T.font }}>{row.label}</span>
+            <div key={row.label} style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: `${T.sp2}px 0`, borderBottom: `1px solid ${T.border}` }}>
+              <span style={{ fontSize: T.fs3, color: T.textMid, fontFamily: T.font }}>{row.label}</span>
               <Money amount={row.val} color={row.color} size="sm" neg={row.neg} />
             </div>
           ))}
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: "12px 0 0", marginTop: 4 }}>
-            <span style={{ fontSize: 13, fontWeight: 600, color: T.text, fontFamily: T.font }}>Settlement Target</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", padding: `${T.sp3}px 0 0`, marginTop: T.sp1 }}>
+            <span style={{ fontSize: T.fs3, fontWeight: 600, color: T.text, fontFamily: T.font }}>Settlement Target</span>
             <Money amount={totalAgreed} color={T.accent} size="lg" />
           </div>
         </Card>
@@ -3007,7 +3014,7 @@ function Dashboard({ reqs, claims, mode }) {
       {/* Priority Items — prep mode only */}
       {mode !== "presentation" && <Card>
         <CardLabel label="Priority Audit Items — Mitigate Before Arbitration" />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 10 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: T.sp2 }}>
           {[
             { n: 1, text: "Reconcile $60/hr labor rate vs actual burdened payroll records (W-2s, payroll register, WC audit)" },
             { n: 2, text: "DSL Landscaping billed at skilled trade rate as direct labor — reclassify or document actual rates" },
@@ -3016,9 +3023,9 @@ function Dashboard({ reqs, claims, mode }) {
             { n: 5, text: "Obtain full subcontract and scope from DeLeonardis Electric — job tickets 2544/2681, original CO #001" },
             { n: 6, text: "Document all 125 change orders with signed COs to support delay causation defense" },
           ].map(item => (
-            <div key={item.n} style={{ display: "flex", gap: 10, padding: 12, background: T.redBg, border: `1px solid ${T.redBorder}`, borderRadius: 8 }}>
-              <span style={{ fontFamily: T.mono, fontSize: 11, color: T.red, fontWeight: 500, flexShrink: 0, marginTop: 1 }}>{item.n}.</span>
-              <span style={{ fontSize: 12, color: T.textMid, fontFamily: T.font, lineHeight: 1.55 }}>{item.text}</span>
+            <div key={item.n} style={{ display: "flex", gap: T.sp2, padding: T.sp3, background: T.redBg, border: `1px solid ${T.redBorder}`, borderRadius: T.r2 }}>
+              <span style={{ fontFamily: T.mono, fontSize: T.fs1, color: T.red, fontWeight: 500, flexShrink: 0, marginTop: 1 }}>{item.n}.</span>
+              <span style={{ fontSize: T.fs2, color: T.textMid, fontFamily: T.font, lineHeight: T.lh }}>{item.text}</span>
             </div>
           ))}
         </div>
@@ -3098,17 +3105,17 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
   const needsDocsCount = bvRows.filter(r => r.status === "needs_docs").length;
   const pctSupported = totCostBasis > 0 ? Math.round((totDocumented / totCostBasis) * 100) : 0;
 
-  const ThStyle = { padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg, whiteSpace: "nowrap" };
-  const TdStyle = { padding: "11px 14px", fontSize: 13, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
+  const ThStyle = { padding: `${T.sp2}px ${T.sp4}px`, textAlign: "left", fontSize: T.fs1, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg, whiteSpace: "nowrap" };
+  const TdStyle = { padding: `${T.sp3}px ${T.sp4}px`, fontSize: T.fs3, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: editing ? "1fr 480px" : "1fr", gap: 20, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: editing ? "1fr 480px" : "1fr", gap: T.sp5, alignItems: "start" }}>
       <div>
         <SectionTitle title="Requisitions" subtitle="16 payment applications · Tharp/Bumgardner · 515 N. Midland Ave, Upper Nyack NY" />
 
         {/* Narrative Summary */}
-        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: "16px 20px", marginBottom: 16, lineHeight: 1.8 }}>
-          <div style={{ fontSize: 13, color: T.text, fontFamily: T.font }}>
+        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.r2, padding: `${T.sp4}px ${T.sp5}px`, marginBottom: T.sp4, lineHeight: T.lhLoose }}>
+          <div style={{ fontSize: T.fs3, color: T.text, fontFamily: T.font }}>
             Of <strong>${totCostBasis.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> in cost-of-work billing across 16 payment applications,{" "}
             <strong>${totInvoices.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> is supported by third-party invoices on file.{" "}
             An additional <strong>${totSelfPerformed.toLocaleString("en-US", { minimumFractionDigits: 2 })}</strong> represents self-performed work by Montana Contracting.{" "}
@@ -3119,7 +3126,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
         </div>
 
         {/* KPIs */}
-        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: 12, marginBottom: 16 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "repeat(5, 1fr)", gap: T.sp3, marginBottom: T.sp4 }}>
           <KPI label="Sub/Vendor Invoices" isMoney rawAmount={totInvoices} sub="Third-party backup on file" color={T.text} />
           <KPI label="Self-Performed" isMoney rawAmount={totSelfPerformed} sub="Montana direct labor" color={T.amber} />
           <KPI label="Cost of Work Billed" isMoney rawAmount={totCostBasis} sub={`G702 total: $${totBilled.toLocaleString()}`} color={T.text} />
@@ -3159,18 +3166,18 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                 const parsedDelta = parsed !== 0 ? (billed - parsed) : null;
                 return (
                   <tr key={req.id} onClick={() => setSel(active ? null : req.id)}
-                    style={{ cursor: "pointer", background: active ? T.accentBg : "transparent", transition: "background 0.1s" }}
+                    style={{ cursor: "pointer", background: active ? T.accentBg : "transparent", transition: T.fast }}
                     onMouseEnter={e => { if (!active) e.currentTarget.style.background = T.surfaceHover; }}
                     onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}>
                     <td style={{ ...TdStyle, fontFamily: T.mono, fontWeight: 500, color: T.accent }}>
                       {req.reqNumber}
-                      <div style={{ fontSize: 10, color: T.textMuted, fontWeight: 400 }}>{req.date || ""}</div>
+                      <div style={{ fontSize: T.fs1, color: T.textMuted, fontWeight: 400 }}>{req.date || ""}</div>
                     </td>
                     <td style={{ ...TdStyle, textAlign: "right" }}>
-                      {(bv?.backupDocs || 0) !== 0 ? <Money amount={bv.backupDocs} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                      {(bv?.backupDocs || 0) !== 0 ? <Money amount={bv.backupDocs} size="sm" /> : <span style={{ color: T.textMuted, fontSize: T.fs2 }}>—</span>}
                     </td>
                     <td style={{ ...TdStyle, textAlign: "right" }}>
-                      {(bv?.directLabor || 0) !== 0 ? <Money amount={bv.directLabor} color={T.amber} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                      {(bv?.directLabor || 0) !== 0 ? <Money amount={bv.directLabor} color={T.amber} size="sm" /> : <span style={{ color: T.textMuted, fontSize: T.fs2 }}>—</span>}
                     </td>
                     <td style={{ ...TdStyle, textAlign: "right", borderLeft: `2px solid ${T.border}`, fontWeight: 600 }}>
                       <Money amount={documented} size="sm" />
@@ -3179,9 +3186,9 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                       <Money amount={billed} size="sm" />
                     </td>
                     <td style={{ ...TdStyle, textAlign: "right" }}>
-                      {parsed !== 0 ? <Money amount={parsed} color={T.blue} size="sm" /> : <span style={{ color: T.textMuted, fontSize: 12 }}>—</span>}
+                      {parsed !== 0 ? <Money amount={parsed} color={T.blue} size="sm" /> : <span style={{ color: T.textMuted, fontSize: T.fs2 }}>—</span>}
                       {parsedDelta !== null && Math.abs(parsedDelta) > 1 && (
-                        <div style={{ fontSize: 10, fontFamily: T.mono, color: parsedDelta > 0 ? T.amber : T.green, marginTop: 1 }}>
+                        <div style={{ fontSize: T.fs1, fontFamily: T.mono, color: parsedDelta > 0 ? T.amber : T.green, marginTop: 1 }}>
                           {parsedDelta > 0 ? "+" : ""}{parsedDelta.toLocaleString("en-US", { minimumFractionDigits: 0, maximumFractionDigits: 0 })}
                         </div>
                       )}
@@ -3190,9 +3197,9 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                       {bs.gap > 1 ? (
                         <>
                           <Money amount={bs.gap} color={bs.coGap ? T.textMuted : T.red} size="sm" />
-                          {bs.coGap && <div style={{ fontSize: 9, fontFamily: T.mono, color: T.textMuted, marginTop: 1 }}>CO billing</div>}
+                          {bs.coGap && <div style={{ fontSize: T.fs1, fontFamily: T.mono, color: T.textMuted, marginTop: 1 }}>CO billing</div>}
                         </>
-                      ) : bs.gap < -1 ? <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>surplus</span> : <span style={{ fontFamily: T.mono, fontSize: 12, color: T.green }}>—</span>}
+                      ) : bs.gap < -1 ? <span style={{ fontFamily: T.mono, fontSize: T.fs2, color: T.green }}>surplus</span> : <span style={{ fontFamily: T.mono, fontSize: T.fs2, color: T.green }}>—</span>}
                     </td>
                     <td style={{ ...TdStyle, textAlign: "center" }}><Badge label={stLabel} style={{ color: stColor, bg: stBg, border: stBorder }} /></td>
                   </tr>
@@ -3201,7 +3208,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
             </tbody>
             <tfoot>
               <tr style={{ background: T.bg }}>
-                <td style={{ ...TdStyle, fontSize: 11, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, borderBottom: "none" }}>TOTALS</td>
+                <td style={{ ...TdStyle, fontSize: T.fs1, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, borderBottom: "none" }}>TOTALS</td>
                 <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totInvoices} size="sm" /></td>
                 <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totSelfPerformed} color={T.amber} size="sm" /></td>
                 <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none", borderLeft: `2px solid ${T.border}`, fontWeight: 600 }}><Money amount={totDocumented} size="sm" /></td>
@@ -3209,7 +3216,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                 <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totParsed} color={T.blue} size="sm" /></td>
                 <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}><Money amount={totGap} color={totGap > 1000 ? T.red : T.green} size="sm" /></td>
                 <td style={{ ...TdStyle, textAlign: "center", borderBottom: "none" }}>
-                  <span style={{ fontSize: 11, fontFamily: T.mono, color: T.textMuted }}>{supportedCount}/16</span>
+                  <span style={{ fontSize: T.fs1, fontFamily: T.mono, color: T.textMuted }}>{supportedCount}/16</span>
                 </td>
               </tr>
             </tfoot>
@@ -3218,10 +3225,10 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
         </Card>
 
         {/* Labor Analysis — Supervision vs Trade */}
-        <div style={{ marginTop: 20 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, color: T.text, fontFamily: T.font, marginBottom: 8 }}>
+        <div style={{ marginTop: T.sp5 }}>
+          <div style={{ fontSize: T.fs3, fontWeight: 600, color: T.text, fontFamily: T.font, marginBottom: T.sp2 }}>
             Labor Cost Code Analysis
-            <span style={{ fontWeight: 400, color: T.textMuted, fontSize: 12, marginLeft: 8 }}>
+            <span style={{ fontWeight: 400, color: T.textMuted, fontSize: T.fs2, marginLeft: T.sp2 }}>
               {LABOR_ANALYSIS.totals.totalHours.toLocaleString()} total hours · {LABOR_ANALYSIS.totals.supHours.toLocaleString()} supervision (O&P) · {LABOR_ANALYSIS.totals.tradeHours.toLocaleString()} trade (billable)
             </span>
           </div>
@@ -3246,7 +3253,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                   return (
                     <tr key={emp.name} style={{ background: isSupOnly ? T.surfaceHover : "transparent" }}>
                       <td style={{ ...TdStyle, fontWeight: 500 }}>{emp.name}</td>
-                      <td style={{ ...TdStyle, fontSize: 11, color: T.textMuted }}>{emp.role}</td>
+                      <td style={{ ...TdStyle, fontSize: T.fs1, color: T.textMuted }}>{emp.role}</td>
                       <td style={{ ...TdStyle, textAlign: "right", fontFamily: T.mono, color: emp.supHours > 0 ? T.textMuted : T.textMuted }}>
                         {emp.supHours > 0 ? emp.supHours.toLocaleString() : "—"}
                       </td>
@@ -3256,26 +3263,26 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                       <td style={{ ...TdStyle, textAlign: "right", fontFamily: T.mono, fontWeight: 500 }}>{emp.totalHours.toLocaleString()}</td>
                       <td style={{ ...TdStyle, textAlign: "right" }}>
                         <span style={{
-                          fontFamily: T.mono, fontSize: 11, padding: "2px 6px", borderRadius: 4,
+                          fontFamily: T.mono, fontSize: T.fs1, padding: `${T.sp1}px ${T.sp2}px`, borderRadius: T.r1,
                           background: isSupOnly ? T.surfaceHover : pctTrade === 100 ? T.greenBg : T.amberBg,
                           color: isSupOnly ? T.textMuted : pctTrade === 100 ? T.green : T.amber,
                         }}>
                           {pctTrade}%
                         </span>
                       </td>
-                      <td style={{ ...TdStyle, fontSize: 11, color: T.textMuted, fontFamily: T.mono }}>{emp.dateRange}</td>
+                      <td style={{ ...TdStyle, fontSize: T.fs1, color: T.textMuted, fontFamily: T.mono }}>{emp.dateRange}</td>
                     </tr>
                   );
                 })}
               </tbody>
               <tfoot>
                 <tr style={{ background: T.bg }}>
-                  <td colSpan={2} style={{ ...TdStyle, fontSize: 11, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, borderBottom: "none" }}>TOTALS</td>
+                  <td colSpan={2} style={{ ...TdStyle, fontSize: T.fs1, fontWeight: 600, color: T.textMuted, letterSpacing: 0.5, borderBottom: "none" }}>TOTALS</td>
                   <td style={{ ...TdStyle, textAlign: "right", fontFamily: T.mono, borderBottom: "none", color: T.textMuted }}>{LABOR_ANALYSIS.totals.supHours.toLocaleString()}</td>
                   <td style={{ ...TdStyle, textAlign: "right", fontFamily: T.mono, borderBottom: "none" }}>{LABOR_ANALYSIS.totals.tradeHours.toLocaleString()}</td>
                   <td style={{ ...TdStyle, textAlign: "right", fontFamily: T.mono, fontWeight: 600, borderBottom: "none" }}>{LABOR_ANALYSIS.totals.totalHours.toLocaleString()}</td>
                   <td style={{ ...TdStyle, textAlign: "right", borderBottom: "none" }}>
-                    <span style={{ fontFamily: T.mono, fontSize: 11, padding: "2px 6px", borderRadius: 4, background: T.amberBg, color: T.amber }}>
+                    <span style={{ fontFamily: T.mono, fontSize: T.fs1, padding: `${T.sp1}px ${T.sp2}px`, borderRadius: T.r1, background: T.amberBg, color: T.amber }}>
                       {Math.round((LABOR_ANALYSIS.totals.tradeHours / LABOR_ANALYSIS.totals.totalHours) * 100)}%
                     </span>
                   </td>
@@ -3288,13 +3295,13 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
       </div>
 
       {editing && (
-        <div style={{ position: "sticky", top: 16 }}>
+        <div style={{ position: "sticky", top: T.sp4 }}>
           <Card>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16, paddingBottom: 14, borderBottom: `1px solid ${T.border}` }}>
-              <span style={{ fontSize: 14, fontWeight: 600, color: T.text, fontFamily: T.font }}>{editing.reqNumber}</span>
-              <button onClick={() => setSel(null)} style={{ background: "none", border: "none", color: T.textMuted, cursor: "pointer", fontSize: 20, lineHeight: 1, padding: 2 }}>×</button>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: T.sp4, paddingBottom: T.sp3, borderBottom: `1px solid ${T.border}` }}>
+              <span style={{ fontSize: T.fs4, fontWeight: 600, color: T.text, fontFamily: T.font }}>{editing.reqNumber}</span>
+              <button onClick={() => setSel(null)} style={{ background: "none", border: "none", color: T.textMuted, cursor: "pointer", fontSize: T.fs5, lineHeight: 1, padding: T.sp1 }}>×</button>
             </div>
-            <div style={{ maxHeight: "75vh", overflowY: "auto", paddingRight: 4 }}>
+            <div style={{ maxHeight: "75vh", overflowY: "auto", paddingRight: T.sp1 }}>
               <TextInput label="Date" value={editing.date} onChange={v => updateReq(editing.id, { date: v })} type="date" />
               <TextInput label="Total Billed ($)" value={editing.totalBilled} onChange={v => updateReq(editing.id, { totalBilled: v })} type="number" />
               <TextInput label="Retainage Held ($)" value={editing.retainageHeld} onChange={v => updateReq(editing.id, { retainageHeld: v })} type="number" />
@@ -3303,33 +3310,33 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
               <TextInput label="Subcontractor Cost ($)" value={editing.subCost} onChange={v => updateReq(editing.id, { subCost: v })} type="number" />
               <TextInput label="Billed Labor Rate ($/hr)" value={editing.laborRate} onChange={v => updateReq(editing.id, { laborRate: v })} type="number" />
 
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 6, fontFamily: T.font }}>BACKUP STATUS</label>
+              <div style={{ marginBottom: T.sp3 }}>
+                <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp2, fontFamily: T.font }}>BACKUP STATUS</label>
                 <SegmentControl options={["COMPLETE", "PARTIAL", "MISSING"]} value={editing.backupStatus} onChange={v => updateReq(editing.id, { backupStatus: v })}
                   colorFn={s => s === "COMPLETE" ? { color: T.green, bg: T.greenBg, border: T.greenBorder } : s === "PARTIAL" ? { color: T.amber, bg: T.amberBg, border: T.amberBorder } : { color: T.red, bg: T.redBg, border: T.redBorder }} />
               </div>
 
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 8, fontFamily: T.font }}>DOCUMENTATION ON FILE</label>
+              <div style={{ marginBottom: T.sp3 }}>
+                <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp2, fontFamily: T.font }}>DOCUMENTATION ON FILE</label>
                 {[{ f: "hasPayrollSupport", l: "Payroll / timesheets" }, { f: "hasInvoiceSupport", l: "Receipted invoices" }, { f: "hasCheckVouchers", l: "Check vouchers" }].map(cb => (
-                  <label key={cb.f} style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 7, cursor: "pointer" }}>
+                  <label key={cb.f} style={{ display: "flex", alignItems: "center", gap: T.sp2, marginBottom: T.sp2, cursor: "pointer" }}>
                     <input type="checkbox" checked={editing[cb.f]} onChange={e => updateReq(editing.id, { [cb.f]: e.target.checked })} style={{ accentColor: T.accent, width: 14, height: 14 }} />
-                    <span style={{ fontSize: 13, color: editing[cb.f] ? T.text : T.textMuted, fontFamily: T.font }}>{cb.l}</span>
+                    <span style={{ fontSize: T.fs3, color: editing[cb.f] ? T.text : T.textMuted, fontFamily: T.font }}>{cb.l}</span>
                   </label>
                 ))}
               </div>
 
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 8, fontFamily: T.font }}>AUDIT FLAGS</label>
+              <div style={{ marginBottom: T.sp3 }}>
+                <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp2, fontFamily: T.font }}>AUDIT FLAGS</label>
                 {AUDIT_FLAGS.map(flag => {
                   const active = editing.flags.includes(flag.id);
                   const col = flag.risk === "HIGH" ? T.red : flag.risk === "MEDIUM" ? T.amber : T.blue;
                   return (
-                    <label key={flag.id} style={{ display: "flex", alignItems: "flex-start", gap: 8, marginBottom: 8, cursor: "pointer", padding: "6px 8px", borderRadius: 6, background: active ? (flag.risk === "HIGH" ? T.redBg : T.amberBg) : "transparent", transition: "background 0.1s" }}>
+                    <label key={flag.id} style={{ display: "flex", alignItems: "flex-start", gap: T.sp2, marginBottom: T.sp2, cursor: "pointer", padding: `${T.sp2}px ${T.sp2}px`, borderRadius: T.r1, background: active ? (flag.risk === "HIGH" ? T.redBg : T.amberBg) : "transparent", transition: T.fast }}>
                       <input type="checkbox" checked={active} onChange={() => toggleFlag(editing.id, flag.id)} style={{ accentColor: col, marginTop: 2, flexShrink: 0 }} />
                       <div>
-                        <span style={{ fontSize: 12, color: active ? col : T.textMid, fontFamily: T.font, lineHeight: 1.4, display: "block" }}>{flag.label}</span>
-                        <span style={{ fontSize: 10, color: T.textMuted, fontFamily: T.mono }}>{flag.risk}</span>
+                        <span style={{ fontSize: T.fs2, color: active ? col : T.textMid, fontFamily: T.font, lineHeight: T.lh, display: "block" }}>{flag.label}</span>
+                        <span style={{ fontSize: T.fs1, color: T.textMuted, fontFamily: T.mono }}>{flag.risk}</span>
                       </div>
                     </label>
                   );
@@ -3337,15 +3344,15 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
               </div>
 
               <div>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>NOTES</label>
+                <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp1, fontFamily: T.font }}>NOTES</label>
                 <textarea value={editing.notes} onChange={e => updateReq(editing.id, { notes: e.target.value })}
-                  rows={3} style={{ width: "100%", background: T.bg, border: `1px solid ${T.border}`, borderRadius: 6, padding: "8px 10px", color: T.text, fontSize: 13, outline: "none", resize: "vertical", boxSizing: "border-box", fontFamily: T.font, lineHeight: 1.6 }} />
+                  rows={3} style={{ width: "100%", background: T.bg, border: `1px solid ${T.border}`, borderRadius: T.r1, padding: `${T.sp2}px ${T.sp3}px`, color: T.text, fontSize: T.fs3, outline: "none", resize: "vertical", boxSizing: "border-box", fontFamily: T.font, lineHeight: T.lh }} />
               </div>
 
               {/* ── ARBITRATOR Q&A ── */}
               {editing.arbitratorQA && editing.arbitratorQA.length > 0 && (
-                <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
-                  <label style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 10, fontFamily: T.font }}>
+                <div style={{ marginTop: T.sp5, paddingTop: T.sp4, borderTop: `1px solid ${T.border}` }}>
+                  <label style={{ display: "flex", alignItems: "center", gap: T.sp2, fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp3, fontFamily: T.font }}>
                     <Ic name="scale" size={14} color={T.accent} />
                     ARBITRATOR Q&A ({editing.arbitratorQA.filter(qa => qa.status === "answered").length}/{editing.arbitratorQA.length} answered)
                   </label>
@@ -3355,19 +3362,19 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                     const bgColor = isOpen ? T.amberBg : T.greenBg;
                     const iconColor = isOpen ? T.amber : T.green;
                     return (
-                      <div key={idx} style={{ marginBottom: 10, borderRadius: 8, border: `1px solid ${borderColor}`, overflow: "hidden" }}>
-                        <div style={{ padding: "10px 12px", background: bgColor, display: "flex", gap: 8, alignItems: "flex-start" }}>
+                      <div key={idx} style={{ marginBottom: T.sp3, borderRadius: T.r2, border: `1px solid ${borderColor}`, overflow: "hidden" }}>
+                        <div style={{ padding: `${T.sp3}px ${T.sp3}px`, background: bgColor, display: "flex", gap: T.sp2, alignItems: "flex-start" }}>
                           <Ic name={isOpen ? "alert" : "check"} size={14} color={iconColor} style={{ marginTop: 1, flexShrink: 0 }} />
-                          <div style={{ fontSize: 12, fontWeight: 500, color: T.text, fontFamily: T.font, lineHeight: 1.5 }}>
+                          <div style={{ fontSize: T.fs2, fontWeight: 500, color: T.text, fontFamily: T.font, lineHeight: T.lh }}>
                             {qa.q}
                           </div>
                         </div>
                         {qa.a ? (
-                          <div style={{ padding: "10px 12px 12px 34px", fontSize: 12, color: T.textMid, fontFamily: T.font, lineHeight: 1.65, background: T.surface }}>
+                          <div style={{ padding: `${T.sp3}px ${T.sp3}px ${T.sp3}px 34px`, fontSize: T.fs2, color: T.textMid, fontFamily: T.font, lineHeight: T.lh, background: T.surface }}>
                             {qa.a}
                           </div>
                         ) : (
-                          <div style={{ padding: "8px 12px 10px 34px", fontSize: 11, fontStyle: "italic", color: T.amber, fontFamily: T.font, background: T.surface }}>
+                          <div style={{ padding: `${T.sp2}px ${T.sp3}px ${T.sp3}px 34px`, fontSize: T.fs1, fontStyle: "italic", color: T.amber, fontFamily: T.font, background: T.surface }}>
                             Awaiting response
                           </div>
                         )}
@@ -3378,31 +3385,31 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
               )}
 
               {/* ── LINKED DOCUMENTS ── */}
-              <div style={{ marginTop: 20, paddingTop: 16, borderTop: `1px solid ${T.border}` }}>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 8, fontFamily: T.font }}>
+              <div style={{ marginTop: T.sp5, paddingTop: T.sp4, borderTop: `1px solid ${T.border}` }}>
+                <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp2, fontFamily: T.font }}>
                   DOCUMENTS ({reqDocs.length})
                 </label>
                 {reqDocs.length === 0 && (
-                  <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font, padding: "8px 0" }}>
+                  <div style={{ fontSize: T.fs2, color: T.textMuted, fontFamily: T.font, padding: `${T.sp2}px 0` }}>
                     No documents linked to {editing.reqNumber}
                   </div>
                 )}
                 {reqDocs.map(doc => {
                   const hasFile = !!doc.storagePath;
                   return (
-                    <div key={doc.id} style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px",
-                      borderRadius: 6, background: T.bg, border: `1px solid ${T.border}`, marginBottom: 6,
+                    <div key={doc.id} style={{ display: "flex", alignItems: "center", gap: T.sp2, padding: `${T.sp2}px ${T.sp3}px`,
+                      borderRadius: T.r1, background: T.bg, border: `1px solid ${T.border}`, marginBottom: T.sp2,
                       cursor: hasFile ? "pointer" : "default" }}
                       onClick={() => { if (hasFile) { const url = fileGetUrl(doc.storagePath); if (url) window.open(url, "_blank"); } }}>
                       <span style={{ flexShrink: 0 }}>{hasFile ? getMimeIcon(doc.mimeType, 18, T.accent) : <Ic name="file-text" size={18} color={T.textMuted} />}</span>
                       <div style={{ flex: 1, overflow: "hidden" }}>
-                        <div style={{ fontSize: 12, fontWeight: 500, fontFamily: T.font, color: T.text,
+                        <div style={{ fontSize: T.fs2, fontWeight: 500, fontFamily: T.font, color: T.text,
                           overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{doc.name}</div>
-                        <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.font }}>
+                        <div style={{ fontSize: T.fs1, color: T.textMuted, fontFamily: T.font }}>
                           {doc.date}{hasFile ? ` \u00b7 ${formatFileSize(doc.fileSize)}` : ""}
                         </div>
                       </div>
-                      {hasFile && <span style={{ fontSize: 10, color: T.accent, fontFamily: T.font, flexShrink: 0 }}>View</span>}
+                      {hasFile && <span style={{ fontSize: T.fs1, color: T.accent, fontFamily: T.font, flexShrink: 0 }}>View</span>}
                     </div>
                   );
                 })}
@@ -3410,12 +3417,12 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                 <div onDragOver={e => e.preventDefault()}
                   onDrop={e => { e.preventDefault(); processReqFiles(e.dataTransfer.files); }}
                   onClick={() => document.getElementById(`req-upload-${editing.id}`)?.click()}
-                  style={{ border: `1.5px dashed ${T.border}`, borderRadius: 8, padding: "12px 14px", textAlign: "center",
-                    cursor: "pointer", background: T.bg, marginTop: 6 }}>
+                  style={{ border: `1.5px dashed ${T.border}`, borderRadius: T.r2, padding: `${T.sp3}px ${T.sp4}px`, textAlign: "center",
+                    cursor: "pointer", background: T.bg, marginTop: T.sp2 }}>
                   {uploading.length === 0 ? (
                     <>
                       <Ic name="upload" size={18} color={T.textMuted} />
-                      <div style={{ fontSize: 11, color: T.textMid, fontFamily: T.font, marginTop: 4 }}>
+                      <div style={{ fontSize: T.fs1, color: T.textMid, fontFamily: T.font, marginTop: T.sp1 }}>
                         Drop files or <span style={{ color: T.accent, textDecoration: "underline" }}>browse</span> — auto-links to {editing.reqNumber}
                       </div>
                       <input id={`req-upload-${editing.id}`} type="file" multiple style={{ display: "none" }}
@@ -3424,11 +3431,11 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                   ) : (
                     <div style={{ textAlign: "left" }}>
                       {uploading.map((u, i) => (
-                        <div key={i} style={{ display: "flex", alignItems: "center", gap: 8, padding: "3px 0" }}>
-                          <span style={{ fontSize: 11, fontFamily: T.font, color: T.textMid, flex: 1,
+                        <div key={i} style={{ display: "flex", alignItems: "center", gap: T.sp2, padding: `${T.sp1}px 0` }}>
+                          <span style={{ fontSize: T.fs1, fontFamily: T.font, color: T.textMid, flex: 1,
                             overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name}</span>
-                          <div style={{ width: 60, height: 3, borderRadius: 2, background: T.border, flexShrink: 0 }}>
-                            <div style={{ width: u.progress + "%", height: "100%", borderRadius: 2,
+                          <div style={{ width: 60, height: 3, borderRadius: T.r1, background: T.border, flexShrink: 0 }}>
+                            <div style={{ width: u.progress + "%", height: "100%", borderRadius: T.r1,
                               background: u.status === "error" ? T.red : u.status === "done" ? T.green : T.accent }} />
                           </div>
                         </div>
@@ -3437,7 +3444,7 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                   )}
                 </div>
                 {uploadSummary && (
-                  <div style={{ fontSize: 11, color: T.green, fontFamily: T.font, marginTop: 6, textAlign: "center" }}>
+                  <div style={{ fontSize: T.fs1, color: T.green, fontFamily: T.font, marginTop: T.sp2, textAlign: "center" }}>
                     {uploadSummary.total} file(s) uploaded and linked to {editing.reqNumber}
                   </div>
                 )}
@@ -3445,18 +3452,18 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
 
               {/* ── BACKUP VARIANCE ── */}
               {backupData && (
-                <div style={{ marginTop: 16, paddingTop: 14, borderTop: `1px solid ${T.border}` }}>
-                  <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 8, fontFamily: T.font }}>
+                <div style={{ marginTop: T.sp4, paddingTop: T.sp3, borderTop: `1px solid ${T.border}` }}>
+                  <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp2, fontFamily: T.font }}>
                     BACKUP VARIANCE
                   </label>
-                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 6, marginBottom: 10 }}>
+                  <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: T.sp2, marginBottom: T.sp3 }}>
                     {[{ label: "BILLED", val: backupData.amountBilled, color: T.text },
                       { label: "BACKUP", val: backupData.backupDocs, color: T.green },
                       { label: "DIRECT LABOR", val: backupData.directLabor, color: backupData.directLabor > 0 ? T.amber : T.textMuted }
                     ].map(c => (
-                      <div key={c.label} style={{ padding: "8px 8px", borderRadius: 6, background: T.bg, border: `1px solid ${T.border}` }}>
-                        <div style={{ fontSize: 9, color: T.textMuted, fontFamily: T.font, letterSpacing: 0.3 }}>{c.label}</div>
-                        <div style={{ fontSize: 12, fontWeight: 600, fontFamily: T.mono, color: c.color }}>
+                      <div key={c.label} style={{ padding: `${T.sp2}px ${T.sp2}px`, borderRadius: T.r1, background: T.bg, border: `1px solid ${T.border}` }}>
+                        <div style={{ fontSize: T.fs1, color: T.textMuted, fontFamily: T.font, letterSpacing: 0.3 }}>{c.label}</div>
+                        <div style={{ fontSize: T.fs2, fontWeight: 600, fontFamily: T.mono, color: c.color }}>
                           ${c.val.toLocaleString(undefined, { minimumFractionDigits: 2 })}
                         </div>
                       </div>
@@ -3465,33 +3472,33 @@ function Requisitions({ reqs, updateReq, docs = [], updateDoc, addDoc }) {
                   {(() => {
                     const gap = backupData.amountBilled - backupData.backupDocs - backupData.directLabor;
                     return Math.abs(gap) > 1 ? (
-                      <div style={{ padding: "6px 10px", borderRadius: 6, marginBottom: 10,
+                      <div style={{ padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, marginBottom: T.sp3,
                         background: gap > 0 ? T.redBg : T.greenBg, border: `1px solid ${gap > 0 ? T.redBorder : T.greenBorder}`,
-                        fontSize: 11, fontFamily: T.font, color: gap > 0 ? T.red : T.green }}>
+                        fontSize: T.fs1, fontFamily: T.font, color: gap > 0 ? T.red : T.green }}>
                         {gap > 0 ? "Unsubstantiated gap" : "Over-documented by"}: ${Math.abs(gap).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                       </div>
                     ) : (
-                      <div style={{ padding: "6px 10px", borderRadius: 6, marginBottom: 10,
+                      <div style={{ padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, marginBottom: T.sp3,
                         background: T.greenBg, border: `1px solid ${T.greenBorder}`,
-                        fontSize: 11, fontFamily: T.font, color: T.green }}>
+                        fontSize: T.fs1, fontFamily: T.font, color: T.green }}>
                         Fully substantiated
                       </div>
                     );
                   })()}
                   {backupData.items.length > 0 && (
                     <div>
-                      <div style={{ fontSize: 10, fontWeight: 600, color: T.textMuted, fontFamily: T.font, letterSpacing: 0.3, marginBottom: 6 }}>
+                      <div style={{ fontSize: T.fs1, fontWeight: 600, color: T.textMuted, fontFamily: T.font, letterSpacing: 0.3, marginBottom: T.sp2 }}>
                         LINE ITEMS ({backupData.items.length})
                       </div>
                       {backupData.items.map((item, idx) => (
                         <div key={idx} style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start",
-                          padding: "6px 8px", borderRadius: 4, background: idx % 2 === 0 ? T.bg : "transparent", fontSize: 11, fontFamily: T.font }}>
+                          padding: `${T.sp2}px ${T.sp2}px`, borderRadius: T.r1, background: idx % 2 === 0 ? T.bg : "transparent", fontSize: T.fs1, fontFamily: T.font }}>
                           <div style={{ flex: 1, minWidth: 0 }}>
                             <div style={{ fontWeight: 500, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{item.desc}</div>
-                            <div style={{ fontSize: 9, color: T.textMuted }}>{item.trade}</div>
+                            <div style={{ fontSize: T.fs1, color: T.textMuted }}>{item.trade}</div>
                           </div>
-                          <div style={{ fontFamily: T.mono, fontSize: 11, color: item.amount < 0 ? T.red : T.amber,
-                            fontWeight: 500, flexShrink: 0, marginLeft: 8 }}>
+                          <div style={{ fontFamily: T.mono, fontSize: T.fs1, color: item.amount < 0 ? T.red : T.amber,
+                            fontWeight: 500, flexShrink: 0, marginLeft: T.sp2 }}>
                             {item.amount < 0 ? "-" : ""}${Math.abs(item.amount).toLocaleString(undefined, { minimumFractionDigits: 2 })}
                           </div>
                         </div>
@@ -3518,22 +3525,22 @@ function AuditRisk({ reqs }) {
   return (
     <div>
       <SectionTitle title="Audit Risk Analysis" subtitle={`${flagged.length} of 16 requisitions flagged — mitigate before arbitration`} />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16, marginBottom: 16 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: T.sp4, marginBottom: T.sp4 }}>
         <Card>
           <CardLabel label="Flag Frequency Across All Requisitions" />
           {AUDIT_FLAGS.filter(f => freq[f.id] > 0).length === 0 && (
-            <p style={{ fontSize: 13, color: T.textMuted, fontFamily: T.font, margin: 0 }}>No flags set. Go to Requisitions to flag risks per req.</p>
+            <p style={{ fontSize: T.fs3, color: T.textMuted, fontFamily: T.font, margin: 0 }}>No flags set. Go to Requisitions to flag risks per req.</p>
           )}
           {AUDIT_FLAGS.filter(f => freq[f.id] > 0).sort((a, b) => freq[b.id] - freq[a.id]).map(flag => {
             const col = flag.risk === "HIGH" ? T.red : flag.risk === "MEDIUM" ? T.amber : T.blue;
             return (
-              <div key={flag.id} style={{ marginBottom: 12 }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: 5 }}>
-                  <span style={{ fontSize: 12, color: T.textMid, fontFamily: T.font, maxWidth: "80%", lineHeight: 1.3 }}>{flag.label}</span>
-                  <span style={{ fontFamily: T.mono, fontSize: 12, color: col }}>{freq[flag.id]}</span>
+              <div key={flag.id} style={{ marginBottom: T.sp3 }}>
+                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: T.sp1 }}>
+                  <span style={{ fontSize: T.fs2, color: T.textMid, fontFamily: T.font, maxWidth: "80%", lineHeight: T.lh }}>{flag.label}</span>
+                  <span style={{ fontFamily: T.mono, fontSize: T.fs2, color: col }}>{freq[flag.id]}</span>
                 </div>
-                <div style={{ height: 10, background: T.border, borderRadius: 5 }}>
-                  <div style={{ height: 10, borderRadius: 5, background: col, width: `${(freq[flag.id] / 16) * 100}%` }} />
+                <div style={{ height: T.sp3, background: T.border, borderRadius: T.r1 }}>
+                  <div style={{ height: T.sp3, borderRadius: T.r1, background: col, width: `${(freq[flag.id] / 16) * 100}%` }} />
                 </div>
               </div>
             );
@@ -3542,19 +3549,19 @@ function AuditRisk({ reqs }) {
 
         <Card>
           <CardLabel label="Flagged Requisitions" />
-          {flagged.length === 0 && <p style={{ fontSize: 13, color: T.textMuted, fontFamily: T.font, margin: 0 }}>No requisitions flagged yet.</p>}
+          {flagged.length === 0 && <p style={{ fontSize: T.fs3, color: T.textMuted, fontFamily: T.font, margin: 0 }}>No requisitions flagged yet.</p>}
           {flagged.map(req => {
             const risk = computeRisk(req);
             const rs = riskStyle(risk);
             return (
-              <div key={req.id} style={{ display: "flex", gap: 12, padding: "10px 0", borderBottom: `1px solid ${T.border}` }}>
+              <div key={req.id} style={{ display: "flex", gap: T.sp3, padding: `${T.sp3}px 0`, borderBottom: `1px solid ${T.border}` }}>
                 <div>
-                  <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 4 }}>
-                    <span style={{ fontFamily: T.mono, fontSize: 12, fontWeight: 500, color: T.accent }}>{req.reqNumber}</span>
+                  <div style={{ display: "flex", alignItems: "center", gap: T.sp2, marginBottom: T.sp1 }}>
+                    <span style={{ fontFamily: T.mono, fontSize: T.fs2, fontWeight: 500, color: T.accent }}>{req.reqNumber}</span>
                     <Badge label={risk} style={rs} />
                     {req.totalBilled > 0 && <Money amount={req.totalBilled} color={T.textMuted} size="xs" />}
                   </div>
-                  <div style={{ fontSize: 11, color: T.textMuted, fontFamily: T.font, lineHeight: 1.4 }}>
+                  <div style={{ fontSize: T.fs1, color: T.textMuted, fontFamily: T.font, lineHeight: T.lh }}>
                     {req.flags.map(fid => AUDIT_FLAGS.find(a => a.id === fid)?.label).filter(Boolean).join(" · ")}
                   </div>
                 </div>
@@ -3566,7 +3573,7 @@ function AuditRisk({ reqs }) {
 
       <Card>
         <CardLabel label="Mitigation Playbook" />
-        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 12 }}>
+        <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: T.sp3 }}>
           {[
             { risk: "Blended Labor Rate", severity: "HIGH", action: "Pull W-2s, payroll registers, and workers' comp audit for all billed employees. Calculate true burdened rate: wage + FICA + WC + benefits. Document that $60/hr equals actual burdened cost. If gap exists, calculate delta and consider proactive credit." },
             { risk: "DSL Landscaping as Direct Labor", severity: "HIGH", action: "Either reclassify as subcontractor with proper invoice (scope, rates, dates, location), or obtain DSL payroll records proving $60/hr is their actual burdened rate. Landscaping at skilled trade rates unexplained is a clean target for opposing counsel." },
@@ -3575,11 +3582,11 @@ function AuditRisk({ reqs }) {
             { risk: "Markup Transparency", severity: "HIGH", action: "Review each req for 25% applied to already-marked-up sub invoices. Cost-plus markup applies to actual cost only — not to marked-up subcontractor pricing. Document the markup methodology clearly and consistently across all 16 reqs." },
             { risk: "Missing Timesheets", severity: "MEDIUM", action: "Reconstruct using daily superintendent logs, field photos with timestamps, delivery tickets, and sub pay stubs. Contemporaneous text messages between PMs can establish crew presence. Even partial documentation reduces arbitrator skepticism significantly." },
           ].map(item => (
-            <div key={item.risk} style={{ padding: 14, background: item.severity === "HIGH" ? T.redBg : T.amberBg, border: `1px solid ${item.severity === "HIGH" ? T.redBorder : T.amberBorder}`, borderRadius: 8 }}>
-              <div style={{ fontSize: 11, fontWeight: 600, color: item.severity === "HIGH" ? T.red : T.amber, letterSpacing: 0.3, marginBottom: 6, fontFamily: T.font }}>
+            <div key={item.risk} style={{ padding: T.sp3, background: item.severity === "HIGH" ? T.redBg : T.amberBg, border: `1px solid ${item.severity === "HIGH" ? T.redBorder : T.amberBorder}`, borderRadius: T.r2 }}>
+              <div style={{ fontSize: T.fs1, fontWeight: 600, color: item.severity === "HIGH" ? T.red : T.amber, letterSpacing: 0.3, marginBottom: T.sp2, fontFamily: T.font }}>
                 {item.risk}
               </div>
-              <div style={{ fontSize: 12, color: T.textMid, fontFamily: T.font, lineHeight: 1.6 }}>{item.action}</div>
+              <div style={{ fontSize: T.fs2, color: T.textMid, fontFamily: T.font, lineHeight: T.lh }}>{item.action}</div>
             </div>
           ))}
         </div>
@@ -3594,11 +3601,11 @@ function Claims({ claims, updateClaim }) {
   const editing = sel ? claims.find(c => c.id === sel) : null;
   const totalOwner = claims.reduce((s, c) => s + c.ownerAmount, 0);
   const totalAgreed = claims.reduce((s, c) => s + c.agreedAmount, 0);
-  const ThStyle = { padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg };
-  const TdStyle = { padding: "10px 14px", fontSize: 13, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
+  const ThStyle = { padding: `${T.sp3}px ${T.sp4}px`, textAlign: "left", fontSize: T.fs1, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg };
+  const TdStyle = { padding: `${T.sp3}px ${T.sp4}px`, fontSize: T.fs3, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: editing ? "1fr 380px" : "1fr", gap: 20, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: editing ? "1fr 380px" : "1fr", gap: T.sp5, alignItems: "start" }}>
       <div>
         <SectionTitle title="Owner Claims" subtitle={`${claims.length} claims · Gross: ${$(totalOwner)} · MC Agreed: ${$(totalAgreed)}`} />
         <Card padding={0}>
@@ -3617,14 +3624,14 @@ function Claims({ claims, updateClaim }) {
                 const active = sel === claim.id;
                 return (
                   <tr key={claim.id} onClick={() => setSel(active ? null : claim.id)}
-                    style={{ cursor: "pointer", background: active ? T.accentBg : "transparent", transition: "background 0.1s" }}
+                    style={{ cursor: "pointer", background: active ? T.accentBg : "transparent", transition: T.fast }}
                     onMouseEnter={e => { if (!active) e.currentTarget.style.background = T.surfaceHover; }}
                     onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}>
-                    <td style={{ ...TdStyle, color: T.textMuted, fontFamily: T.mono, fontSize: 12 }}>{claim.id}</td>
-                    <td style={{ ...TdStyle, maxWidth: 280, fontSize: 12 }}>{claim.description}</td>
+                    <td style={{ ...TdStyle, color: T.textMuted, fontFamily: T.mono, fontSize: T.fs2 }}>{claim.id}</td>
+                    <td style={{ ...TdStyle, maxWidth: 280, fontSize: T.fs2 }}>{claim.description}</td>
                     <td style={TdStyle}><Money amount={claim.ownerAmount} color={T.red} size="sm" /></td>
                     <td style={TdStyle}>
-                      {claim.agreedAmount > 0 ? <Money amount={claim.agreedAmount} color={T.amber} size="sm" /> : <span style={{ color: T.textMuted, fontFamily: T.font, fontSize: 13 }}>—</span>}
+                      {claim.agreedAmount > 0 ? <Money amount={claim.agreedAmount} color={T.amber} size="sm" /> : <span style={{ color: T.textMuted, fontFamily: T.font, fontSize: T.fs3 }}>—</span>}
                     </td>
                     <td style={TdStyle}><Badge label={claim.status} style={ss} /></td>
                     <td style={TdStyle}><Badge label={claim.strength} style={{ color: sg.color, bg: sg.bg, border: sg.bg }} /></td>
@@ -3634,7 +3641,7 @@ function Claims({ claims, updateClaim }) {
             </tbody>
             <tfoot>
               <tr style={{ background: T.bg }}>
-                <td colSpan={2} style={{ ...TdStyle, fontSize: 11, fontWeight: 600, color: T.textMuted, borderBottom: "none" }}>TOTALS</td>
+                <td colSpan={2} style={{ ...TdStyle, fontSize: T.fs1, fontWeight: 600, color: T.textMuted, borderBottom: "none" }}>TOTALS</td>
                 <td style={{ ...TdStyle, borderBottom: "none" }}><Money amount={totalOwner} color={T.red} size="sm" /></td>
                 <td style={{ ...TdStyle, borderBottom: "none" }}><Money amount={totalAgreed} color={T.amber} size="sm" /></td>
                 <td colSpan={2} style={{ borderBottom: "none" }} />
@@ -3868,9 +3875,15 @@ function InvoiceCatalogue({ attachments, onAttach, onDetach }) {
   const [viewingPdf, setViewingPdf] = useState(null);  // { invoiceId, fileName }
   const [bulkUploading, setBulkUploading] = useState(false);
   const [bulkResults, setBulkResults] = useState(null); // { matched, unmatched, total }
+  const [unmatchedFiles, setUnmatchedFiles] = useState([]); // [{ file, name, suggestions }]
+  const [manualAssignments, setManualAssignments] = useState({}); // { idx: invoiceId }
+  const [matchSearch, setMatchSearch] = useState({}); // { idx: searchString }
   const fileInputRef = useRef(null);
   const bulkInputRef = useRef(null);
+  const reqUploadRef = useRef(null);
   const [uploadTarget, setUploadTarget] = useState(null); // invoice id for single upload
+  const [reqUploadTarget, setReqUploadTarget] = useState(null); // req number for req-level upload
+  const [reqUploadResults, setReqUploadResults] = useState(null); // { req, count }
 
   // Unique vendors for display
   const uniqueVendors = useMemo(() => [...new Set(INVOICE_CATALOGUE.map(e => e.vendor))].sort(), []);
@@ -3947,72 +3960,168 @@ function InvoiceCatalogue({ attachments, onAttach, onDetach }) {
     if (fileInputRef.current) fileInputRef.current.value = "";
   };
 
-  // Bulk upload — auto-match filenames to invoice IDs
+  // Build vendor lookup index for fuzzy matching
+  const vendorIndex = useMemo(() => {
+    const idx = {};
+    INVOICE_CATALOGUE.forEach(inv => {
+      const vKey = inv.vendor.toLowerCase();
+      if (!idx[vKey]) idx[vKey] = [];
+      idx[vKey].push(inv);
+    });
+    return idx;
+  }, []);
+
+  // Try to match a filename to an invoice ID (R-code match, then vendor fallback)
+  // Returns { id, confidence } for single-invoice match, or { reqMatch: N } for whole-req match
+  const matchFileToInvoice = (fileName) => {
+    const allIds = new Set(INVOICE_CATALOGUE.map(inv => inv.id.toLowerCase()));
+    const nameNoExt = fileName.replace(/\.[^.]+$/, "");
+
+    // Pass 0: Requisition-level filename (e.g. "Req #1 Backup (5).pdf", "REQ-01.pdf", "Req 1.pdf")
+    const reqPatterns = [
+      /\bReq(?:uisition)?\s*#?\s*(\d{1,2})\b/i,
+      /\bREQ[\s_-]*(\d{1,2})\b/i,
+    ];
+    for (const pat of reqPatterns) {
+      const m = nameNoExt.match(pat);
+      if (m) {
+        const reqNum = parseInt(m[1], 10);
+        const reqInvoices = INVOICE_CATALOGUE.filter(inv => inv.req === reqNum);
+        if (reqInvoices.length > 0) return { reqMatch: reqNum, confidence: "req" };
+      }
+    }
+
+    // Pass 1: R-code patterns
+    const patterns = [
+      /\b(R\d{2}-\d{3}[a-z]?)\b/i,
+      /\b(R\d{2}_\d{3}[a-z]?)\b/i,
+      /\b(R\d{2}\s\d{3}[a-z]?)\b/i,
+      /\b(R\d{2}\d{3}[a-z]?)\b/i,
+    ];
+    for (const pat of patterns) {
+      const m = nameNoExt.match(pat);
+      if (m) {
+        let candidate = m[1].replace(/[\s_]/g, "-").toUpperCase();
+        if (/^R\d{5,}/.test(candidate)) candidate = candidate.slice(0, 3) + "-" + candidate.slice(3);
+        const last = m[1].slice(-1);
+        if (/[a-z]/.test(last)) candidate = candidate.slice(0, -1) + last;
+        if (allIds.has(candidate.toLowerCase())) return { id: candidate, confidence: "exact" };
+        const noSuffix = candidate.replace(/[a-z]$/, "");
+        if (allIds.has(noSuffix.toLowerCase())) return { id: noSuffix, confidence: "exact" };
+      }
+    }
+
+    // Pass 2: loose R-code in normalized string
+    const norm = nameNoExt.toLowerCase().replace(/[\s_-]/g, "");
+    for (const id of allIds) {
+      if (norm.includes(id.replace("-", ""))) return { id: id.toUpperCase(), confidence: "exact" };
+    }
+
+    // Pass 3: vendor name matching
+    const nameLower = nameNoExt.toLowerCase();
+    const vendorMatches = [];
+    for (const [vKey, invoices] of Object.entries(vendorIndex)) {
+      // Check if vendor name (or significant portion) appears in filename
+      const vendorWords = vKey.split(/\s+/).filter(w => w.length > 2);
+      const nameWords = nameLower.split(/[\s_\-.,]+/);
+      // Match if the vendor's distinctive word(s) appear in filename
+      const matchedWords = vendorWords.filter(vw => nameWords.some(nw => nw.includes(vw) || vw.includes(nw)));
+      if (matchedWords.length > 0 && matchedWords.length >= Math.min(vendorWords.length, 1)) {
+        // Filter to unattached invoices for this vendor
+        const unattached = invoices.filter(inv => !attachments[inv.id]);
+        vendorMatches.push(...unattached.map(inv => ({ ...inv, matchScore: matchedWords.length / vendorWords.length })));
+      }
+    }
+
+    if (vendorMatches.length === 1) {
+      // Unambiguous vendor match — single unattached invoice for this vendor
+      return { id: vendorMatches[0].id, confidence: "vendor" };
+    }
+
+    // Return suggestions for manual match panel
+    const suggestions = vendorMatches.length > 0
+      ? vendorMatches.sort((a, b) => b.matchScore - a.matchScore).slice(0, 8)
+      : [];
+    return { id: null, confidence: "none", suggestions };
+  };
+
+  // Bulk upload — auto-match filenames to invoice IDs with vendor fallback
   const handleBulkUpload = async (e) => {
     const files = Array.from(e.target.files || []);
     if (!files.length) return;
     setBulkUploading(true);
     setBulkResults(null);
+    setUnmatchedFiles([]);
+    setManualAssignments({});
+    setMatchSearch({});
 
-    const allIds = new Set(INVOICE_CATALOGUE.map(inv => inv.id.toLowerCase()));
-    let matched = 0, unmatched = [];
+    let matched = 0, vendorMatched = 0, reqMatched = 0;
+    const pendingUnmatched = [];
 
     for (const file of files) {
-      // Try to extract R-code from filename: R01-001, R01_001, R01 001, etc.
-      const nameNoExt = file.name.replace(/\.[^.]+$/, "");
-      const patterns = [
-        // Exact match: R01-001, R01-001a
-        /\b(R\d{2}-\d{3}[a-z]?)\b/i,
-        // Underscore variant: R01_001
-        /\b(R\d{2}_\d{3}[a-z]?)\b/i,
-        // Space variant: R01 001
-        /\b(R\d{2}\s\d{3}[a-z]?)\b/i,
-        // No separator: R01001
-        /\b(R\d{2}\d{3}[a-z]?)\b/i,
-      ];
-
-      let matchedId = null;
-      for (const pat of patterns) {
-        const m = nameNoExt.match(pat);
-        if (m) {
-          // Normalize to R01-001 format
-          let candidate = m[1].replace(/[\s_]/g, "-").toUpperCase();
-          // Handle R01001 → R01-001
-          if (/^R\d{5,}/.test(candidate)) {
-            candidate = candidate.slice(0, 3) + "-" + candidate.slice(3);
-          }
-          // Check for letter suffix (lowercase)
-          const last = m[1].slice(-1);
-          if (/[a-z]/.test(last)) candidate = candidate.slice(0, -1) + last;
-          if (allIds.has(candidate.toLowerCase())) { matchedId = candidate; break; }
-          // Try without letter suffix
-          const noSuffix = candidate.replace(/[a-z]$/, "");
-          if (allIds.has(noSuffix.toLowerCase())) { matchedId = noSuffix; break; }
+      const result = matchFileToInvoice(file.name);
+      if (result.reqMatch != null) {
+        // Whole-requisition PDF — attach to all invoice lines in that req
+        const reqInvoices = INVOICE_CATALOGUE.filter(inv => inv.req === result.reqMatch);
+        for (const inv of reqInvoices) {
+          await idbPut("attach-" + inv.id, file);
+          onAttach(inv.id, { fileName: file.name, size: file.size, date: new Date().toISOString().slice(0, 10) });
         }
-      }
-
-      // Also try matching the full catalogue id set more loosely
-      if (!matchedId) {
-        const norm = nameNoExt.toLowerCase().replace(/[\s_-]/g, "");
-        for (const id of allIds) {
-          if (norm.includes(id.replace("-", ""))) { matchedId = id.toUpperCase(); break; }
-        }
-      }
-
-      if (matchedId) {
-        // Find the canonical casing
-        const canonical = INVOICE_CATALOGUE.find(inv => inv.id.toLowerCase() === matchedId.toLowerCase())?.id || matchedId;
+        matched += reqInvoices.length;
+        reqMatched++;
+      } else if (result.id) {
+        const canonical = INVOICE_CATALOGUE.find(inv => inv.id.toLowerCase() === result.id.toLowerCase())?.id || result.id;
         await idbPut("attach-" + canonical, file);
         onAttach(canonical, { fileName: file.name, size: file.size, date: new Date().toISOString().slice(0, 10) });
         matched++;
+        if (result.confidence === "vendor") vendorMatched++;
       } else {
-        unmatched.push(file.name);
+        pendingUnmatched.push({ file, name: file.name, suggestions: result.suggestions || [] });
       }
     }
 
-    setBulkResults({ matched, unmatched, total: files.length });
+    setBulkResults({ matched, vendorMatched, reqMatched, unmatched: pendingUnmatched.map(u => u.name), total: files.length });
+    setUnmatchedFiles(pendingUnmatched);
     setBulkUploading(false);
     if (bulkInputRef.current) bulkInputRef.current.value = "";
+  };
+
+  // Manual match: assign an unmatched file to an invoice
+  const handleManualAssign = async (idx, invoiceId) => {
+    const entry = unmatchedFiles[idx];
+    if (!entry || !invoiceId) return;
+    const canonical = INVOICE_CATALOGUE.find(inv => inv.id.toLowerCase() === invoiceId.toLowerCase())?.id || invoiceId;
+    await idbPut("attach-" + canonical, entry.file);
+    onAttach(canonical, { fileName: entry.name, size: entry.file.size, date: new Date().toISOString().slice(0, 10) });
+    // Remove from unmatched list
+    setUnmatchedFiles(prev => prev.filter((_, i) => i !== idx));
+    setManualAssignments(prev => { const n = { ...prev }; delete n[idx]; return n; });
+    setMatchSearch(prev => { const n = { ...prev }; delete n[idx]; return n; });
+    // Update results count
+    setBulkResults(prev => prev ? { ...prev, matched: prev.matched + 1, unmatched: prev.unmatched.filter(n => n !== entry.name) } : prev);
+  };
+
+  // Skip an unmatched file
+  const handleSkipUnmatched = (idx) => {
+    setUnmatchedFiles(prev => prev.filter((_, i) => i !== idx));
+    setManualAssignments(prev => { const n = { ...prev }; delete n[idx]; return n; });
+    setMatchSearch(prev => { const n = { ...prev }; delete n[idx]; return n; });
+  };
+
+  // REQ-level upload — attach one bundled PDF to all invoice lines for a REQ
+  const handleReqUpload = async (e) => {
+    const file = e.target.files?.[0];
+    if (!file || !reqUploadTarget) return;
+    const reqInvoices = INVOICE_CATALOGUE.filter(inv => inv.req === reqUploadTarget);
+    let count = 0;
+    for (const inv of reqInvoices) {
+      await idbPut("attach-" + inv.id, file);
+      onAttach(inv.id, { fileName: file.name, size: file.size, date: new Date().toISOString().slice(0, 10) });
+      count++;
+    }
+    setReqUploadResults({ req: reqUploadTarget, count });
+    setReqUploadTarget(null);
+    if (reqUploadRef.current) reqUploadRef.current.value = "";
   };
 
   // Remove attachment
@@ -4030,6 +4139,7 @@ function InvoiceCatalogue({ attachments, onAttach, onDetach }) {
       {/* Hidden file inputs */}
       <input ref={fileInputRef} type="file" accept=".pdf,image/*" style={{ display: "none" }} onChange={handleSingleUpload} />
       <input ref={bulkInputRef} type="file" accept=".pdf,image/*" multiple style={{ display: "none" }} onChange={handleBulkUpload} />
+      <input ref={reqUploadRef} type="file" accept=".pdf,image/*" style={{ display: "none" }} onChange={handleReqUpload} />
 
       {/* KPI Row */}
       <div style={{ display: "grid", gridTemplateColumns: "repeat(6, 1fr)", gap: 12, marginBottom: 16 }}>
@@ -4073,7 +4183,7 @@ function InvoiceCatalogue({ attachments, onAttach, onDetach }) {
             <div>
               <div style={{ fontSize: 13, fontWeight: 600, color: T.text }}>Bulk Attach PDFs</div>
               <div style={{ fontSize: 11, color: T.textMid }}>
-                Select multiple files — auto-matches by R-code in filename (e.g., <span style={{ fontFamily: T.mono, fontSize: 10 }}>R01-001.pdf</span>, <span style={{ fontFamily: T.mono, fontSize: 10 }}>R02-003a invoice.pdf</span>)
+                Select files — auto-matches by R-code, vendor name, or requisition number (e.g., <span style={{ fontFamily: T.mono, fontSize: 10 }}>Req #1 Backup.pdf</span>)
               </div>
             </div>
           </div>
@@ -4091,19 +4201,149 @@ function InvoiceCatalogue({ attachments, onAttach, onDetach }) {
         {bulkResults && (
           <div style={{ marginTop: 12, padding: 12, borderRadius: 8, background: T.surface, border: `1px solid ${T.border}` }}>
             <div style={{ fontSize: 12, fontWeight: 600, color: T.text, marginBottom: 4 }}>
-              Upload Complete: {bulkResults.matched} of {bulkResults.total} files matched
+              Upload Complete: {bulkResults.total} file{bulkResults.total !== 1 ? "s" : ""} processed{bulkResults.reqMatched > 0 ? ` — ${bulkResults.matched} invoice lines linked` : ` — ${bulkResults.matched} matched`}
             </div>
-            {bulkResults.matched > 0 && (
+            {bulkResults.reqMatched > 0 && (
+              <div style={{ fontSize: 11, color: T.green, marginBottom: 2 }}>
+                <Ic name="check" size={12} color={T.green} /> {bulkResults.reqMatched} requisition PDF{bulkResults.reqMatched !== 1 ? "s" : ""} attached to {bulkResults.matched} invoice lines
+              </div>
+            )}
+            {bulkResults.matched > 0 && !bulkResults.reqMatched && (
               <div style={{ fontSize: 11, color: T.green, marginBottom: 2 }}>
                 <Ic name="check" size={12} color={T.green} /> {bulkResults.matched} file{bulkResults.matched !== 1 ? "s" : ""} attached to matching invoices
+                {bulkResults.vendorMatched > 0 && <span style={{ color: T.textMid }}> ({bulkResults.vendorMatched} via vendor name match)</span>}
               </div>
             )}
-            {bulkResults.unmatched.length > 0 && (
-              <div style={{ fontSize: 11, color: T.amber }}>
-                <Ic name="alert" size={12} color={T.amber} /> {bulkResults.unmatched.length} unmatched: {bulkResults.unmatched.slice(0, 5).join(", ")}{bulkResults.unmatched.length > 5 ? ` +${bulkResults.unmatched.length - 5} more` : ""}
-              </div>
+            {unmatchedFiles.length === 0 && bulkResults.unmatched.length === 0 && (
+              <button onClick={() => setBulkResults(null)} style={{ marginTop: 6, fontSize: 10, color: T.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Dismiss</button>
             )}
-            <button onClick={() => setBulkResults(null)} style={{ marginTop: 6, fontSize: 10, color: T.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Dismiss</button>
+          </div>
+        )}
+
+        {/* Manual Match Panel for unmatched files */}
+        {unmatchedFiles.length > 0 && (
+          <div style={{ marginTop: 12, padding: 16, borderRadius: 8, background: T.amberBg, border: `1px solid ${T.amberBorder}` }}>
+            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12 }}>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <Ic name="alert" size={16} color={T.amber} />
+                <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>{unmatchedFiles.length} file{unmatchedFiles.length !== 1 ? "s" : ""} need{unmatchedFiles.length === 1 ? "s" : ""} manual matching</span>
+              </div>
+              <button onClick={() => { setUnmatchedFiles([]); setManualAssignments({}); setMatchSearch({}); }}
+                style={{ fontSize: 11, color: T.textMid, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Skip All</button>
+            </div>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+              {unmatchedFiles.map((entry, idx) => {
+                const sq = (matchSearch[idx] || "").toLowerCase();
+                // Filter catalogue for the search/dropdown
+                const candidates = sq.length > 0
+                  ? INVOICE_CATALOGUE.filter(inv => !attachments[inv.id] && (
+                      inv.id.toLowerCase().includes(sq) ||
+                      inv.vendor.toLowerCase().includes(sq) ||
+                      inv.desc.toLowerCase().includes(sq) ||
+                      String(inv.amount).includes(sq)
+                    )).slice(0, 10)
+                  : entry.suggestions.length > 0
+                    ? entry.suggestions.filter(inv => !attachments[inv.id]).slice(0, 6)
+                    : [];
+                return (
+                  <div key={idx} style={{ display: "flex", alignItems: "center", gap: 10, padding: 10, background: T.surface, borderRadius: 8, border: `1px solid ${T.border}` }}>
+                    {/* Filename */}
+                    <div style={{ flex: "0 0 240px", overflow: "hidden" }}>
+                      <div style={{ fontSize: 12, fontWeight: 500, color: T.text, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }} title={entry.name}>
+                        <Ic name="file-text" size={13} color={T.textMid} /> {entry.name}
+                      </div>
+                    </div>
+                    {/* Arrow */}
+                    <Ic name="chevron-r" size={14} color={T.textMuted} />
+                    {/* Search + suggestions */}
+                    <div style={{ flex: 1, position: "relative" }}>
+                      <input
+                        type="text"
+                        placeholder="Search by vendor, R-code, amount..."
+                        value={matchSearch[idx] || ""}
+                        onChange={e => setMatchSearch(prev => ({ ...prev, [idx]: e.target.value }))}
+                        style={{
+                          width: "100%", padding: "6px 10px", fontSize: 12, fontFamily: T.font,
+                          border: `1px solid ${T.border}`, borderRadius: 6, background: T.bg, color: T.text,
+                          outline: "none", boxSizing: "border-box",
+                        }}
+                      />
+                      {candidates.length > 0 && (
+                        <div style={{ display: "flex", flexWrap: "wrap", gap: 4, marginTop: 6 }}>
+                          {candidates.map(inv => (
+                            <button key={inv.id} onClick={() => handleManualAssign(idx, inv.id)}
+                              style={{
+                                padding: "3px 8px", fontSize: 10, fontFamily: T.font, fontWeight: 500,
+                                background: T.blueBg, color: T.blue, border: `1px solid ${T.blueBorder}`,
+                                borderRadius: 4, cursor: "pointer", whiteSpace: "nowrap",
+                                display: "inline-flex", alignItems: "center", gap: 4,
+                              }}>
+                              <span style={{ fontFamily: T.mono, fontWeight: 600 }}>{inv.id}</span>
+                              <span style={{ color: T.textMid }}>{inv.vendor}</span>
+                              <span style={{ color: T.textMuted }}>${inv.amount.toLocaleString()}</span>
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                      {sq.length > 0 && candidates.length === 0 && (
+                        <div style={{ fontSize: 11, color: T.textMuted, marginTop: 4 }}>No matching invoices found</div>
+                      )}
+                      {sq.length === 0 && candidates.length === 0 && (
+                        <div style={{ fontSize: 11, color: T.textMuted, marginTop: 4 }}>Type to search the invoice catalogue</div>
+                      )}
+                    </div>
+                    {/* Skip button */}
+                    <button onClick={() => handleSkipUnmatched(idx)}
+                      style={{ padding: "4px 8px", fontSize: 10, color: T.textMuted, background: "none", border: `1px solid ${T.border}`, borderRadius: 4, cursor: "pointer", whiteSpace: "nowrap" }}>
+                      Skip
+                    </button>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+      </Card>
+
+      {/* Upload by Requisition */}
+      <Card style={{ marginBottom: T.sp4, border: `1px dashed ${T.blueBorder}`, background: T.blueBg }} padding={T.sp4}>
+        <div style={{ display: "flex", alignItems: "center", gap: T.sp3, marginBottom: T.sp3 }}>
+          <Ic name="folder" size={20} color={T.blue} />
+          <div>
+            <div style={{ fontSize: T.fs3, fontWeight: 600, color: T.text }}>Upload by Requisition</div>
+            <div style={{ fontSize: T.fs1, color: T.textMid }}>
+              Attach one bundled PDF to all invoice lines for an entire REQ at once
+            </div>
+          </div>
+        </div>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: T.sp2 }}>
+          {uniqueReqs.map(r => {
+            const reqInvoices = INVOICE_CATALOGUE.filter(inv => inv.req === r);
+            const allAttached = reqInvoices.every(inv => attachments[inv.id]);
+            const someAttached = reqInvoices.some(inv => attachments[inv.id]);
+            return (
+              <button key={r} onClick={() => { setReqUploadTarget(r); setTimeout(() => reqUploadRef.current?.click(), 50); }}
+                style={{
+                  padding: `${T.sp1}px ${T.sp3}px`, fontSize: T.fs2, fontWeight: 600, fontFamily: T.mono,
+                  background: allAttached ? T.greenBg : T.surface, color: allAttached ? T.green : someAttached ? T.amber : T.text,
+                  border: `1px solid ${allAttached ? T.greenBorder : someAttached ? T.amberBorder : T.border}`,
+                  borderRadius: T.r1, cursor: "pointer", display: "inline-flex", alignItems: "center", gap: T.sp1,
+                  transition: T.fast,
+                }}>
+                {allAttached && <Ic name="check" size={12} color={T.green} />}
+                REQ-{String(r).padStart(2, "0")}
+                <span style={{ fontSize: 10, fontWeight: 400, color: T.textMuted, fontFamily: T.font }}>({reqInvoices.length})</span>
+              </button>
+            );
+          })}
+        </div>
+        {reqUploadResults && (
+          <div style={{ marginTop: T.sp3, padding: T.sp2, borderRadius: T.r1, background: T.surface, border: `1px solid ${T.border}`, display: "flex", alignItems: "center", gap: T.sp2 }}>
+            <Ic name="check" size={14} color={T.green} />
+            <span style={{ fontSize: T.fs2, color: T.green, fontWeight: 500 }}>
+              REQ-{String(reqUploadResults.req).padStart(2, "0")}: PDF attached to {reqUploadResults.count} invoice lines
+            </span>
+            <button onClick={() => setReqUploadResults(null)} style={{ marginLeft: "auto", fontSize: 10, color: T.textMuted, background: "none", border: "none", cursor: "pointer", textDecoration: "underline" }}>Dismiss</button>
           </div>
         )}
       </Card>
@@ -5634,8 +5874,8 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
   const allTags = [...new Set(docs.flatMap(d => d.tags || []))].sort();
   const uploadedCount = docs.filter(d => d.storagePath).length;
 
-  const ThStyle = { padding: "10px 14px", textAlign: "left", fontSize: 11, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg };
-  const TdStyle = { padding: "10px 14px", fontSize: 13, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
+  const ThStyle = { padding: `${T.sp3}px ${T.sp4}px`, textAlign: "left", fontSize: T.fs1, fontWeight: 600, letterSpacing: 0.5, color: T.textMuted, fontFamily: T.font, borderBottom: `1px solid ${T.border}`, background: T.bg };
+  const TdStyle = { padding: `${T.sp3}px ${T.sp4}px`, fontSize: T.fs3, fontFamily: T.font, color: T.text, borderBottom: `1px solid ${T.border}` };
 
   const catInfo = (catId) => DOC_CATEGORIES.find(c => c.id === catId) || DOC_CATEGORIES[DOC_CATEGORIES.length - 1];
 
@@ -5772,7 +6012,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
   };
 
   return (
-    <div style={{ display: "grid", gridTemplateColumns: editing || adding ? "1fr 420px" : "1fr", gap: 20, alignItems: "start" }}>
+    <div style={{ display: "grid", gridTemplateColumns: editing || adding ? "1fr 420px" : "1fr", gap: T.sp5, alignItems: "start" }}>
       <div>
         <SectionTitle title="Documents" subtitle={`${docs.length} documents · ${uploadedCount} with files · ${allTags.length} unique tags`} />
 
@@ -5783,23 +6023,23 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
           onDrop={handleDrop}
           style={{
             border: `2px dashed ${dragOver ? T.accent : T.border}`,
-            borderRadius: 12,
-            padding: uploading.length > 0 ? "12px 20px" : "24px 20px",
-            marginBottom: 16,
+            borderRadius: T.r2,
+            padding: uploading.length > 0 ? `${T.sp3}px ${T.sp5}px` : `${T.sp6}px ${T.sp5}px`,
+            marginBottom: T.sp4,
             textAlign: "center",
             background: dragOver ? T.accentBg : T.surface,
-            transition: "all 0.2s",
+            transition: T.med,
             cursor: "pointer",
           }}
           onClick={() => { if (uploading.length === 0) document.getElementById("doc-file-input")?.click(); }}
         >
           {uploading.length === 0 ? (
             <div>
-              <div style={{ marginBottom: 8 }}><Ic name="upload" size={28} color={T.textMuted} /></div>
-              <div style={{ fontSize: 13, fontWeight: 500, color: T.text, fontFamily: T.font }}>
+              <div style={{ marginBottom: T.sp2 }}><Ic name="upload" size={28} color={T.textMuted} /></div>
+              <div style={{ fontSize: T.fs3, fontWeight: 500, color: T.text, fontFamily: T.font }}>
                 Drop files here to upload, or <span style={{ color: T.accent, textDecoration: "underline" }}>browse</span>
               </div>
-              <div style={{ fontSize: 11, color: T.textMuted, marginTop: 4, fontFamily: T.font }}>
+              <div style={{ fontSize: T.fs1, color: T.textMuted, marginTop: T.sp1, fontFamily: T.font }}>
                 PDF, XLSX, images, and other documents · Auto-categorizes and extracts tags
               </div>
               <input id="doc-file-input" type="file" multiple style={{ display: "none" }} onChange={handleFileInput} />
@@ -5807,12 +6047,12 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
           ) : (
             <div style={{ textAlign: "left" }}>
               {uploading.map((u, i) => (
-                <div key={i} style={{ display: "flex", alignItems: "center", gap: 10, padding: "4px 0" }}>
-                  <span style={{ fontSize: 12, fontFamily: T.font, color: T.textMid, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name}</span>
-                  <div style={{ width: 100, height: 4, borderRadius: 2, background: T.border, flexShrink: 0 }}>
-                    <div style={{ width: u.progress + "%", height: "100%", borderRadius: 2, background: u.status === "error" ? T.red : u.status === "done" ? T.green : T.accent, transition: "width 0.3s" }} />
+                <div key={i} style={{ display: "flex", alignItems: "center", gap: T.sp3, padding: `${T.sp1}px 0` }}>
+                  <span style={{ fontSize: T.fs2, fontFamily: T.font, color: T.textMid, flex: 1, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{u.name}</span>
+                  <div style={{ width: 100, height: 4, borderRadius: T.r1, background: T.border, flexShrink: 0 }}>
+                    <div style={{ width: u.progress + "%", height: "100%", borderRadius: T.r1, background: u.status === "error" ? T.red : u.status === "done" ? T.green : T.accent, transition: T.med }} />
                   </div>
-                  <span style={{ fontSize: 10, color: u.status === "error" ? T.red : u.status === "done" ? T.green : T.textMuted, fontFamily: T.font, width: 60, textAlign: "right" }}>
+                  <span style={{ fontSize: T.fs1, color: u.status === "error" ? T.red : u.status === "done" ? T.green : T.textMuted, fontFamily: T.font, width: 60, textAlign: "right" }}>
                     {u.status === "error" ? "Failed" : u.status === "done" ? "Done" : u.status === "parsing" ? "Parsing…" : u.status === "saving" ? "Saving…" : "Uploading…"}
                   </span>
                 </div>
@@ -5823,39 +6063,39 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
 
         {/* Upload Summary Banner */}
         {uploadSummary && (
-          <div style={{ padding: "10px 16px", borderRadius: 8, background: T.greenBg, border: `1px solid ${T.green}22`, marginBottom: 16, display: "flex", gap: 16, alignItems: "center" }}>
-            <span style={{ fontSize: 18 }}>✅</span>
-            <span style={{ fontSize: 12, fontFamily: T.font, color: T.green }}>
+          <div style={{ padding: `${T.sp3}px ${T.sp4}px`, borderRadius: T.r2, background: T.greenBg, border: `1px solid ${T.green}22`, marginBottom: T.sp4, display: "flex", gap: T.sp4, alignItems: "center" }}>
+            <span style={{ fontSize: T.fs5 }}>✅</span>
+            <span style={{ fontSize: T.fs2, fontFamily: T.font, color: T.green }}>
               <strong>{uploadSummary.uploaded}</strong> of {uploadSummary.total} files uploaded · <strong>{uploadSummary.categorized}</strong> auto-categorized · <strong>{uploadSummary.tagged}</strong> tagged
             </span>
           </div>
         )}
 
         {/* Category Chips */}
-        <div style={{ display: "flex", gap: 6, flexWrap: "wrap", marginBottom: 10 }}>
+        <div style={{ display: "flex", gap: T.sp2, flexWrap: "wrap", marginBottom: T.sp3 }}>
           <button onClick={() => { setFilter("all"); setTagFilter(null); }} style={{
-            padding: "6px 14px", borderRadius: 20, cursor: "pointer", fontFamily: T.font, fontSize: 12, fontWeight: 500,
+            padding: `${T.sp2}px ${T.sp4}px`, borderRadius: T.r3, cursor: "pointer", fontFamily: T.font, fontSize: T.fs2, fontWeight: 500,
             border: `1.5px solid ${filter === "all" && !tagFilter ? T.accent : T.border}`,
             background: filter === "all" && !tagFilter ? T.accentBg : T.surface,
             color: filter === "all" && !tagFilter ? T.accent : T.textMid,
           }}>All ({docs.length})</button>
           {catCounts.filter(c => c.count > 0).map(c => (
             <button key={c.id} onClick={() => { setFilter(c.id); setTagFilter(null); }} style={{
-              padding: "6px 14px", borderRadius: 20, cursor: "pointer", fontFamily: T.font, fontSize: 12, fontWeight: 500,
+              padding: `${T.sp2}px ${T.sp4}px`, borderRadius: T.r3, cursor: "pointer", fontFamily: T.font, fontSize: T.fs2, fontWeight: 500,
               border: `1.5px solid ${filter === c.id ? c.color : T.border}`,
               background: filter === c.id ? (c.color + "12") : T.surface,
               color: filter === c.id ? c.color : T.textMid,
-            }}><Ic name={c.ic} size={13} color={filter === c.id ? c.color : T.textMid} style={{ marginRight: 5 }} />{c.label} ({c.count})</button>
+            }}><Ic name={c.ic} size={T.fs3} color={filter === c.id ? c.color : T.textMid} style={{ marginRight: T.sp1 }} />{c.label} ({c.count})</button>
           ))}
         </div>
 
         {/* Tag Filter Chips (top 20 most common) */}
         {allTags.length > 0 && (
-          <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 16 }}>
-            <span style={{ fontSize: 10, color: T.textMuted, fontFamily: T.font, padding: "4px 6px" }}>Tags:</span>
+          <div style={{ display: "flex", gap: T.sp1, flexWrap: "wrap", marginBottom: T.sp4 }}>
+            <span style={{ fontSize: T.fs1, color: T.textMuted, fontFamily: T.font, padding: `${T.sp1}px ${T.sp2}px` }}>Tags:</span>
             {allTags.slice(0, 20).map(tag => (
               <button key={tag} onClick={() => { setTagFilter(tagFilter === tag ? null : tag); setFilter("all"); }} style={{
-                padding: "3px 10px", borderRadius: 12, cursor: "pointer", fontFamily: T.font, fontSize: 10, fontWeight: 500,
+                padding: `${T.sp1}px ${T.sp3}px`, borderRadius: T.r2, cursor: "pointer", fontFamily: T.font, fontSize: T.fs1, fontWeight: 500,
                 border: `1px solid ${tagFilter === tag ? T.accent : T.border}`,
                 background: tagFilter === tag ? T.accentBg : T.bg,
                 color: tagFilter === tag ? T.accent : T.textMid,
@@ -5865,11 +6105,11 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
         )}
 
         {/* Search + Add */}
-        <div style={{ display: "flex", gap: 10, marginBottom: 16 }}>
+        <div style={{ display: "flex", gap: T.sp3, marginBottom: T.sp4 }}>
           <input type="text" placeholder="Search documents, tags, extracted text..." value={search} onChange={e => setSearch(e.target.value)}
-            style={{ flex: 1, padding: "8px 14px", borderRadius: 8, border: `1px solid ${T.border}`, fontSize: 13, fontFamily: T.font, color: T.text, background: T.surface }} />
+            style={{ flex: 1, padding: `${T.sp2}px ${T.sp4}px`, borderRadius: T.r2, border: `1px solid ${T.border}`, fontSize: T.fs3, fontFamily: T.font, color: T.text, background: T.surface }} />
           <button onClick={() => { setAdding(true); setSel(null); }} style={{
-            padding: "8px 18px", borderRadius: 8, cursor: "pointer", fontFamily: T.font, fontSize: 12, fontWeight: 600,
+            padding: `${T.sp2}px ${T.sp5}px`, borderRadius: T.r2, cursor: "pointer", fontFamily: T.font, fontSize: T.fs2, fontWeight: 600,
             border: "none", background: T.accent, color: "#fff",
           }}>+ Add Document</button>
         </div>
@@ -5891,38 +6131,38 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
                 const hasFile = !!doc.storagePath;
                 return (
                   <tr key={doc.id} onClick={() => { setSel(active ? null : doc.id); setAdding(false); }}
-                    style={{ cursor: "pointer", background: active ? T.accentBg : "transparent", transition: "background 0.1s" }}
+                    style={{ cursor: "pointer", background: active ? T.accentBg : "transparent", transition: T.fast }}
                     onMouseEnter={e => { if (!active) e.currentTarget.style.background = T.surfaceHover; }}
                     onMouseLeave={e => { if (!active) e.currentTarget.style.background = "transparent"; }}>
                     <td style={{ ...TdStyle, width: 36, textAlign: "center" }}>{hasFile ? getMimeIcon(doc.mimeType, 18, cat.color) : <Ic name={cat.ic} size={18} color={cat.color} />}</td>
                     <td style={TdStyle}>
                       <div style={{ fontWeight: 500 }}>{doc.name}</div>
-                      <div style={{ fontSize: 11, color: T.textMuted, marginTop: 2 }}>
+                      <div style={{ fontSize: T.fs1, color: T.textMuted, marginTop: 2 }}>
                         {doc.description}
-                        {doc.vendor && <span style={{ marginLeft: 6, color: T.accent }}>· {doc.vendor}</span>}
+                        {doc.vendor && <span style={{ marginLeft: T.sp2, color: T.accent }}>· {doc.vendor}</span>}
                       </div>
                     </td>
                     <td style={{ ...TdStyle, maxWidth: 180 }}>
-                      <div style={{ display: "flex", gap: 3, flexWrap: "wrap" }}>
+                      <div style={{ display: "flex", gap: T.sp1, flexWrap: "wrap" }}>
                         {(doc.tags || []).slice(0, 4).map(tag => (
                           <span key={tag} style={{
-                            display: "inline-block", padding: "2px 7px", borderRadius: 8, fontSize: 9, fontWeight: 500, fontFamily: T.font,
+                            display: "inline-block", padding: `2px ${T.sp2}px`, borderRadius: T.r2, fontSize: T.fs1, fontWeight: 500, fontFamily: T.font,
                             background: tag.match(/^REQ-/) ? T.blueBg : tag.match(/^\$/) ? T.amberBg : T.bg,
                             color: tag.match(/^REQ-/) ? T.blue : tag.match(/^\$/) ? T.amber : T.textMid,
                             border: `1px solid ${tag.match(/^REQ-/) ? T.blueBorder : tag.match(/^\$/) ? T.amberBorder : T.border}`,
                           }}>{tag}</span>
                         ))}
                         {(doc.tags || []).length > 4 && (
-                          <span style={{ fontSize: 9, color: T.textMuted, padding: "2px 4px" }}>+{(doc.tags || []).length - 4}</span>
+                          <span style={{ fontSize: T.fs1, color: T.textMuted, padding: `2px ${T.sp1}px` }}>+{(doc.tags || []).length - 4}</span>
                         )}
                       </div>
                     </td>
-                    <td style={{ ...TdStyle, fontFamily: T.mono, fontSize: 12, whiteSpace: "nowrap" }}>{doc.date}</td>
-                    <td style={{ ...TdStyle, fontSize: 11 }}>
+                    <td style={{ ...TdStyle, fontFamily: T.mono, fontSize: T.fs2, whiteSpace: "nowrap" }}>{doc.date}</td>
+                    <td style={{ ...TdStyle, fontSize: T.fs1 }}>
                       {hasFile ? (
                         <div>
                           <div style={{ color: T.green, fontWeight: 500 }}>{formatFileSize(doc.fileSize)}</div>
-                          <div style={{ fontSize: 9, color: T.textMuted }}>{(doc.fileName || "").split(".").pop()?.toUpperCase()}</div>
+                          <div style={{ fontSize: T.fs1, color: T.textMuted }}>{(doc.fileName || "").split(".").pop()?.toUpperCase()}</div>
                         </div>
                       ) : (
                         <span style={{ color: T.textMuted }}>—</span>
@@ -5930,7 +6170,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
                     </td>
                     <td style={TdStyle}>
                       <span style={{
-                        display: "inline-block", padding: "3px 10px", borderRadius: 12, fontSize: 11, fontWeight: 600, fontFamily: T.font,
+                        display: "inline-block", padding: `${T.sp1}px ${T.sp3}px`, borderRadius: T.r2, fontSize: T.fs1, fontWeight: 600, fontFamily: T.font,
                         background: doc.status === "final" || doc.status === "confirmed" ? T.greenBg : doc.status === "disputed" ? T.redBg : doc.status === "filed" || doc.status === "submitted" ? T.blueBg : T.bg,
                         color: doc.status === "final" || doc.status === "confirmed" ? T.green : doc.status === "disputed" ? T.red : doc.status === "filed" || doc.status === "submitted" ? T.blue : T.textMid,
                       }}>{doc.status}</span>
@@ -5948,26 +6188,26 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
 
       {/* Edit Sidebar */}
       {editing && (
-        <div style={{ position: "sticky", top: 16 }}>
+        <div style={{ position: "sticky", top: T.sp4 }}>
           <Card>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: T.sp4 }}>
               <CardLabel label="Edit Document" />
-              <button onClick={() => setSel(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: T.textMuted, lineHeight: 1 }}>×</button>
+              <button onClick={() => setSel(null)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: T.fs5, color: T.textMuted, lineHeight: 1 }}>×</button>
             </div>
 
             {/* File info / actions */}
             {editing.storagePath && (
-              <div style={{ marginBottom: 14, padding: "10px 12px", borderRadius: 8, background: T.bg, border: `1px solid ${T.border}` }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 6 }}>
+              <div style={{ marginBottom: T.sp4, padding: `${T.sp3}px ${T.sp3}px`, borderRadius: T.r2, background: T.bg, border: `1px solid ${T.border}` }}>
+                <div style={{ display: "flex", alignItems: "center", gap: T.sp2, marginBottom: T.sp2 }}>
                   <span>{getMimeIcon(editing.mimeType, 20, T.accent)}</span>
                   <div style={{ flex: 1, overflow: "hidden" }}>
-                    <div style={{ fontSize: 12, fontWeight: 500, fontFamily: T.font, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{editing.fileName}</div>
-                    <div style={{ fontSize: 10, color: T.textMuted, fontFamily: T.font }}>{formatFileSize(editing.fileSize)} · {(editing.mimeType || "unknown").split("/").pop()}</div>
+                    <div style={{ fontSize: T.fs2, fontWeight: 500, fontFamily: T.font, color: T.text, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{editing.fileName}</div>
+                    <div style={{ fontSize: T.fs1, color: T.textMuted, fontFamily: T.font }}>{formatFileSize(editing.fileSize)} · {(editing.mimeType || "unknown").split("/").pop()}</div>
                   </div>
                 </div>
-                <div style={{ display: "flex", gap: 6 }}>
+                <div style={{ display: "flex", gap: T.sp2 }}>
                   <button onClick={() => openFile(editing)} style={{
-                    flex: 1, padding: "6px", borderRadius: 6, cursor: "pointer", fontFamily: T.font, fontSize: 11, fontWeight: 500,
+                    flex: 1, padding: T.sp2, borderRadius: T.r1, cursor: "pointer", fontFamily: T.font, fontSize: T.fs1, fontWeight: 500,
                     border: `1px solid ${T.border}`, background: T.surface, color: T.accent,
                   }}>View File</button>
                   <button onClick={async () => {
@@ -5976,7 +6216,7 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
                       updateDoc(editing.id, { storagePath: null, fileName: null, fileSize: 0, mimeType: null });
                     }
                   }} style={{
-                    padding: "6px 10px", borderRadius: 6, cursor: "pointer", fontFamily: T.font, fontSize: 11, fontWeight: 500,
+                    padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, cursor: "pointer", fontFamily: T.font, fontSize: T.fs1, fontWeight: 500,
                     border: `1px solid ${T.redBorder}`, background: T.redBg, color: T.red,
                   }}>Delete File</button>
                 </div>
@@ -5985,34 +6225,34 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
 
             {/* Inline preview for images */}
             {editing.storagePath && editing.mimeType && editing.mimeType.startsWith("image/") && (
-              <div style={{ marginBottom: 14, borderRadius: 8, overflow: "hidden", border: `1px solid ${T.border}` }}>
+              <div style={{ marginBottom: T.sp4, borderRadius: T.r2, overflow: "hidden", border: `1px solid ${T.border}` }}>
                 <img src={fileGetUrl(editing.storagePath)} alt={editing.name} style={{ width: "100%", height: "auto", display: "block" }} />
               </div>
             )}
 
             {/* Tags */}
-            <div style={{ marginBottom: 14 }}>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 6, fontFamily: T.font }}>Tags</label>
-              <div style={{ display: "flex", gap: 4, flexWrap: "wrap", marginBottom: 6 }}>
+            <div style={{ marginBottom: T.sp4 }}>
+              <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp2, fontFamily: T.font }}>Tags</label>
+              <div style={{ display: "flex", gap: T.sp1, flexWrap: "wrap", marginBottom: T.sp2 }}>
                 {(editing.tags || []).map(tag => (
                   <span key={tag} style={{
-                    display: "inline-flex", alignItems: "center", gap: 4, padding: "3px 8px", borderRadius: 10, fontSize: 11, fontWeight: 500, fontFamily: T.font,
+                    display: "inline-flex", alignItems: "center", gap: T.sp1, padding: `${T.sp1}px ${T.sp2}px`, borderRadius: T.r2, fontSize: T.fs1, fontWeight: 500, fontFamily: T.font,
                     background: tag.match(/^REQ-/) ? T.blueBg : tag.match(/^\$/) ? T.amberBg : T.bg,
                     color: tag.match(/^REQ-/) ? T.blue : tag.match(/^\$/) ? T.amber : T.textMid,
                     border: `1px solid ${tag.match(/^REQ-/) ? T.blueBorder : tag.match(/^\$/) ? T.amberBorder : T.border}`,
                   }}>
                     {tag}
-                    <span onClick={(e) => { e.stopPropagation(); removeTag(editing.id, tag); }} style={{ cursor: "pointer", fontSize: 13, lineHeight: 1, opacity: 0.6 }}>×</span>
+                    <span onClick={(e) => { e.stopPropagation(); removeTag(editing.id, tag); }} style={{ cursor: "pointer", fontSize: T.fs3, lineHeight: 1, opacity: 0.6 }}>×</span>
                   </span>
                 ))}
-                {(editing.tags || []).length === 0 && <span style={{ fontSize: 11, color: T.textMuted, fontFamily: T.font }}>No tags</span>}
+                {(editing.tags || []).length === 0 && <span style={{ fontSize: T.fs1, color: T.textMuted, fontFamily: T.font }}>No tags</span>}
               </div>
-              <div style={{ display: "flex", gap: 4 }}>
+              <div style={{ display: "flex", gap: T.sp1 }}>
                 <input type="text" placeholder="Add tag…" value={newTag} onChange={e => setNewTag(e.target.value)}
                   onKeyDown={e => { if (e.key === "Enter" && newTag.trim()) { addTag(editing.id, newTag); setNewTag(""); } }}
-                  style={{ flex: 1, padding: "5px 8px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 11, fontFamily: T.font, color: T.text, background: T.surface }} />
+                  style={{ flex: 1, padding: `${T.sp1}px ${T.sp2}px`, borderRadius: T.r1, border: `1px solid ${T.border}`, fontSize: T.fs1, fontFamily: T.font, color: T.text, background: T.surface }} />
                 <button onClick={() => { if (newTag.trim()) { addTag(editing.id, newTag); setNewTag(""); } }} style={{
-                  padding: "5px 10px", borderRadius: 6, cursor: "pointer", fontFamily: T.font, fontSize: 11, fontWeight: 500,
+                  padding: `${T.sp1}px ${T.sp3}px`, borderRadius: T.r1, cursor: "pointer", fontFamily: T.font, fontSize: T.fs1, fontWeight: 500,
                   border: `1px solid ${T.border}`, background: T.surface, color: T.accent,
                 }}>+</button>
               </div>
@@ -6020,12 +6260,12 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
 
             {/* Linked REQs */}
             {(editing.linkedReqs || []).length > 0 && (
-              <div style={{ marginBottom: 14 }}>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Linked Requisitions</label>
-                <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
+              <div style={{ marginBottom: T.sp4 }}>
+                <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp1, fontFamily: T.font }}>Linked Requisitions</label>
+                <div style={{ display: "flex", gap: T.sp1, flexWrap: "wrap" }}>
                   {(editing.linkedReqs || []).map(req => (
                     <span key={req} style={{
-                      display: "inline-block", padding: "3px 10px", borderRadius: 10, fontSize: 11, fontWeight: 600, fontFamily: T.font,
+                      display: "inline-block", padding: `${T.sp1}px ${T.sp3}px`, borderRadius: T.r2, fontSize: T.fs1, fontWeight: 600, fontFamily: T.font,
                       background: T.blueBg, color: T.blue, border: `1px solid ${T.blueBorder}`,
                     }}>{req}</span>
                   ))}
@@ -6035,26 +6275,26 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
 
             {/* Cost Code / Vendor */}
             {(editing.costCode || editing.vendor) && (
-              <div style={{ marginBottom: 14, display: "flex", gap: 10 }}>
+              <div style={{ marginBottom: T.sp4, display: "flex", gap: T.sp3 }}>
                 {editing.vendor && (
                   <div style={{ flex: 1 }}>
-                    <label style={{ display: "block", fontSize: 10, fontWeight: 600, color: T.textMuted, letterSpacing: 0.4, marginBottom: 2, fontFamily: T.font }}>VENDOR</label>
-                    <div style={{ fontSize: 12, fontFamily: T.font, color: T.text }}>{editing.vendor}</div>
+                    <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMuted, letterSpacing: 0.4, marginBottom: 2, fontFamily: T.font }}>VENDOR</label>
+                    <div style={{ fontSize: T.fs2, fontFamily: T.font, color: T.text }}>{editing.vendor}</div>
                   </div>
                 )}
                 {editing.costCode && (
                   <div style={{ flex: 1 }}>
-                    <label style={{ display: "block", fontSize: 10, fontWeight: 600, color: T.textMuted, letterSpacing: 0.4, marginBottom: 2, fontFamily: T.font }}>COST CODE</label>
-                    <div style={{ fontSize: 12, fontFamily: T.font, color: T.text }}>{editing.costCode}</div>
+                    <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMuted, letterSpacing: 0.4, marginBottom: 2, fontFamily: T.font }}>COST CODE</label>
+                    <div style={{ fontSize: T.fs2, fontFamily: T.font, color: T.text }}>{editing.costCode}</div>
                   </div>
                 )}
               </div>
             )}
 
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Category</label>
+            <div style={{ marginBottom: T.sp3 }}>
+              <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp1, fontFamily: T.font }}>Category</label>
               <select value={editing.category} onChange={e => updateDoc(editing.id, { category: e.target.value })}
-                style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface }}>
+                style={{ width: "100%", padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, border: `1px solid ${T.border}`, fontSize: T.fs2, fontFamily: T.font, color: T.text, background: T.surface }}>
                 {DOC_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
               </select>
             </div>
@@ -6062,24 +6302,24 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
             <TextInput label="Date" value={editing.date} onChange={v => updateDoc(editing.id, { date: v })} />
             <TextInput label="Parties" value={editing.parties} onChange={v => updateDoc(editing.id, { parties: v })} />
             <TextInput label="Description" value={editing.description} onChange={v => updateDoc(editing.id, { description: v })} />
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Status</label>
+            <div style={{ marginBottom: T.sp3 }}>
+              <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp1, fontFamily: T.font }}>Status</label>
               <select value={editing.status} onChange={e => updateDoc(editing.id, { status: e.target.value })}
-                style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface }}>
+                style={{ width: "100%", padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, border: `1px solid ${T.border}`, fontSize: T.fs2, fontFamily: T.font, color: T.text, background: T.surface }}>
                 {["draft", "submitted", "received", "filed", "confirmed", "active", "disputed", "final"].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Notes</label>
+            <div style={{ marginBottom: T.sp3 }}>
+              <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp1, fontFamily: T.font }}>Notes</label>
               <textarea value={editing.notes || ""} onChange={e => updateDoc(editing.id, { notes: e.target.value })}
-                rows={3} style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface, resize: "vertical" }} />
+                rows={3} style={{ width: "100%", padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, border: `1px solid ${T.border}`, fontSize: T.fs2, fontFamily: T.font, color: T.text, background: T.surface, resize: "vertical" }} />
             </div>
 
             {/* Extracted Text Preview */}
             {editing.extractedText && (
-              <div style={{ marginBottom: 12 }}>
-                <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Extracted Text (preview)</label>
-                <div style={{ padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, background: T.bg, fontSize: 10, fontFamily: T.mono, color: T.textMid, maxHeight: 120, overflow: "auto", whiteSpace: "pre-wrap", lineHeight: 1.4 }}>
+              <div style={{ marginBottom: T.sp3 }}>
+                <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp1, fontFamily: T.font }}>Extracted Text (preview)</label>
+                <div style={{ padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, border: `1px solid ${T.border}`, background: T.bg, fontSize: T.fs1, fontFamily: T.mono, color: T.textMid, maxHeight: 120, overflow: "auto", whiteSpace: "pre-wrap", lineHeight: T.lh }}>
                   {editing.extractedText.slice(0, 500)}{editing.extractedText.length > 500 ? "…" : ""}
                 </div>
               </div>
@@ -6093,8 +6333,8 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
                 setSel(null);
               }
             }} style={{
-              width: "100%", padding: "8px", borderRadius: 6, cursor: "pointer", fontFamily: T.font, fontSize: 11, fontWeight: 500,
-              border: `1px solid ${T.redBorder}`, background: T.redBg, color: T.red, marginTop: 8,
+              width: "100%", padding: T.sp2, borderRadius: T.r1, cursor: "pointer", fontFamily: T.font, fontSize: T.fs1, fontWeight: 500,
+              border: `1px solid ${T.redBorder}`, background: T.redBg, color: T.red, marginTop: T.sp2,
             }}>Delete Document</button>
           </Card>
         </div>
@@ -6102,16 +6342,16 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
 
       {/* Add Sidebar */}
       {adding && (
-        <div style={{ position: "sticky", top: 16 }}>
+        <div style={{ position: "sticky", top: T.sp4 }}>
           <Card>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: T.sp4 }}>
               <CardLabel label="Add New Document" />
-              <button onClick={() => setAdding(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: 18, color: T.textMuted, lineHeight: 1 }}>×</button>
+              <button onClick={() => setAdding(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: T.fs5, color: T.textMuted, lineHeight: 1 }}>×</button>
             </div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Category</label>
+            <div style={{ marginBottom: T.sp3 }}>
+              <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp1, fontFamily: T.font }}>Category</label>
               <select value={newDoc.category} onChange={e => setNewDoc(prev => ({ ...prev, category: e.target.value }))}
-                style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface }}>
+                style={{ width: "100%", padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, border: `1px solid ${T.border}`, fontSize: T.fs2, fontFamily: T.font, color: T.text, background: T.surface }}>
                 {DOC_CATEGORIES.map(c => <option key={c.id} value={c.id}>{c.label}</option>)}
               </select>
             </div>
@@ -6119,20 +6359,20 @@ function Documents({ docs, updateDoc, addDoc, removeDoc, reqs = [] }) {
             <TextInput label="Date" value={newDoc.date} onChange={v => setNewDoc(prev => ({ ...prev, date: v }))} />
             <TextInput label="Parties" value={newDoc.parties} onChange={v => setNewDoc(prev => ({ ...prev, parties: v }))} />
             <TextInput label="Description" value={newDoc.description} onChange={v => setNewDoc(prev => ({ ...prev, description: v }))} />
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Status</label>
+            <div style={{ marginBottom: T.sp3 }}>
+              <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp1, fontFamily: T.font }}>Status</label>
               <select value={newDoc.status} onChange={e => setNewDoc(prev => ({ ...prev, status: e.target.value }))}
-                style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface }}>
+                style={{ width: "100%", padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, border: `1px solid ${T.border}`, fontSize: T.fs2, fontFamily: T.font, color: T.text, background: T.surface }}>
                 {["draft", "submitted", "received", "filed", "confirmed", "active", "disputed", "final"].map(s => <option key={s} value={s}>{s}</option>)}
               </select>
             </div>
-            <div style={{ marginBottom: 12 }}>
-              <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: 4, fontFamily: T.font }}>Notes</label>
+            <div style={{ marginBottom: T.sp3 }}>
+              <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, letterSpacing: 0.4, marginBottom: T.sp1, fontFamily: T.font }}>Notes</label>
               <textarea value={newDoc.notes} onChange={e => setNewDoc(prev => ({ ...prev, notes: e.target.value }))}
-                rows={3} style={{ width: "100%", padding: "8px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.font, color: T.text, background: T.surface, resize: "vertical" }} />
+                rows={3} style={{ width: "100%", padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, border: `1px solid ${T.border}`, fontSize: T.fs2, fontFamily: T.font, color: T.text, background: T.surface, resize: "vertical" }} />
             </div>
             <button onClick={handleAdd} disabled={!newDoc.name.trim()} style={{
-              width: "100%", padding: "10px", borderRadius: 8, cursor: newDoc.name.trim() ? "pointer" : "default", fontFamily: T.font, fontSize: 13, fontWeight: 600,
+              width: "100%", padding: T.sp3, borderRadius: T.r2, cursor: newDoc.name.trim() ? "pointer" : "default", fontFamily: T.font, fontSize: T.fs3, fontWeight: 600,
               border: "none", background: newDoc.name.trim() ? T.accent : T.border, color: newDoc.name.trim() ? "#fff" : T.textMuted,
             }}>Add Document</button>
           </Card>
@@ -6775,8 +7015,8 @@ function ArbitratorQAChat({ reqs, claims, docs }) {
     const data = lookupCitation(tag);
     return (
       <span onClick={() => data && setSidebar(data)} style={{
-        display: "inline", background: T.accent + "18", color: T.accent, padding: "1px 6px",
-        borderRadius: 4, fontSize: 12, fontFamily: T.mono, cursor: data ? "pointer" : "default",
+        display: "inline", background: T.accent + "18", color: T.accent, padding: `1px ${T.sp2}px`,
+        borderRadius: T.r1, fontSize: T.fs2, fontFamily: T.mono, cursor: data ? "pointer" : "default",
         borderBottom: data ? `1px dashed ${T.accent}` : "none", whiteSpace: "nowrap",
       }}>[{tag}]</span>
     );
@@ -6795,45 +7035,45 @@ function ArbitratorQAChat({ reqs, claims, docs }) {
       {/* Main chat area */}
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
         {/* Header */}
-        <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 20, flexWrap: "wrap" }}>
+        <div style={{ display: "flex", alignItems: "center", gap: T.sp3, marginBottom: T.sp5, flexWrap: "wrap" }}>
           <div style={{ flex: 1 }}>
-            <h2 style={{ fontSize: 24, fontWeight: 700, color: T.text, margin: 0, fontFamily: T.font }}>
-              <span style={{ borderLeft: `4px solid ${T.accent}`, paddingLeft: 16 }}>Arbitrator Q&A</span>
+            <h2 style={{ fontSize: T.fs6, fontWeight: 700, color: T.text, margin: 0, fontFamily: T.font }}>
+              <span style={{ borderLeft: `4px solid ${T.accent}`, paddingLeft: T.sp4 }}>Arbitrator Q&A</span>
             </h2>
-            <p style={{ fontSize: 13, color: T.textMuted, margin: "4px 0 0 20px", fontFamily: T.font }}>
+            <p style={{ fontSize: T.fs3, color: T.textMuted, margin: `${T.sp1}px 0 0 ${T.sp5}px`, fontFamily: T.font }}>
               Practice fielding arbitrator questions — AI responds as Montana's counsel using case evidence
             </p>
           </div>
           <select value={arbId} onChange={e => setArbId(e.target.value)} style={{
-            padding: "8px 12px", borderRadius: 8, border: `1px solid ${T.border}`,
-            background: T.surface, color: T.text, fontFamily: T.font, fontSize: 13, cursor: "pointer",
+            padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r2, border: `1px solid ${T.border}`,
+            background: T.surface, color: T.text, fontFamily: T.font, fontSize: T.fs3, cursor: "pointer",
           }}>
             {ARBITRATOR_PROFILES.map(a => <option key={a.id} value={a.id}>{a.name}</option>)}
           </select>
           <button onClick={exportChat} disabled={messages.length === 0} style={{
-            padding: "8px 14px", borderRadius: 8, border: `1px solid ${T.border}`,
+            padding: `${T.sp2}px ${T.sp4}px`, borderRadius: T.r2, border: `1px solid ${T.border}`,
             background: T.surface, color: messages.length ? T.text : T.textMuted, fontFamily: T.font,
-            fontSize: 12, cursor: messages.length ? "pointer" : "default", display: "flex", alignItems: "center", gap: 5,
-          }}><Ic name="copy" size={13} color={messages.length ? T.text : T.textMuted} />Export</button>
+            fontSize: T.fs2, cursor: messages.length ? "pointer" : "default", display: "flex", alignItems: "center", gap: T.sp1,
+          }}><Ic name="copy" size={T.fs3} color={messages.length ? T.text : T.textMuted} />Export</button>
           <button onClick={clearChat} disabled={messages.length === 0} style={{
-            padding: "8px 14px", borderRadius: 8, border: `1px solid ${T.border}`,
+            padding: `${T.sp2}px ${T.sp4}px`, borderRadius: T.r2, border: `1px solid ${T.border}`,
             background: T.surface, color: messages.length ? T.red : T.textMuted, fontFamily: T.font,
-            fontSize: 12, cursor: messages.length ? "pointer" : "default", display: "flex", alignItems: "center", gap: 5,
-          }}><Ic name="trash" size={13} color={messages.length ? T.red : T.textMuted} />Clear</button>
+            fontSize: T.fs2, cursor: messages.length ? "pointer" : "default", display: "flex", alignItems: "center", gap: T.sp1,
+          }}><Ic name="trash" size={T.fs3} color={messages.length ? T.red : T.textMuted} />Clear</button>
         </div>
 
         {/* Arbitrator profile card */}
-        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: 16, marginBottom: 16, display: "flex", gap: 16, alignItems: "flex-start" }}>
+        <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.r2, padding: T.sp4, marginBottom: T.sp4, display: "flex", gap: T.sp4, alignItems: "flex-start" }}>
           <div style={{ width: 44, height: 44, borderRadius: "50%", background: profile.color + "20", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-            <Ic name="user" size={20} color={profile.color} />
+            <Ic name="user" size={T.sp5} color={profile.color} />
           </div>
           <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 15, fontWeight: 600, color: T.text, fontFamily: T.font }}>{profile.name}</div>
-            <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font, marginTop: 2 }}>{profile.subtitle}</div>
-            <div style={{ fontSize: 12, color: T.textMid, fontFamily: T.font, marginTop: 6, lineHeight: 1.5 }}>{profile.bio}</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 10 }}>
+            <div style={{ fontSize: T.fs4, fontWeight: 600, color: T.text, fontFamily: T.font }}>{profile.name}</div>
+            <div style={{ fontSize: T.fs2, color: T.textMuted, fontFamily: T.font, marginTop: 2 }}>{profile.subtitle}</div>
+            <div style={{ fontSize: T.fs2, color: T.textMid, fontFamily: T.font, marginTop: T.sp2, lineHeight: T.lh }}>{profile.bio}</div>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: T.sp2, marginTop: T.sp3 }}>
               {Object.entries(profile.traits).map(([k, v]) => (
-                <span key={k} style={{ fontSize: 10, fontFamily: T.mono, padding: "2px 8px", borderRadius: 6, background: v > 0.7 ? T.accent + "15" : T.bg, color: v > 0.7 ? T.accent : T.textMuted }}>
+                <span key={k} style={{ fontSize: T.fs1, fontFamily: T.mono, padding: `2px ${T.sp2}px`, borderRadius: T.r1, background: v > 0.7 ? T.accent + "15" : T.bg, color: v > 0.7 ? T.accent : T.textMuted }}>
                   {TRAIT_LABELS[k]?.label || k}: {(v * 100).toFixed(0)}%
                 </span>
               ))}
@@ -6843,23 +7083,23 @@ function ArbitratorQAChat({ reqs, claims, docs }) {
 
         {/* API key setup */}
         {!hasKey && (
-          <div style={{ background: T.amber + "10", border: `1px solid ${T.amber}40`, borderRadius: 12, padding: 20, marginBottom: 16, display: "flex", alignItems: "center", gap: 16, flexWrap: "wrap" }}>
+          <div style={{ background: T.amber + "10", border: `1px solid ${T.amber}40`, borderRadius: T.r2, padding: T.sp5, marginBottom: T.sp4, display: "flex", alignItems: "center", gap: T.sp4, flexWrap: "wrap" }}>
             <div style={{ flex: "1 1 200px" }}>
-              <div style={{ fontSize: 14, fontWeight: 600, color: T.text, fontFamily: T.font }}>OpenAI API Key Required</div>
-              <div style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font, marginTop: 4 }}>Enter your OpenAI key to enable AI-powered Q&A. Your key is stored locally and never sent anywhere except OpenAI.</div>
+              <div style={{ fontSize: T.fs4, fontWeight: 600, color: T.text, fontFamily: T.font }}>OpenAI API Key Required</div>
+              <div style={{ fontSize: T.fs2, color: T.textMuted, fontFamily: T.font, marginTop: T.sp1 }}>Enter your OpenAI key to enable AI-powered Q&A. Your key is stored locally and never sent anywhere except OpenAI.</div>
             </div>
-            <div style={{ display: "flex", gap: 8, flex: "1 1 300px" }}>
+            <div style={{ display: "flex", gap: T.sp2, flex: "1 1 300px" }}>
               <input
                 type="password"
                 value={keyInput}
                 onChange={e => setKeyInput(e.target.value)}
                 onKeyDown={e => { if (e.key === "Enter" && keyInput.trim()) { localStorage.setItem("tharp-openai-key", keyInput.trim()); window._openaiKey = keyInput.trim(); setHasKey(true); setKeyInput(""); } }}
                 placeholder="sk-..."
-                style={{ flex: 1, padding: "8px 12px", borderRadius: 8, border: `1px solid ${T.border}`, background: T.surface, color: T.text, fontFamily: T.mono, fontSize: 12 }}
+                style={{ flex: 1, padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r2, border: `1px solid ${T.border}`, background: T.surface, color: T.text, fontFamily: T.mono, fontSize: T.fs2 }}
               />
               <button onClick={() => { if (keyInput.trim()) { localStorage.setItem("tharp-openai-key", keyInput.trim()); window._openaiKey = keyInput.trim(); setHasKey(true); setKeyInput(""); } }} style={{
-                padding: "8px 16px", borderRadius: 8, border: "none", background: T.accent, color: "#FFF",
-                fontFamily: T.font, fontSize: 12, fontWeight: 600, cursor: keyInput.trim() ? "pointer" : "default",
+                padding: `${T.sp2}px ${T.sp4}px`, borderRadius: T.r2, border: "none", background: T.accent, color: "#FFF",
+                fontFamily: T.font, fontSize: T.fs2, fontWeight: 600, cursor: keyInput.trim() ? "pointer" : "default",
               }}>Save</button>
             </div>
           </div>
@@ -6868,33 +7108,33 @@ function ArbitratorQAChat({ reqs, claims, docs }) {
         {/* Chat messages */}
         <div ref={chatRef} style={{
           flex: 1, overflowY: "auto", minHeight: 300, maxHeight: "calc(100vh - 520px)",
-          background: T.bg, border: `1px solid ${T.border}`, borderRadius: 12, padding: 20,
-          display: "flex", flexDirection: "column", gap: 16,
+          background: T.bg, border: `1px solid ${T.border}`, borderRadius: T.r2, padding: T.sp5,
+          display: "flex", flexDirection: "column", gap: T.sp4,
         }}>
           {messages.length === 0 && !loading && (
             <div style={{ textAlign: "center", padding: "60px 20px", color: T.textMuted }}>
               <Ic name="message-circle" size={40} color={T.border} />
-              <p style={{ fontSize: 15, fontFamily: T.font, marginTop: 16 }}>Ask a question as the arbitrator</p>
-              <p style={{ fontSize: 12, fontFamily: T.font, marginTop: 4 }}>The AI will respond as Montana's counsel citing specific case evidence</p>
+              <p style={{ fontSize: T.fs4, fontFamily: T.font, marginTop: T.sp4 }}>Ask a question as the arbitrator</p>
+              <p style={{ fontSize: T.fs2, fontFamily: T.font, marginTop: T.sp1 }}>The AI will respond as Montana's counsel citing specific case evidence</p>
             </div>
           )}
           {messages.map((m, i) => (
-            <div key={i} style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
+            <div key={i} style={{ display: "flex", gap: T.sp3, alignItems: "flex-start" }}>
               <div style={{
-                width: 32, height: 32, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
+                width: T.sp7, height: T.sp7, borderRadius: "50%", flexShrink: 0, display: "flex", alignItems: "center", justifyContent: "center",
                 background: m.role === "user" ? profile.color + "20" : T.accent + "15",
               }}>
-                <Ic name={m.role === "user" ? "user" : "scale"} size={15} color={m.role === "user" ? profile.color : T.accent} />
+                <Ic name={m.role === "user" ? "user" : "scale"} size={T.fs4} color={m.role === "user" ? profile.color : T.accent} />
               </div>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: 11, fontWeight: 600, color: m.role === "user" ? profile.color : T.accent, fontFamily: T.font, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
+                <div style={{ fontSize: T.fs1, fontWeight: 600, color: m.role === "user" ? profile.color : T.accent, fontFamily: T.font, marginBottom: T.sp1, textTransform: "uppercase", letterSpacing: 0.5 }}>
                   {m.role === "user" ? "Arbitrator" : "Montana Counsel"}
                 </div>
                 <div style={{
-                  fontSize: 13, color: m.error ? T.red : T.text, fontFamily: T.font, lineHeight: 1.7,
+                  fontSize: T.fs3, color: m.error ? T.red : T.text, fontFamily: T.font, lineHeight: T.lhLoose,
                   background: m.role === "user" ? T.surface : "transparent",
-                  padding: m.role === "user" ? "12px 16px" : "0",
-                  borderRadius: m.role === "user" ? 10 : 0,
+                  padding: m.role === "user" ? `${T.sp3}px ${T.sp4}px` : "0",
+                  borderRadius: m.role === "user" ? T.r2 : 0,
                   border: m.role === "user" ? `1px solid ${T.border}` : "none",
                 }}>
                   {m.role === "assistant" ? renderContent(m.content) : m.content}
@@ -6903,11 +7143,11 @@ function ArbitratorQAChat({ reqs, claims, docs }) {
             </div>
           ))}
           {loading && (
-            <div style={{ display: "flex", gap: 12, alignItems: "flex-start" }}>
-              <div style={{ width: 32, height: 32, borderRadius: "50%", background: T.accent + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                <Ic name="scale" size={15} color={T.accent} />
+            <div style={{ display: "flex", gap: T.sp3, alignItems: "flex-start" }}>
+              <div style={{ width: T.sp7, height: T.sp7, borderRadius: "50%", background: T.accent + "15", display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                <Ic name="scale" size={T.fs4} color={T.accent} />
               </div>
-              <div style={{ fontSize: 13, color: T.textMuted, fontFamily: T.font, padding: "8px 0" }}>
+              <div style={{ fontSize: T.fs3, color: T.textMuted, fontFamily: T.font, padding: `${T.sp2}px 0` }}>
                 <span style={{ animation: "pulse 1.5s ease-in-out infinite" }}>Preparing response…</span>
               </div>
             </div>
@@ -6916,27 +7156,27 @@ function ArbitratorQAChat({ reqs, claims, docs }) {
 
         {/* Suggested questions */}
         {showSuggested && (
-          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 10, padding: 12, marginTop: 8, display: "flex", flexWrap: "wrap", gap: 6 }}>
-            <div style={{ width: "100%", fontSize: 11, fontWeight: 600, color: T.textMuted, fontFamily: T.font, marginBottom: 4, textTransform: "uppercase", letterSpacing: 0.5 }}>
+          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.r2, padding: T.sp3, marginTop: T.sp2, display: "flex", flexWrap: "wrap", gap: T.sp2 }}>
+            <div style={{ width: "100%", fontSize: T.fs1, fontWeight: 600, color: T.textMuted, fontFamily: T.font, marginBottom: T.sp1, textTransform: "uppercase", letterSpacing: 0.5 }}>
               Suggested questions for {profile.name}
             </div>
             {suggested.map((q, i) => (
               <button key={i} onClick={() => { send(q); setShowSuggested(false); }} style={{
-                background: T.bg, border: `1px solid ${T.border}`, borderRadius: 8, padding: "8px 12px",
-                fontSize: 12, color: T.text, fontFamily: T.font, cursor: "pointer", textAlign: "left",
-                lineHeight: 1.4, transition: T.fast,
+                background: T.bg, border: `1px solid ${T.border}`, borderRadius: T.r2, padding: `${T.sp2}px ${T.sp3}px`,
+                fontSize: T.fs2, color: T.text, fontFamily: T.font, cursor: "pointer", textAlign: "left",
+                lineHeight: T.lh, transition: T.fast,
               }}>{q}</button>
             ))}
           </div>
         )}
 
         {/* Input area */}
-        <div style={{ display: "flex", gap: 8, marginTop: 12, alignItems: "flex-end" }}>
+        <div style={{ display: "flex", gap: T.sp2, marginTop: T.sp3, alignItems: "flex-end" }}>
           <button onClick={() => setShowSuggested(s => !s)} title="Suggested questions" style={{
-            padding: "10px 12px", borderRadius: 10, border: `1px solid ${T.border}`,
+            padding: `${T.sp3}px ${T.sp3}px`, borderRadius: T.r2, border: `1px solid ${T.border}`,
             background: showSuggested ? T.accent + "15" : T.surface, cursor: "pointer", flexShrink: 0,
           }}>
-            <Ic name="help-circle" size={16} color={showSuggested ? T.accent : T.textMuted} />
+            <Ic name="help-circle" size={T.sp4} color={showSuggested ? T.accent : T.textMuted} />
           </button>
           <textarea
             ref={inputRef}
@@ -6946,17 +7186,17 @@ function ArbitratorQAChat({ reqs, claims, docs }) {
             placeholder="Ask a question as the arbitrator…"
             rows={2}
             style={{
-              flex: 1, padding: "10px 14px", borderRadius: 10, border: `1px solid ${T.border}`,
-              background: T.surface, color: T.text, fontFamily: T.font, fontSize: 13,
-              resize: "vertical", minHeight: 44, lineHeight: 1.5, outline: "none",
+              flex: 1, padding: `${T.sp3}px ${T.sp4}px`, borderRadius: T.r2, border: `1px solid ${T.border}`,
+              background: T.surface, color: T.text, fontFamily: T.font, fontSize: T.fs3,
+              resize: "vertical", minHeight: 44, lineHeight: T.lh, outline: "none",
             }}
           />
           <button onClick={() => send()} disabled={!input.trim() || loading} style={{
-            padding: "10px 20px", borderRadius: 10, border: "none",
+            padding: `${T.sp3}px ${T.sp5}px`, borderRadius: T.r2, border: "none",
             background: input.trim() && !loading ? T.accent : T.border,
             color: input.trim() && !loading ? "#FFF" : T.textMuted,
-            fontFamily: T.font, fontSize: 13, fontWeight: 600, cursor: input.trim() && !loading ? "pointer" : "default",
-            flexShrink: 0, display: "flex", alignItems: "center", gap: 6,
+            fontFamily: T.font, fontSize: T.fs3, fontWeight: 600, cursor: input.trim() && !loading ? "pointer" : "default",
+            flexShrink: 0, display: "flex", alignItems: "center", gap: T.sp2,
           }}>
             <Ic name="send" size={14} color={input.trim() && !loading ? "#FFF" : T.textMuted} />Send
           </button>
@@ -6965,19 +7205,19 @@ function ArbitratorQAChat({ reqs, claims, docs }) {
 
       {/* Evidence sidebar */}
       {sidebar && (
-        <div style={{ width: 320, marginLeft: 16, flexShrink: 0 }}>
-          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: 12, padding: 20, position: "sticky", top: 20 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-              <span style={{ fontSize: 11, fontWeight: 600, color: T.accent, fontFamily: T.font, textTransform: "uppercase", letterSpacing: 0.5 }}>{sidebar.type}</span>
+        <div style={{ width: 320, marginLeft: T.sp4, flexShrink: 0 }}>
+          <div style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.r2, padding: T.sp5, position: "sticky", top: T.sp5 }}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: T.sp4 }}>
+              <span style={{ fontSize: T.fs1, fontWeight: 600, color: T.accent, fontFamily: T.font, textTransform: "uppercase", letterSpacing: 0.5 }}>{sidebar.type}</span>
               <button onClick={() => setSidebar(null)} style={{ background: "none", border: "none", cursor: "pointer", padding: 2 }}>
                 <Ic name="x" size={16} color={T.textMuted} />
               </button>
             </div>
-            <div style={{ fontSize: 17, fontWeight: 700, color: T.text, fontFamily: T.font, marginBottom: 16 }}>{sidebar.id}</div>
+            <div style={{ fontSize: T.fs5, fontWeight: 700, color: T.text, fontFamily: T.font, marginBottom: T.sp4 }}>{sidebar.id}</div>
             {sidebar.fields.map(([label, val], i) => (
-              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: "10px 0", borderTop: `1px solid ${T.border}` }}>
-                <span style={{ fontSize: 12, color: T.textMuted, fontFamily: T.font }}>{label}</span>
-                <span style={{ fontSize: 12, color: T.text, fontFamily: T.font, fontWeight: 500, textAlign: "right", maxWidth: "60%", wordBreak: "break-word" }}>{val}</span>
+              <div key={i} style={{ display: "flex", justifyContent: "space-between", padding: `${T.sp3}px 0`, borderTop: `1px solid ${T.border}` }}>
+                <span style={{ fontSize: T.fs2, color: T.textMuted, fontFamily: T.font }}>{label}</span>
+                <span style={{ fontSize: T.fs2, color: T.text, fontFamily: T.font, fontWeight: 500, textAlign: "right", maxWidth: "60%", wordBreak: "break-word" }}>{val}</span>
               </div>
             ))}
           </div>
@@ -7038,14 +7278,14 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
     return (
       <button onClick={() => setOpen(true)} style={{
         position: "fixed", bottom: 24, right: 28, zIndex: 1000,
-        padding: "12px 22px", borderRadius: 28,
+        padding: `${T.sp3}px ${T.sp6}px`, borderRadius: T.r3,
         background: T.navBg, color: "#fff", border: "none",
-        cursor: "pointer", fontFamily: T.font, fontSize: 13, fontWeight: 500,
+        cursor: "pointer", fontFamily: T.font, fontSize: T.fs3, fontWeight: 500,
         boxShadow: T.sh3,
-        display: "flex", alignItems: "center", gap: 8, transition: T.med,
+        display: "flex", alignItems: "center", gap: T.sp2, transition: T.med,
       }}>
-        <Ic name="zap" size={15} color="#fff" /> Ask AI
-        <span style={{ fontSize: 10, color: T.navText, marginLeft: 4 }}>Ctrl+K</span>
+        <Ic name="zap" size={T.fs4} color="#fff" /> Ask AI
+        <span style={{ fontSize: T.fs1, color: T.navText, marginLeft: T.sp1 }}>Ctrl+K</span>
       </button>
     );
   }
@@ -7053,22 +7293,22 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
   return (
     <div style={{
       position: "fixed", bottom: 24, right: 28, zIndex: 1000,
-      width: 420, maxHeight: 540, borderRadius: 16,
+      width: 420, maxHeight: 540, borderRadius: T.r3,
       background: T.surface, border: `1px solid ${T.border}`,
       boxShadow: T.sh3,
       display: "flex", flexDirection: "column", fontFamily: T.font,
     }}>
       {/* Header */}
       <div style={{
-        padding: "12px 16px", borderBottom: `1px solid ${T.border}`,
+        padding: `${T.sp3}px ${T.sp4}px`, borderBottom: `1px solid ${T.border}`,
         display: "flex", justifyContent: "space-between", alignItems: "center",
       }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: T.sp2 }}>
           <Ic name="zap" size={14} color={T.accent} />
-          <span style={{ fontSize: 13, fontWeight: 600, color: T.text }}>AI Assistant</span>
-          <span style={{ fontSize: 10, color: T.textMuted }}>· {tab}</span>
+          <span style={{ fontSize: T.fs3, fontWeight: 600, color: T.text }}>AI Assistant</span>
+          <span style={{ fontSize: T.fs1, color: T.textMuted }}>· {tab}</span>
         </div>
-        <div style={{ display: "flex", gap: 4, alignItems: "center" }}>
+        <div style={{ display: "flex", gap: T.sp1, alignItems: "center" }}>
           <button onClick={() => setShowSettings(!showSettings)} title="Settings" style={{
             background: "none", border: "none", cursor: "pointer", fontSize: 14,
             color: T.textMuted, lineHeight: 1, padding: "2px 6px",
@@ -7082,23 +7322,23 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
 
       {/* Settings Panel */}
       {showSettings && (
-        <div style={{ padding: "12px 16px", borderBottom: `1px solid ${T.border}`, background: T.bg }}>
-          <label style={{ display: "block", fontSize: 11, fontWeight: 600, color: T.textMid, marginBottom: 6, fontFamily: T.font }}>OpenAI API Key</label>
-          <div style={{ display: "flex", gap: 6 }}>
+        <div style={{ padding: `${T.sp3}px ${T.sp4}px`, borderBottom: `1px solid ${T.border}`, background: T.bg }}>
+          <label style={{ display: "block", fontSize: T.fs1, fontWeight: 600, color: T.textMid, marginBottom: T.sp2, fontFamily: T.font }}>OpenAI API Key</label>
+          <div style={{ display: "flex", gap: T.sp2 }}>
             <input type="password" value={keyInput || (apiKey ? "••••••••" + apiKey.slice(-8) : "")}
               onChange={e => setKeyInput(e.target.value)}
               onFocus={() => { if (!keyInput) setKeyInput(""); }}
               placeholder="sk-..."
-              style={{ flex: 1, padding: "6px 10px", borderRadius: 6, border: `1px solid ${T.border}`, fontSize: 12, fontFamily: T.mono, color: T.text, background: T.surface }} />
+              style={{ flex: 1, padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, border: `1px solid ${T.border}`, fontSize: T.fs2, fontFamily: T.mono, color: T.text, background: T.surface }} />
             <button onClick={() => saveApiKey(keyInput)} disabled={!keyInput.trim()} style={{
-              padding: "6px 12px", borderRadius: 6, cursor: keyInput.trim() ? "pointer" : "default", fontFamily: T.font, fontSize: 11, fontWeight: 600,
+              padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r1, cursor: keyInput.trim() ? "pointer" : "default", fontFamily: T.font, fontSize: T.fs1, fontWeight: 600,
               border: "none", background: keyInput.trim() ? T.accent : T.border, color: keyInput.trim() ? "#fff" : T.textMuted,
             }}>Save</button>
           </div>
-          <div style={{ fontSize: 10, color: T.textMuted, marginTop: 4, fontFamily: T.font }}>Stored in your browser only — never sent to our servers.</div>
+          <div style={{ fontSize: T.fs1, color: T.textMuted, marginTop: T.sp1, fontFamily: T.font }}>Stored in your browser only — never sent to our servers.</div>
           {apiKey && (
             <button onClick={() => { saveApiKey(""); setKeyInput(""); }} style={{
-              marginTop: 6, padding: "4px 10px", borderRadius: 6, cursor: "pointer", fontFamily: T.font, fontSize: 10,
+              marginTop: T.sp2, padding: `${T.sp1}px ${T.sp3}px`, borderRadius: T.r1, cursor: "pointer", fontFamily: T.font, fontSize: T.fs1,
               border: `1px solid ${T.redBorder}`, background: T.redBg, color: T.red,
             }}>Remove Key</button>
           )}
@@ -7107,14 +7347,14 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
 
       {/* No API Key Prompt */}
       {!apiKey && !showSettings && (
-        <div style={{ padding: "24px 16px", textAlign: "center" }}>
-          <div style={{ marginBottom: 10 }}><Ic name="key" size={28} color={T.accent} /></div>
-          <div style={{ fontSize: 13, fontWeight: 500, color: T.text, marginBottom: 4, fontFamily: T.font }}>Connect OpenAI</div>
-          <div style={{ fontSize: 11, color: T.textMuted, marginBottom: 12, fontFamily: T.font, lineHeight: 1.5 }}>
+        <div style={{ padding: `${T.sp6}px ${T.sp4}px`, textAlign: "center" }}>
+          <div style={{ marginBottom: T.sp3 }}><Ic name="key" size={28} color={T.accent} /></div>
+          <div style={{ fontSize: T.fs3, fontWeight: 500, color: T.text, marginBottom: T.sp1, fontFamily: T.font }}>Connect OpenAI</div>
+          <div style={{ fontSize: T.fs1, color: T.textMuted, marginBottom: T.sp3, fontFamily: T.font, lineHeight: T.lh }}>
             Enter your OpenAI API key to enable AI-powered commands, document analysis, and case insights.
           </div>
           <button onClick={() => setShowSettings(true)} style={{
-            padding: "8px 20px", borderRadius: 8, cursor: "pointer", fontFamily: T.font, fontSize: 12, fontWeight: 600,
+            padding: `${T.sp2}px ${T.sp5}px`, borderRadius: T.r2, cursor: "pointer", fontFamily: T.font, fontSize: T.fs2, fontWeight: 600,
             border: "none", background: T.accent, color: "#fff",
           }}>Add API Key</button>
         </div>
@@ -7122,14 +7362,14 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
 
       {/* Messages */}
       <div style={{
-        flex: 1, overflow: "auto", padding: "12px 16px",
-        display: "flex", flexDirection: "column", gap: 10,
+        flex: 1, overflow: "auto", padding: `${T.sp3}px ${T.sp4}px`,
+        display: "flex", flexDirection: "column", gap: T.sp3,
         maxHeight: 360,
       }}>
         {messages.length === 0 && (
-          <div style={{ textAlign: "center", padding: "20px 0", color: T.textMuted, fontSize: 12 }}>
-            <div style={{ marginBottom: 8 }}>Ask me anything about the case.</div>
-            <div style={{ fontSize: 11, lineHeight: 1.6 }}>
+          <div style={{ textAlign: "center", padding: `${T.sp5}px 0`, color: T.textMuted, fontSize: T.fs2 }}>
+            <div style={{ marginBottom: T.sp2 }}>Ask me anything about the case.</div>
+            <div style={{ fontSize: T.fs1, lineHeight: T.lh }}>
               Try: "Flag REQ-3 as duplicate billing"<br />
               "What's the total disputed amount?"<br />
               "Add a document for the Korth subcontract"
@@ -7142,21 +7382,21 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
               maxWidth: "85%",
               marginLeft: msg.role === "user" ? "auto" : 0,
               marginRight: msg.role === "assistant" ? "auto" : 0,
-              padding: "8px 12px", borderRadius: 12,
+              padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r2,
               background: msg.role === "user" ? T.accentBg : T.bg,
               border: `1px solid ${msg.role === "user" ? T.accentBorder : T.border}`,
-              fontSize: 12, color: T.text, lineHeight: 1.5, whiteSpace: "pre-wrap",
+              fontSize: T.fs2, color: T.text, lineHeight: T.lh, whiteSpace: "pre-wrap",
             }}>
               {msg.content}
             </div>
             {msg.actions && msg.actions.length > 0 && (
-              <div style={{ marginTop: 6, display: "flex", flexDirection: "column", gap: 3 }}>
+              <div style={{ marginTop: T.sp2, display: "flex", flexDirection: "column", gap: T.sp1 }}>
                 {msg.actions.map((action, j) => (
                   <div key={j} style={{
-                    padding: "6px 10px", borderRadius: 8,
+                    padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r2,
                     background: T.greenBg, border: `1px solid ${T.green}22`,
-                    fontSize: 10, color: T.green,
-                    display: "flex", gap: 6, alignItems: "center",
+                    fontSize: T.fs1, color: T.green,
+                    display: "flex", gap: T.sp2, alignItems: "center",
                   }}>
                     <Ic name={action.icon} size={12} color={T.green} />
                     <span>{action.summary}</span>
@@ -7167,15 +7407,15 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
           </div>
         ))}
         {loading && (
-          <div style={{ fontSize: 12, color: T.textMuted, padding: "8px 0" }}>Thinking...</div>
+          <div style={{ fontSize: T.fs2, color: T.textMuted, padding: `${T.sp2}px 0` }}>Thinking...</div>
         )}
         <div ref={messagesEndRef} />
       </div>
 
       {/* Input */}
       {apiKey && <div style={{
-        padding: "12px 16px", borderTop: `1px solid ${T.border}`,
-        display: "flex", gap: 8,
+        padding: `${T.sp3}px ${T.sp4}px`, borderTop: `1px solid ${T.border}`,
+        display: "flex", gap: T.sp2,
       }}>
         <input
           type="text" value={input}
@@ -7184,14 +7424,14 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
           placeholder="Ask about the case..."
           autoFocus
           style={{
-            flex: 1, padding: "8px 12px", borderRadius: 8,
-            border: `1px solid ${T.border}`, fontSize: 13,
+            flex: 1, padding: `${T.sp2}px ${T.sp3}px`, borderRadius: T.r2,
+            border: `1px solid ${T.border}`, fontSize: T.fs3,
             fontFamily: T.font, color: T.text, background: T.bg,
           }}
         />
         <button onClick={handleSend} disabled={loading || !input.trim()} style={{
-          padding: "8px 16px", borderRadius: 8, cursor: loading ? "default" : "pointer",
-          fontFamily: T.font, fontSize: 12, fontWeight: 600,
+          padding: `${T.sp2}px ${T.sp4}px`, borderRadius: T.r2, cursor: loading ? "default" : "pointer",
+          fontFamily: T.font, fontSize: T.fs2, fontWeight: 600,
           border: "none", background: loading ? T.border : T.accent,
           color: loading ? T.textMuted : "#fff",
         }}>
@@ -7205,13 +7445,37 @@ function CommandBar({ tab, setTab, reqs, updateReq, claims, updateClaim, docs, u
 // ── ROOT ──────────────────────────────────────────────────────────────────────
 export default function App() {
   const [tab, setTab] = useState("dashboard");
-  const [mode, setMode] = useState("prep"); // "prep" or "presentation"
+  const [mode, setMode] = useState("presentation"); // "prep" or "presentation"
+  const [prepUnlocked, setPrepUnlocked] = useState(() => sessionStorage.getItem("tharp-prep-unlocked") === "true");
+  const [showPwModal, setShowPwModal] = useState(false);
+  const [pwInput, setPwInput] = useState("");
+  const [pwError, setPwError] = useState(false);
   const [reqs, setReqs] = useState(REQS_INITIAL);
   const [claims, setClaims] = useState(OWNER_CLAIMS_INITIAL);
   const [docs, setDocs] = useState(DOCS_INITIAL);
   const [attachments, setAttachments] = useState({}); // { invoiceId: { fileName, size, date } }
   const [loaded, setLoaded] = useState(false);
   const [saved, setSaved] = useState(false);
+
+  const PREP_HASH = "5f4dcc3b5aa765d61d8327deb882cf99a04d5a163e5a"; // not the real hash, just a marker
+  const handlePrepToggle = () => {
+    if (mode === "prep") { setMode("presentation"); return; }
+    if (prepUnlocked) { setMode("prep"); return; }
+    setPwInput(""); setPwError(false); setShowPwModal(true);
+  };
+  const handlePwSubmit = () => {
+    if (pwInput === "Montana1778!") {
+      setPrepUnlocked(true);
+      sessionStorage.setItem("tharp-prep-unlocked", "true");
+      setMode("prep");
+      setShowPwModal(false);
+      setPwInput("");
+      setPwError(false);
+    } else {
+      setPwError(true);
+      setPwInput("");
+    }
+  };
 
   useEffect(() => {
     (async () => {
@@ -7313,7 +7577,7 @@ export default function App() {
 
   if (!loaded) return (
     <div style={{ background: T.bg, minHeight: "100vh", display: "flex", alignItems: "center", justifyContent: "center", fontFamily: T.font }}>
-      <div style={{ fontSize: 14, color: T.textMuted, letterSpacing: 0.5 }}>Loading…</div>
+      <div style={{ fontSize: T.fs4, color: T.textMuted, letterSpacing: 0.5 }}>Loading…</div>
     </div>
   );
 
@@ -7338,41 +7602,83 @@ export default function App() {
 
   return (
     <div style={{ background: T.bg, minHeight: "100vh", fontFamily: T.font }}>
-      {/* Top Bar */}
-      <div style={{ background: `linear-gradient(135deg, ${T.navBg} 0%, #1A1814 100%)`, padding: "0 32px", display: "flex", alignItems: "center", justifyContent: "space-between", height: 56, borderBottom: `2px solid ${T.accent}` }}>
-        <div style={{ display: "flex", alignItems: "center", gap: 14 }}>
-          <Ic name="scale" size={20} color={T.accent} />
-          <span style={{ fontSize: 18, fontWeight: 700, color: "#FFFFFF", letterSpacing: -0.5, fontFamily: T.font }}>Arbitai</span>
-          <span style={{ width: 1, height: 20, background: "#333028", display: "inline-block", margin: "0 4px" }}></span>
-          <span style={{ fontSize: 11, color: T.navText, fontFamily: T.font, padding: "3px 10px", background: "rgba(255,255,255,0.06)", borderRadius: 6, letterSpacing: 0.2 }}>Montana v. Tharp</span>
+      {/* Password Modal for Prep Mode */}
+      {showPwModal && <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.6)", zIndex: 9999, display: "flex", alignItems: "center", justifyContent: "center", backdropFilter: "blur(4px)" }} onClick={() => setShowPwModal(false)}>
+        <div onClick={e => e.stopPropagation()} style={{ background: T.surface, border: `1px solid ${T.border}`, borderRadius: T.r3, padding: T.sp7, width: 380, boxShadow: "0 20px 60px rgba(0,0,0,0.4)" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: T.sp3, marginBottom: T.sp5 }}>
+            <div style={{ width: 40, height: 40, borderRadius: T.r2, background: T.accent + "15", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Ic name="lock" size={20} color={T.accent} />
+            </div>
+            <div>
+              <div style={{ fontSize: T.fs4, fontWeight: 700, color: T.text, fontFamily: T.font }}>Prep Mode Access</div>
+              <div style={{ fontSize: T.fs1, color: T.textMuted, fontFamily: T.font }}>Enter password to continue</div>
+            </div>
+          </div>
+          <form onSubmit={e => { e.preventDefault(); handlePwSubmit(); }}>
+            <input
+              type="password"
+              autoFocus
+              value={pwInput}
+              onChange={e => { setPwInput(e.target.value); setPwError(false); }}
+              placeholder="Password"
+              style={{
+                width: "100%", padding: `${T.sp3}px ${T.sp4}px`, fontSize: T.fs3, fontFamily: T.font,
+                border: `2px solid ${pwError ? T.red : T.border}`, borderRadius: T.r2, outline: "none",
+                background: T.bg, color: T.text, boxSizing: "border-box",
+                transition: T.fast,
+              }}
+            />
+            {pwError && <div style={{ color: T.red, fontSize: T.fs1, fontFamily: T.font, marginTop: T.sp2, display: "flex", alignItems: "center", gap: T.sp1 }}>
+              <Ic name="alert" size={14} color={T.red} /> Incorrect password
+            </div>}
+            <div style={{ display: "flex", gap: T.sp3, marginTop: T.sp5 }}>
+              <button type="button" onClick={() => setShowPwModal(false)} style={{
+                flex: 1, padding: `${T.sp3}px 0`, borderRadius: T.r2, border: `1px solid ${T.border}`,
+                background: "none", color: T.textMuted, fontSize: T.fs2, fontFamily: T.font, cursor: "pointer",
+              }}>Cancel</button>
+              <button type="submit" style={{
+                flex: 1, padding: `${T.sp3}px 0`, borderRadius: T.r2, border: "none",
+                background: T.accent, color: "#fff", fontSize: T.fs2, fontWeight: 600, fontFamily: T.font, cursor: "pointer",
+              }}>Unlock</button>
+            </div>
+          </form>
         </div>
-        <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
-          {saved && <span style={{ fontSize: 11, color: T.green, fontFamily: T.font, display: "flex", alignItems: "center", gap: 4 }}><Ic name="check" size={12} color={T.green} />{"Saved" + (window._storageMode === "cloud" ? " to cloud" : "")}</span>}
-          <button onClick={() => setMode(m => m === "prep" ? "presentation" : "prep")} style={{
+      </div>}
+      {/* Top Bar */}
+      <div style={{ background: `linear-gradient(135deg, ${T.navBg} 0%, #1A1814 100%)`, padding: `0 ${T.sp7}px`, display: "flex", alignItems: "center", justifyContent: "space-between", height: 56, borderBottom: `2px solid ${T.accent}` }}>
+        <div style={{ display: "flex", alignItems: "center", gap: T.sp4 }}>
+          <Ic name="scale" size={T.sp5} color={T.accent} />
+          <span style={{ fontSize: T.fs5, fontWeight: 700, color: "#FFFFFF", letterSpacing: -0.5, fontFamily: T.font }}>Arbitai</span>
+          <span style={{ width: 1, height: T.sp5, background: "#333028", display: "inline-block", margin: `0 ${T.sp1}px` }}></span>
+          <span style={{ fontSize: T.fs1, color: T.navText, fontFamily: T.font, padding: `${T.sp1}px ${T.sp3}px`, background: "rgba(255,255,255,0.06)", borderRadius: T.r1, letterSpacing: 0.2 }}>Montana v. Tharp</span>
+        </div>
+        <div style={{ display: "flex", alignItems: "center", gap: T.sp4 }}>
+          {saved && <span style={{ fontSize: T.fs1, color: T.green, fontFamily: T.font, display: "flex", alignItems: "center", gap: T.sp1 }}><Ic name="check" size={T.fs2} color={T.green} />{"Saved" + (window._storageMode === "cloud" ? " to cloud" : "")}</span>}
+          <button onClick={handlePrepToggle} style={{
             background: mode === "presentation" ? T.accent + "25" : "rgba(255,255,255,0.06)",
             border: `1px solid ${mode === "presentation" ? T.accent : "#333028"}`,
-            borderRadius: 8, padding: "4px 12px", cursor: "pointer",
-            display: "inline-flex", alignItems: "center", gap: 6, transition: T.fast,
+            borderRadius: T.r2, padding: `${T.sp1}px ${T.sp3}px`, cursor: "pointer",
+            display: "inline-flex", alignItems: "center", gap: T.sp2, transition: T.fast,
           }}>
-            <Ic name={mode === "presentation" ? "play" : "settings"} size={12} color={mode === "presentation" ? T.accent : "#999"} />
-            <span style={{ fontSize: 11, fontWeight: 500, fontFamily: T.font, color: mode === "presentation" ? T.accent : "#999", letterSpacing: 0.2 }}>
+            <Ic name={mode === "presentation" ? "play" : "settings"} size={T.fs2} color={mode === "presentation" ? T.accent : "#999"} />
+            <span style={{ fontSize: T.fs1, fontWeight: 500, fontFamily: T.font, color: mode === "presentation" ? T.accent : "#999", letterSpacing: 0.2 }}>
               {mode === "presentation" ? "Presentation" : "Prep Mode"}
             </span>
           </button>
-          <span style={{ fontSize: 11, padding: "3px 10px", borderRadius: 10, background: window._storageMode === "cloud" ? "#16A34A15" : "#D9770615", color: window._storageMode === "cloud" ? T.green : T.amber, fontFamily: T.font, display: "inline-flex", alignItems: "center", gap: 5 }}><Ic name="cloud" size={12} color={window._storageMode === "cloud" ? T.green : T.amber} />{window._storageMode === "cloud" ? "Cloud" : "Local"}</span>
-          <span style={{ fontSize: 10, padding: "2px 8px", borderRadius: 6, background: "rgba(255,255,255,0.06)", color: T.navText, fontFamily: T.mono }}>v1.0</span>
+          <span style={{ fontSize: T.fs1, padding: `${T.sp1}px ${T.sp3}px`, borderRadius: T.r2, background: window._storageMode === "cloud" ? "#16A34A15" : "#D9770615", color: window._storageMode === "cloud" ? T.green : T.amber, fontFamily: T.font, display: "inline-flex", alignItems: "center", gap: T.sp1 }}><Ic name="cloud" size={T.fs2} color={window._storageMode === "cloud" ? T.green : T.amber} />{window._storageMode === "cloud" ? "Cloud" : "Local"}</span>
+          <span style={{ fontSize: T.fs1, padding: `2px ${T.sp2}px`, borderRadius: T.r1, background: "rgba(255,255,255,0.06)", color: T.navText, fontFamily: T.mono }}>v1.0</span>
         </div>
       </div>
 
       {/* Nav */}
-      <div style={{ background: T.surface, borderBottom: `1px solid ${T.border}`, padding: "0 32px", display: "flex", gap: 2 }}>
+      <div style={{ background: T.surface, borderBottom: `1px solid ${T.border}`, padding: `0 ${T.sp7}px`, display: "flex", gap: 2 }}>
         {TABS.map(t => {
           const active = tab === t.id;
           return (
             <button key={t.id} onClick={() => setTab(t.id)} style={{
-              background: "none", border: "none", cursor: "pointer", padding: "12px 20px",
-              display: "flex", alignItems: "center", gap: 7,
-              fontSize: 13, fontWeight: active ? 600 : 400, fontFamily: T.font,
+              background: "none", border: "none", cursor: "pointer", padding: `${T.sp3}px ${T.sp5}px`,
+              display: "flex", alignItems: "center", gap: T.sp2,
+              fontSize: T.fs3, fontWeight: active ? 600 : 400, fontFamily: T.font,
               color: active ? T.text : T.textMuted,
               borderBottom: active ? `3px solid ${T.accent}` : "3px solid transparent",
               marginBottom: -1, transition: T.fast, letterSpacing: -0.1,
